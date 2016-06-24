@@ -11,7 +11,7 @@ enum Op {
 
 #[derive(Debug)] 
 enum Value {
-    Integer(u32),
+    Integer(isize),
 }
 
 impl Value {
@@ -30,32 +30,37 @@ enum Expr {
     BinOp(Op, Box<Expr>, Box<Expr>)
 }
 
-impl Expr {
-    fn to_value_string(&self) -> String {
-        match *self {
-            Expr::Value(ref v) => v.to_string(),
-            _ => panic!(),
-        }
-    }
-}
-
 fn parse_add(line: String) -> Expr {
     let mut chars = line.chars().clone();
 
-    let operand1 = chars.next();
-    let operator = chars.next();
-    let operand2 = chars.next();
+    let words: Vec<&str> = line.split('+').collect();
 
-    match (operand1, operand2) {
-        (Some(op1), Some(op2)) => {
-            Expr::BinOp(
-                Op::Add,
-                Box::new(Expr::Value(Value::Integer(op1.to_digit(10).unwrap()))),
-                Box::new(Expr::Value(Value::Integer(op2.to_digit(10).unwrap()))),
-            )
-        }
-        _ => Expr::Value(Value::Integer(-1))
+    for i in (0..words.len() / 2) {
+        let index = 2*i;
+
+        let n1 = words[index].trim();
+        let n2 = words[index + 1].trim();
+
+        let i1: isize = n1
+            .parse()
+            .ok()
+            .expect("Wanted an integer");
+
+        let i2: isize = n2
+            .parse()
+            .ok()
+            .expect("Wanted an integer");
+
+        let e = Expr::BinOp(
+            Op::Add,
+            Box::new(Expr::Value(Value::Integer(i1))),
+            Box::new(Expr::Value(Value::Integer(i2))),
+        );
+
+        return e;
     }
+
+    panic!()
 }
 
 fn eval(e: Expr) -> Expr {
@@ -73,10 +78,13 @@ fn eval(e: Expr) -> Expr {
 }
 
 fn eval_expr(line: String) -> String {
-    let expr = parse_add(line);
+    let expr: Expr = parse_add(line);
     let v: Expr = eval(expr);
 
-    return v.to_value_string();
+    match v {
+        Expr::Value(v) => v.to_string(),
+        _ => panic!(),
+    }
 }
 
 fn main() {
