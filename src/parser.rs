@@ -60,7 +60,9 @@ impl Lexer {
       1 => self.integer(),
       2 => self.plus(),
       3 => self.integer(),
-      4 => None,
+      4 => self.plus(),
+      5 => self.integer(),
+      6 => None,
       _ => {
         println!("----------{:?}", self.pos);
         panic!();
@@ -72,36 +74,27 @@ impl Lexer {
 struct Parser {
   text: String,
   lexer: Lexer,
-  current_token: Option<Token>,
 }
 
 impl Parser {
   pub fn new(text: String) -> Parser {
     let mut lexer = Lexer::new(text.clone());
 
-    let token = lexer.get_next_token();
-
     Parser {
       text: text,
       lexer: lexer,
-      current_token: token,
     }
   }
 
-  pub fn eat(&mut self) {
-    self.current_token = self.lexer.get_next_token();
-  }
-
   pub fn factor(&mut self) -> Option<Expr> {
-    let token = self.current_token.clone();
-    self.eat();
+    let token = self.lexer.get_next_token();
 
     match token {
       Some(Token::Integer(n)) => {
         return Some(Expr::Integer(n));
       }
       Some(t) => {
-        println!("--------------------{:?}", t);
+        println!("invalid factor: {:?}", t);
         panic!();
       }
       _ => panic!()
@@ -109,35 +102,40 @@ impl Parser {
   }
 
   pub fn expr(&mut self) -> Option<Expr> {
-    let factor = self.factor();
+    let mut node = self.factor();
 
-    let token = self.current_token.clone();
-    self.eat();
+    let mut token = self.lexer.get_next_token();
 
-    match token {
-      Some(Token::Plus) => {
-        let right = self.current_token.clone();
+    while token == Some(Token::Plus) {
+      match token {
+        Some(Token::Plus) => {
+          let right = self.factor();
 
-        match (factor, right) {
-          (
-            Some(e),
-            Some(Token::Integer(n2)),
-          ) => Some(
-            Expr::BinOp(
-              Op::Plus,
-              Box::new(e),
-              Box::new(Expr::Integer(n2)),
-            )
-          ),
-          (a, b) => {
-            println!("token: {:?}", a);
-            println!("right: {:?}", b);
-            panic!();
+          match (node, right) {
+            (Some(e1), Some(e2)) => {
+              node = Some(
+                Expr::BinOp(
+                  Op::Plus,
+                  Box::new(e1),
+                  Box::new(e2),
+                )
+              );
+            },
+            (a, b) => {
+              println!("token: {:?}", a);
+              println!("right: {:?}", b);
+              panic!();
+            }
           }
-        }
-      },
-      _ => panic!()
+        },
+        _ => panic!()
+      }
+
+      token = self.lexer.get_next_token();
+      println!("------- token: {:?}", token);
     }
+    
+    node
   }
 }
 
@@ -153,6 +151,7 @@ pub fn parse(input: &str) -> Expr {
 #[test]
 fn test_parse_int() {
 
+  /*
   assert_eq!(
     Expr::BinOp(
       Op::Plus,
@@ -160,5 +159,20 @@ fn test_parse_int() {
         Box::new(Expr::Integer(4)),
       ),
     parse("3+4")
+  );
+  */
+
+  assert_eq!(
+    Expr::BinOp(
+      Op::Plus,
+      Box::new(Expr::BinOp(
+        Op::Plus,
+        Box::new(Expr::Integer(3)),
+        Box::new(Expr::Integer(4)),
+        ),
+      ),
+      Box::new(Expr::Integer(5)),
+    ),
+    parse("3+4+5")
   );
 }
