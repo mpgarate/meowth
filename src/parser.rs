@@ -90,18 +90,18 @@ impl Parser {
   }
 
   pub fn expr(&mut self) -> Option<Expr> {
-    let mut node = self.factor();
+    let mut left_node = self.factor();
 
     let mut token = self.lexer.get_next_token();
 
     while token == Some(Token::Plus) {
       let right_node = self.factor();
-      node = self.add(node, right_node);
+      left_node = self.add(left_node, right_node);
 
       token = self.lexer.get_next_token();
     }
     
-    node
+    left_node
   }
 }
 

@@ -1,9 +1,3 @@
-use std::fmt;
-use std::io;
-use std::io::prelude::*;
-
-use std::str::Chars;
-
 #[derive(Debug, PartialEq)] 
 pub enum Op {
   Plus,
