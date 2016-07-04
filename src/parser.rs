@@ -8,7 +8,7 @@ enum Token {
 
 struct Lexer {
   text: String,
-  pos: i64,
+  pos: usize,
 }
 
 impl Lexer {
@@ -23,14 +23,16 @@ impl Lexer {
   }
 
   pub fn integer(&mut self) -> Option<Token> {
-    let int_str: String = self.text
+    let (_, s) = self.text.split_at(self.pos);
+
+    let int_str: String = s
       .chars()
       .take_while(|c| c.is_digit(10))
       .collect();
 
     match int_str.parse::<i64>() {
       Ok(n) => {
-        self.remove_first(int_str.len());
+        self.pos += int_str.len();
         return Some(Token::Integer(n));
       }
       Err(e) => {
@@ -42,6 +44,7 @@ impl Lexer {
     None
   }
 
+  /*
   pub fn plus(&mut self) -> Option<Token> {
     if self.text.starts_with('+') {
       self.remove_first(1);
@@ -50,23 +53,19 @@ impl Lexer {
       panic!();
     }
   }
+  */
 
   pub fn get_next_token(&mut self) -> Option<Token> {
-    // TODO: make this do real things
+    let old_pos = self.pos;
 
-    self.pos += 1;
-
-    match self.pos {
-      1 => self.integer(),
-      2 => self.plus(),
-      3 => self.integer(),
-      4 => self.plus(),
-      5 => self.integer(),
-      6 => None,
-      _ => {
-        println!("----------{:?}", self.pos);
-        panic!();
-      }
+    match self.text.chars().nth(self.pos) {
+      Some('+') => {
+        self.pos += 1;
+        Some(Token::Plus)
+      },
+      Some(x) if x.is_numeric() => self.integer(),
+      None => None,
+      _ => panic!()
     }
   }
 }
@@ -150,8 +149,6 @@ pub fn parse(input: &str) -> Expr {
 
 #[test]
 fn test_parse_int() {
-
-  /*
   assert_eq!(
     Expr::BinOp(
       Op::Plus,
@@ -160,7 +157,6 @@ fn test_parse_int() {
       ),
     parse("3+4")
   );
-  */
 
   assert_eq!(
     Expr::BinOp(
