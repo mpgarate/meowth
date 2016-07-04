@@ -1,104 +1,75 @@
-use std::fmt;
-use std::io;
-use std::io::prelude::*;
+mod parser;
+mod expr;
 
-use std::str::Chars;
 
-#[derive(Debug)]
-enum Op {
-    Add,
+/*
+ *
+
+fn integer<'a, I>(input: State<I>) -> ParseResult<Expr, I>
+  where I: Stream<Item = char>
+{
+  let (s, input) = try!(many1::<String, _>(digit())
+                        .expected("integer")
+                        .parse_state(input));
+  let mut n = 0;
+  for c in s.chars() {
+    n = n * 10 + (c as i64 - '0' as i64);
+  }
+  Ok((Expr::Value(Value::Integer(n)), input))
 }
 
-#[derive(Debug)] 
-enum Value {
-    Integer(isize),
-}
+fn expr<I>(input: State<I>) -> ParseResult<Expr, I> 
+  where I: Stream<Item=char>
+{
+  /*
+  let integer = many1(digit())
+    .map(|s: String|
+      Expr::Value(Value::Integer(s.parse::<i64>().unwrap()))
+    );
+    */
 
-impl Value {
-    fn to_string(&self) -> String {
-        match *self {
-            Value::Integer(n) => {
-                n.to_string()
-            }
-        }
-    }
-}
+  let lex_char = |c| char(c).skip(spaces());
 
-#[derive(Debug)] 
-enum Expr {
-    Value(Value),
-    BinOp(Op, Box<Expr>, Box<Expr>)
-}
+  let integer_add = (
+      parser(integer),
+      lex_char('+'),
+      parser(integer),
+    ).map(|t| Expr::BinOp(Op::Add, Box::new(t.0), Box::new(t.2)));
 
-fn parse_add(line: String) -> Expr {
-    let mut chars = line.chars().clone();
-
-    let words: Vec<&str> = line.split('+').collect();
-
-    for i in (0..words.len() / 2) {
-        let index = 2*i;
-
-        let n1 = words[index].trim();
-        let n2 = words[index + 1].trim();
-
-        let i1: isize = n1
-            .parse()
-            .ok()
-            .expect("Wanted an integer");
-
-        let i2: isize = n2
-            .parse()
-            .ok()
-            .expect("Wanted an integer");
-
-        let e = Expr::BinOp(
-            Op::Add,
-            Box::new(Expr::Value(Value::Integer(i1))),
-            Box::new(Expr::Value(Value::Integer(i2))),
-        );
-
-        return e;
-    }
-
-    panic!()
-}
-
-fn eval(e: Expr) -> Expr {
-    match e {
-        Expr::BinOp(Op::Add, v1, v2) => {
-            match (*v1, *v2) {
-                (Expr::Value(Value::Integer(n1)), Expr::Value(Value::Integer(n2))) => {
-                    Expr::Value(Value::Integer(n1 + n2))
-                }
-                _ => panic!()
-            }
-        }
-        _ => panic!()
-    }
+    integer_add
+    .or(parser(integer))
+    .skip(spaces())
+    .parse_state(input)
 }
 
 fn eval_expr(line: String) -> String {
-    let expr: Expr = parse_add(line);
-    let v: Expr = eval(expr);
+  let result = parser(expr).parse(&*line);
 
-    match v {
-        Expr::Value(v) => v.to_string(),
-        _ => panic!(),
+  match result {
+    Ok((e, remaining)) => match eval(e) {
+      Expr::Value(v) => v.to_string(),
+      _ => panic!(),
+    },
+    Err(e) => {
+      println!("{:?}", e);
+      panic!()
     }
+  }
 }
 
 fn main() {
-    loop {
-        print!("calc> ");
-        io::stdout().flush();
+  loop {
+    print!("calc> ");
+    io::stdout().flush();
 
-        let mut input = String::new();
-        match io::stdin().read_line(&mut input) {
-            Ok(bytes_read) => {
-                println!("{}", eval_expr(input))
-            },
-            Err(e) => print!("error: {}", e)
-        }
-        io::stdout().flush();
+    let mut input = String::new();
+    match io::stdin().read_line(&mut input) {
+      Ok(bytes_read) => {
+        println!("{}", eval_expr(input))
+      },
+      Err(e) => print!("error: {}", e)
     }
+    io::stdout().flush();
+  }
 }
+*/
