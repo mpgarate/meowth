@@ -65,7 +65,7 @@ fn main() {
     let mut input = String::new();
     match io::stdin().read_line(&mut input) {
       Ok(bytes_read) => {
-        println!("{}", eval_expr(input))
+        println!("{}", parser::parse(input))
       },
       Err(e) => print!("error: {}", e)
     }

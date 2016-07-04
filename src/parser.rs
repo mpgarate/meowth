@@ -44,17 +44,6 @@ impl Lexer {
     None
   }
 
-  /*
-  pub fn plus(&mut self) -> Option<Token> {
-    if self.text.starts_with('+') {
-      self.remove_first(1);
-      return Some(Token::Plus);
-    } else {
-      panic!();
-    }
-  }
-  */
-
   pub fn get_next_token(&mut self) -> Option<Token> {
     let old_pos = self.pos;
 
@@ -85,7 +74,22 @@ impl Parser {
     }
   }
 
-  pub fn factor(&mut self) -> Option<Expr> {
+  fn add(&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
+    match (e1, e2) {
+      (Some(e1), Some(e2)) => {
+        Some(
+          Expr::BinOp(
+            Op::Plus,
+            Box::new(e1),
+            Box::new(e2),
+          )
+        )
+      },
+      _ => panic!()
+    }
+  }
+
+  fn factor(&mut self) -> Option<Expr> {
     let token = self.lexer.get_next_token();
 
     match token {
@@ -106,32 +110,10 @@ impl Parser {
     let mut token = self.lexer.get_next_token();
 
     while token == Some(Token::Plus) {
-      match token {
-        Some(Token::Plus) => {
-          let right = self.factor();
-
-          match (node, right) {
-            (Some(e1), Some(e2)) => {
-              node = Some(
-                Expr::BinOp(
-                  Op::Plus,
-                  Box::new(e1),
-                  Box::new(e2),
-                )
-              );
-            },
-            (a, b) => {
-              println!("token: {:?}", a);
-              println!("right: {:?}", b);
-              panic!();
-            }
-          }
-        },
-        _ => panic!()
-      }
+      let right_node = self.factor();
+      node = self.add(node, right_node);
 
       token = self.lexer.get_next_token();
-      println!("------- token: {:?}", token);
     }
     
     node
