@@ -8,51 +8,43 @@ enum Token {
 
 struct Lexer {
   text: String,
-  pos: usize,
 }
 
 impl Lexer {
   pub fn new(text: String) -> Lexer {
-    Lexer { text: text, pos: 0 }
+    Lexer {
+      text: text,
+    }
   }
 
-  fn remove_first(&mut self, n: usize) {
-    let t = self.text.clone();
-    let (old, remainder) = t.split_at(n);
-    self.text = remainder.to_string();
+  fn cut_input_by(&mut self, n: usize) {
+    let text = self.text.clone();
+    let (_, t) = text.split_at(n);
+    self.text = t.to_string();
   }
 
-  pub fn integer(&mut self) -> Option<Token> {
-    let (_, s) = self.text.split_at(self.pos);
-
-    let int_str: String = s
+  pub fn lex_integer(&mut self) -> Option<Token> {
+    let int_str: String = self.text
       .chars()
       .take_while(|c| c.is_digit(10))
       .collect();
 
     match int_str.parse::<i64>() {
       Ok(n) => {
-        self.pos += int_str.len();
+        self.cut_input_by(int_str.len());
         return Some(Token::Integer(n));
       }
-      Err(e) => {
-        println!("---------------{:?}", e);
-        panic!();
-      }
+      Err(e) => panic!()
     }
-
-    None
   }
 
   pub fn get_next_token(&mut self) -> Option<Token> {
-    let old_pos = self.pos;
-
-    match self.text.chars().nth(self.pos) {
+    match self.text.chars().next() {
       Some('+') => {
-        self.pos += 1;
+        self.cut_input_by(1);
         Some(Token::Plus)
       },
-      Some(x) if x.is_numeric() => self.integer(),
+      Some(x) if x.is_numeric() => self.lex_integer(),
       None => None,
       _ => panic!()
     }
@@ -60,18 +52,12 @@ impl Lexer {
 }
 
 struct Parser {
-  text: String,
   lexer: Lexer,
 }
 
 impl Parser {
   pub fn new(text: String) -> Parser {
-    let mut lexer = Lexer::new(text.clone());
-
-    Parser {
-      text: text,
-      lexer: lexer,
-    }
+    Parser { lexer: Lexer::new(text) }
   }
 
   fn add(&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
@@ -95,12 +81,11 @@ impl Parser {
     match token {
       Some(Token::Integer(n)) => {
         return Some(Expr::Integer(n));
-      }
-      Some(t) => {
-        println!("invalid factor: {:?}", t);
+      },
+      _ => {
+        println!("invalid factor: {:?}", token);
         panic!();
-      }
-      _ => panic!()
+      },
     }
   }
 
