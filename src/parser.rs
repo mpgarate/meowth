@@ -3,6 +3,7 @@ use expr::{Expr, Op};
 #[derive(Clone, Debug, PartialEq)] 
 enum Token {
   Plus,
+  Minus,
   Integer(i64),
 }
 
@@ -44,6 +45,10 @@ impl Lexer {
         self.cut_input_by(1);
         Some(Token::Plus)
       },
+      Some('-') => {
+        self.cut_input_by(1);
+        Some(Token::Minus)
+      },
       Some(x) if x.is_numeric() => self.lex_integer(),
       None => None,
       _ => panic!()
@@ -60,12 +65,27 @@ impl Parser {
     Parser { lexer: Lexer::new(text) }
   }
 
-  fn add(&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
+  fn plus(&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
     match (e1, e2) {
       (Some(e1), Some(e2)) => {
         Some(
           Expr::BinOp(
             Op::Plus,
+            Box::new(e1),
+            Box::new(e2),
+          )
+        )
+      },
+      _ => panic!()
+    }
+  }
+
+  fn minus (&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
+    match (e1, e2) {
+      (Some(e1), Some(e2)) => {
+        Some(
+          Expr::BinOp(
+            Op::Minus,
             Box::new(e1),
             Box::new(e2),
           )
@@ -90,18 +110,23 @@ impl Parser {
   }
 
   pub fn expr(&mut self) -> Option<Expr> {
-    let mut left_node = self.factor();
+    let mut node = self.factor();
 
     let mut token = self.lexer.get_next_token();
 
-    while token == Some(Token::Plus) {
+    while token == Some(Token::Plus) || token == Some(Token::Minus) {
       let right_node = self.factor();
-      left_node = self.add(left_node, right_node);
+
+      match token {
+        Some(Token::Plus) => node = self.plus(node, right_node),
+        Some(Token::Minus) => node = self.minus(node, right_node),
+        _ => panic!(),
+      }
 
       token = self.lexer.get_next_token();
     }
     
-    left_node
+    node 
   }
 }
 
@@ -137,5 +162,28 @@ fn test_parse_int() {
       Box::new(Expr::Integer(5)),
     ),
     parse("3+4+5")
+  );
+
+  assert_eq!(
+    Expr::BinOp(
+      Op::Minus,
+        Box::new(Expr::Integer(3)),
+        Box::new(Expr::Integer(4)),
+      ),
+    parse("3-4")
+  );
+
+  assert_eq!(
+    Expr::BinOp(
+      Op::Minus,
+      Box::new(Expr::BinOp(
+        Op::Minus,
+        Box::new(Expr::Integer(3)),
+        Box::new(Expr::Integer(4)),
+        ),
+      ),
+      Box::new(Expr::Integer(5)),
+    ),
+    parse("3-4-5")
   );
 }

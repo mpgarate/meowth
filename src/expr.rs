@@ -1,6 +1,7 @@
 #[derive(Debug, PartialEq)] 
 pub enum Op {
   Plus,
+  Minus,
 }
 
 #[derive(Debug, PartialEq)] 
@@ -27,6 +28,14 @@ fn eval(e: Expr) -> Expr {
       match (*v1, *v2) {
         (Expr::Integer(n1), Expr::Integer(n2)) => {
           Expr::Integer(n1 + n2)
+        }
+        _ => panic!()
+      }
+    },
+    Expr::BinOp(Op::Minus, v1, v2) => {
+      match (*v1, *v2) {
+        (Expr::Integer(n1), Expr::Integer(n2)) => {
+          Expr::Integer(n1 - n2)
         }
         _ => panic!()
       }
