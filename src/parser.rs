@@ -49,7 +49,8 @@ impl Lexer {
         self.cut_input_by(1);
         Some(Token::Minus)
       },
-      Some(x) if x.is_numeric() => self.lex_integer(),
+      Some(x) if x.is_digit(10) => self.lex_integer(),
+      Some(x) if x.is_whitespace() => None,
       None => None,
       _ => panic!()
     }
