@@ -2,3 +2,7 @@
 name = "boxx"
 version = "0.1.0"
 authors = ["michael <mpgarate@gmail.com>"]
+
+[dependencies]
+log = "0.3.6"
+env_logger = "0.3.3"

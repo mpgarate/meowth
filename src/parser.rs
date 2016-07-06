@@ -42,7 +42,7 @@ impl Lexer {
   }
 
   pub fn get_next_token(&mut self) -> Option<Token> {
-    println!("get_next_token: {}", self.text);
+    debug!("get_next_token: {}", self.text);
     match self.text.chars().next() {
       Some('+') => {
         self.cut_input_by(1);
@@ -63,7 +63,7 @@ impl Lexer {
       Some(x) if x.is_digit(10) => self.lex_integer(),
       Some(x) if x.is_whitespace() => None,
       None => {
-        println!("Lex'd none! EOF!");
+        debug!("Lex'd none! EOF!");
         None
       }
       _ => panic!()
@@ -90,7 +90,7 @@ impl Parser {
 
   fn eat(&mut self) {
     self.current_token = self.lexer.get_next_token();
-    println!("new current token: {:?}", self.current_token);
+    debug!("new current token: {:?}", self.current_token);
   }
 
   fn plus(&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
@@ -129,42 +129,42 @@ impl Parser {
   fn factor(&mut self) -> Option<Expr> {
     match self.current_token {
       Some(Token::Integer(n)) => {
-        println!("factor::Integer({})", n);
+        debug!("factor::Integer({})", n);
         self.eat();
         return Some(Expr::Integer(n));
       },
       Some(Token::LParen) => {
-        println!("factor::LParen)");
+        debug!("factor::LParen)");
         self.eat();
         let node = self.expr();
         self.eat();
         return node;
       },
       _ => {
-        println!("invalid factor: {:?}", self.current_token);
+        debug!("invalid factor: {:?}", self.current_token);
         panic!();
       },
     }
   }
 
   pub fn expr(&mut self) -> Option<Expr> {
-    println!("");
-    println!("left_node: (");
+    debug!("");
+    debug!("left_node: (");
     let mut node = self.factor();
-    println!(") // left_node");
-    println!("");
+    debug!(") // left_node");
+    debug!("");
 
     while self.current_token == Some(Token::Plus) || self.current_token == Some(Token::Minus) {
-      println!("expr::Op({:?})", self.current_token);
+      debug!("expr::Op({:?})", self.current_token);
 
       let op = self.current_token.clone();
 
       self.eat();
-      println!("");
-      println!("right_node: (");
+      debug!("");
+      debug!("right_node: (");
       let right_node = self.factor();
-      println!(") // right_node");
-      println!("");
+      debug!(") // right_node");
+      debug!("");
 
       node = match op {
         Some(Token::Plus) => self.plus(node, right_node),
@@ -172,9 +172,9 @@ impl Parser {
         _ => panic!(),
       };
 
-      println!("");
-      println!("node: {:?}", node);
-      println!("");
+      debug!("");
+      debug!("node: {:?}", node);
+      debug!("");
     }
     
     node 
@@ -190,93 +190,101 @@ pub fn parse(input: &str) -> Expr {
   }
 }
 
-#[test]
-fn test_parse_int() {
-  assert_eq!(
-    Expr::BinOp(
-      Op::Plus,
-        Box::new(Expr::Integer(3)),
-        Box::new(Expr::Integer(4)),
-      ),
-    parse("3+4")
-  );
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use expr::{Expr, Op};
+  extern crate env_logger;
 
-  assert_eq!(
-    Expr::BinOp(
-      Op::Plus,
-      Box::new(Expr::BinOp(
+  #[test]
+  fn test_parse_int() {
+    let _ = env_logger::init();
+    assert_eq!(
+      Expr::BinOp(
         Op::Plus,
-        Box::new(Expr::Integer(3)),
-        Box::new(Expr::Integer(4)),
+          Box::new(Expr::Integer(3)),
+          Box::new(Expr::Integer(4)),
         ),
-      ),
-      Box::new(Expr::Integer(5)),
-    ),
-    parse("3+4+5")
-  );
+      parse("3+4")
+    );
 
-  assert_eq!(
-    Expr::BinOp(
-      Op::Plus,
-      Box::new(Expr::Integer(3)),
-      Box::new(Expr::BinOp(
+    assert_eq!(
+      Expr::BinOp(
         Op::Plus,
-        Box::new(Expr::Integer(4)),
+        Box::new(Expr::BinOp(
+          Op::Plus,
+          Box::new(Expr::Integer(3)),
+          Box::new(Expr::Integer(4)),
+          ),
+        ),
         Box::new(Expr::Integer(5)),
+      ),
+      parse("3+4+5")
+    );
+
+    assert_eq!(
+      Expr::BinOp(
+        Op::Plus,
+        Box::new(Expr::Integer(3)),
+        Box::new(Expr::BinOp(
+          Op::Plus,
+          Box::new(Expr::Integer(4)),
+          Box::new(Expr::Integer(5)),
+          ),
         ),
       ),
-    ),
-    parse("3+(4+5)")
-  );
+      parse("3+(4+5)")
+    );
 
-  assert_eq!(
-    Expr::BinOp(
-      Op::Minus,
-        Box::new(Expr::Integer(3)),
-        Box::new(Expr::Integer(4)),
+    assert_eq!(
+      Expr::BinOp(
+        Op::Minus,
+          Box::new(Expr::Integer(3)),
+          Box::new(Expr::Integer(4)),
+        ),
+      parse("3-4")
+    );
+
+    assert_eq!(
+      Expr::BinOp(
+        Op::Minus,
+        Box::new(Expr::BinOp(
+          Op::Minus,
+          Box::new(Expr::Integer(3)),
+          Box::new(Expr::Integer(4)),
+          ),
+        ),
+        Box::new(Expr::Integer(5)),
       ),
-    parse("3-4")
-  );
+      parse("3-4-5")
+    );
 
-  assert_eq!(
-    Expr::BinOp(
-      Op::Minus,
-      Box::new(Expr::BinOp(
+    assert_eq!(
+      Expr::BinOp(
         Op::Minus,
         Box::new(Expr::Integer(3)),
-        Box::new(Expr::Integer(4)),
+        Box::new(Expr::BinOp(
+          Op::Minus,
+          Box::new(Expr::Integer(4)),
+          Box::new(Expr::Integer(5)),
+          ),
         ),
       ),
-      Box::new(Expr::Integer(5)),
-    ),
-    parse("3-4-5")
-  );
+      parse("3-(4-5)")
+    );
 
-  assert_eq!(
-    Expr::BinOp(
-      Op::Minus,
-      Box::new(Expr::Integer(3)),
-      Box::new(Expr::BinOp(
+    assert_eq!(
+      Expr::BinOp(
         Op::Minus,
-        Box::new(Expr::Integer(4)),
-        Box::new(Expr::Integer(5)),
+        Box::new(Expr::BinOp(
+          Op::Plus,
+          Box::new(Expr::Integer(4)),
+          Box::new(Expr::Integer(7)),
+          ),
         ),
+        Box::new(Expr::Integer(3)),
       ),
-    ),
-    parse("3-(4-5)")
-  );
-
-  assert_eq!(
-    Expr::BinOp(
-      Op::Minus,
-      Box::new(Expr::BinOp(
-        Op::Plus,
-        Box::new(Expr::Integer(4)),
-        Box::new(Expr::Integer(7)),
-        ),
-      ),
-      Box::new(Expr::Integer(3)),
-    ),
-    parse("(4+7)-3")
-  );
+      parse("(4+7)-3")
+    );
+  }
 }
