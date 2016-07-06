@@ -1,9 +1,11 @@
-use expr::{Expr, Op};
+use expr::{Expr};
 
 #[derive(Clone, Debug, PartialEq)] 
 enum Token {
   Plus,
   Minus,
+  Times,
+  Div,
   RParen,
   LParen,
   Integer(i64),
@@ -52,6 +54,14 @@ impl Lexer {
         self.cut_input_by(1);
         Some(Token::Minus)
       },
+      Some('*') => {
+        self.cut_input_by(1);
+        Some(Token::Times)
+      },
+      Some('/') => {
+        self.cut_input_by(1);
+        Some(Token::Div)
+      },
       Some('(') => {
         self.cut_input_by(1);
         Some(Token::LParen)
@@ -95,36 +105,31 @@ impl Parser {
 
   fn plus(&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
     match (e1, e2) {
-      (Some(e1), Some(e2)) => {
-        Some(
-          Expr::BinOp(
-            Op::Plus,
-            Box::new(e1),
-            Box::new(e2),
-          )
-        )
-      },
+      (Some(e1), Some(e2)) => Some(Expr::Plus(Box::new(e1), Box::new(e2))),
       _ => panic!()
     }
   }
 
   fn minus (&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
     match (e1, e2) {
-      (Some(e1), Some(e2)) => {
-        Some(
-          Expr::BinOp(
-            Op::Minus,
-            Box::new(e1),
-            Box::new(e2),
-          )
-        )
-      },
+      (Some(e1), Some(e2)) => Some(Expr::Minus(Box::new(e1), Box::new(e2))),
       _ => panic!()
     }
   }
 
+  fn times (&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
+    match (e1, e2) {
+      (Some(e1), Some(e2)) => Some(Expr::Times(Box::new(e1), Box::new(e2))),
+      _ => panic!()
+    }
+  }
 
-  //parse("3+4+5")
+  fn div (&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
+    match (e1, e2) {
+      (Some(e1), Some(e2)) => Some(Expr::Div(Box::new(e1), Box::new(e2))),
+      _ => panic!()
+    }
+  }
 
   fn factor(&mut self) -> Option<Expr> {
     match self.current_token {
@@ -147,10 +152,29 @@ impl Parser {
     }
   }
 
+  pub fn term(&mut self) -> Option<Expr> {
+    let mut node = self.factor();
+
+    while self.current_token == Some(Token::Times) || self.current_token == Some(Token::Div) {
+      let op = self.current_token.clone();
+
+      self.eat();
+      let right_node = self.term();
+
+      node = match op {
+        Some(Token::Times) => self.times(node, right_node),
+        Some(Token::Div) => self.div(node, right_node),
+        _ => panic!(),
+      };
+    }
+
+    node
+  }
+
   pub fn expr(&mut self) -> Option<Expr> {
     debug!("");
     debug!("left_node: (");
-    let mut node = self.factor();
+    let mut node = self.term();
     debug!(") // left_node");
     debug!("");
 
@@ -162,7 +186,7 @@ impl Parser {
       self.eat();
       debug!("");
       debug!("right_node: (");
-      let right_node = self.factor();
+      let right_node = self.term();
       debug!(") // right_node");
       debug!("");
 
@@ -193,15 +217,34 @@ pub fn parse(input: &str) -> Expr {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use expr::{Expr, Op};
+  use expr::{Expr};
   extern crate env_logger;
 
   #[test]
-  fn test_parse_int() {
-    let _ = env_logger::init();
+  fn test_mult_div() {
+    //let _ = env_logger::init();
     assert_eq!(
-      Expr::BinOp(
-        Op::Plus,
+      Expr::Times(
+          Box::new(Expr::Integer(3)),
+          Box::new(Expr::Integer(4)),
+        ),
+      parse("3*4")
+    );
+
+    assert_eq!(
+      Expr::Div(
+          Box::new(Expr::Integer(3)),
+          Box::new(Expr::Integer(4)),
+        ),
+      parse("3/4")
+    );
+  }
+
+  #[test]
+  fn test_parse_add_subtract_parens() {
+    //let _ = env_logger::init();
+    assert_eq!(
+      Expr::Plus(
           Box::new(Expr::Integer(3)),
           Box::new(Expr::Integer(4)),
         ),
@@ -209,10 +252,8 @@ mod tests {
     );
 
     assert_eq!(
-      Expr::BinOp(
-        Op::Plus,
-        Box::new(Expr::BinOp(
-          Op::Plus,
+      Expr::Plus(
+        Box::new(Expr::Plus(
           Box::new(Expr::Integer(3)),
           Box::new(Expr::Integer(4)),
           ),
@@ -223,11 +264,9 @@ mod tests {
     );
 
     assert_eq!(
-      Expr::BinOp(
-        Op::Plus,
+      Expr::Plus(
         Box::new(Expr::Integer(3)),
-        Box::new(Expr::BinOp(
-          Op::Plus,
+        Box::new(Expr::Plus(
           Box::new(Expr::Integer(4)),
           Box::new(Expr::Integer(5)),
           ),
@@ -237,8 +276,7 @@ mod tests {
     );
 
     assert_eq!(
-      Expr::BinOp(
-        Op::Minus,
+      Expr::Minus(
           Box::new(Expr::Integer(3)),
           Box::new(Expr::Integer(4)),
         ),
@@ -246,10 +284,8 @@ mod tests {
     );
 
     assert_eq!(
-      Expr::BinOp(
-        Op::Minus,
-        Box::new(Expr::BinOp(
-          Op::Minus,
+      Expr::Minus(
+        Box::new(Expr::Minus(
           Box::new(Expr::Integer(3)),
           Box::new(Expr::Integer(4)),
           ),
@@ -260,11 +296,9 @@ mod tests {
     );
 
     assert_eq!(
-      Expr::BinOp(
-        Op::Minus,
+      Expr::Minus(
         Box::new(Expr::Integer(3)),
-        Box::new(Expr::BinOp(
-          Op::Minus,
+        Box::new(Expr::Minus(
           Box::new(Expr::Integer(4)),
           Box::new(Expr::Integer(5)),
           ),
@@ -274,10 +308,8 @@ mod tests {
     );
 
     assert_eq!(
-      Expr::BinOp(
-        Op::Minus,
-        Box::new(Expr::BinOp(
-          Op::Plus,
+      Expr::Minus(
+        Box::new(Expr::Plus(
           Box::new(Expr::Integer(4)),
           Box::new(Expr::Integer(7)),
           ),

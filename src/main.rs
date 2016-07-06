@@ -49,5 +49,8 @@ mod tests {
     assert_eq!(Expr::Integer(8), eval(parse("(4+7)-3)")));
     assert_eq!(Expr::Integer(0), eval(parse("(4-7)+3)")));
     assert_eq!(Expr::Integer(14), eval(parse("(4+7)+3)")));
+
+    assert_eq!(Expr::Integer(2), eval(parse("(1-1)+(2-2)+(3-3)+((1+2)-((3-2)+1)+1)")));
+    assert_eq!(Expr::Integer(0), eval(parse("((((((((((1-1)))+1))))-1)))")));
   }
 }
