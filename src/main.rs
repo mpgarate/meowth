@@ -14,7 +14,7 @@ fn main() {
     let mut input = String::new();
     match stdin().read_line(&mut input) {
       Ok(bytes_read) => {
-        if (input == "exit\n".to_string()) { 
+        if input == "exit\n".to_string() { 
           break;
         }
         println!("{:?}", eval(parse(&input)))
@@ -37,5 +37,14 @@ mod tests {
     assert_eq!(Expr::Integer(-1), eval(parse("1-2")));
     assert_eq!(Expr::Integer(-100), eval(parse("32-132")));
     assert_eq!(Expr::Integer(-120), eval(parse("32-132-20")));
+
+    assert_eq!(Expr::Integer(-80), eval(parse("32-(132-20)")));
+
+    assert_eq!(Expr::Integer(-6), eval(parse("4-(7+3)")));
+    assert_eq!(Expr::Integer(0), eval(parse("4-(7-3)")));
+    assert_eq!(Expr::Integer(8), eval(parse("4+(7-3)")));
+    assert_eq!(Expr::Integer(8), eval(parse("(4+7)-3)")));
+    assert_eq!(Expr::Integer(0), eval(parse("(4-7)+3)")));
+    assert_eq!(Expr::Integer(14), eval(parse("(4+7)+3)")));
   }
 }
