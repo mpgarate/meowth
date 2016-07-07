@@ -5,18 +5,18 @@ mod parser;
 mod expr;
 
 use parser::parse;
-use expr::{Expr, eval};
+use expr::eval;
 
 use std::io::{Write, stdout, stdin};
 
 fn main() {
   loop {
-    print!("calc> ");
-    stdout().flush();
+    print!("boxx> ");
+    let _ = stdout().flush();
 
     let mut input = String::new();
     match stdin().read_line(&mut input) {
-      Ok(bytes_read) => {
+      Ok(_) => {
         if input == "exit\n".to_string() { 
           break;
         }
@@ -24,7 +24,7 @@ fn main() {
       },
       Err(e) => print!("error: {}", e)
     }
-    stdout().flush();
+    let _ = stdout().flush();
   }
 }
 

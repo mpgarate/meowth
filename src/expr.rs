@@ -12,17 +12,6 @@ pub enum Expr {
   BinOp(BinOp, Box<Expr>, Box<Expr>),
 }
 
-impl Expr {
-  fn to_string(&self) -> String {
-    match *self {
-      Expr::Int(n) => {
-        n.to_string()
-      }
-      _ => panic!("refusing to print a non-value")
-    }
-  }
-}
-
 pub fn eval(e: Expr) -> Expr {
   match e {
     Expr::BinOp(op, e1, e2) => {
