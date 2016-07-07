@@ -8,7 +8,9 @@ enum Token {
   Div,
   RParen,
   LParen,
+  Eq,
   Int(isize),
+  Bool(bool),
 }
 
 struct Lexer {
@@ -28,7 +30,7 @@ impl Lexer {
     self.text = t.to_string();
   }
 
-  pub fn lex_integer(&mut self) -> Option<Token> {
+  fn lex_integer(&mut self) -> Option<Token> {
     let int_str: String = self.text
       .chars()
       .take_while(|c| c.is_digit(10))
@@ -40,6 +42,21 @@ impl Lexer {
         return Some(Token::Int(n));
       }
       Err(_) => panic!()
+    }
+  }
+
+  fn lex_keyword(&mut self) -> Option<Token> {
+    let keyword: String = self.text
+      .chars()
+      .take_while(|c| c.is_alphabetic())
+      .collect();
+
+    self.advance(keyword.len());
+
+    match keyword.as_ref()  {
+      "true" => Some(Token::Bool(true)),
+      "false" => Some(Token::Bool(false)),
+      _ => panic!()
     }
   }
 
@@ -80,8 +97,13 @@ impl Lexer {
           self.advance(1);
           return Some(Token::RParen)
         },
-        Some(x) if x.is_digit(10) => return self.lex_integer(),
-        Some(x) if x.is_whitespace() => {
+        Some('=') => {
+          self.advance(2);
+          return Some(Token::Eq)
+        },
+        Some(c) if c.is_alphabetic() => return self.lex_keyword(),
+        Some(c) if c.is_digit(10) => return self.lex_integer(),
+        Some(c) if c.is_whitespace() => {
           self.skip_whitespace();
           continue;
         }
@@ -126,6 +148,10 @@ impl Parser {
         self.eat();
         return Some(Expr::Int(n));
       },
+      Some(Token::Bool(b)) => {
+        self.eat();
+        return Some(Expr::Bool(b));
+      },
       Some(Token::LParen) => {
         self.eat();
         let node = self.expr();
@@ -161,17 +187,20 @@ impl Parser {
   pub fn expr(&mut self) -> Option<Expr> {
     let mut node = self.term();
 
-    while self.current_token == Some(Token::Plus) || self.current_token == Some(Token::Minus) {
-      let op = self.current_token.clone();
+    let mut op = self.current_token.clone();
 
+    while op == Some(Token::Plus) || op  == Some(Token::Minus) || op == Some(Token::Eq) {
       self.eat();
       let right_node = self.term();
 
       node = match op {
         Some(Token::Plus) => self.binop(BinOp::Plus, node, right_node),
         Some(Token::Minus) => self.binop(BinOp::Minus, node, right_node),
+        Some(Token::Eq) => self.binop(BinOp::Eq, node, right_node),
         _ => panic!(),
       };
+
+      op = self.current_token.clone();
     }
     
     node 
@@ -180,8 +209,11 @@ impl Parser {
 
 pub fn parse(input: &str) -> Expr {
   let mut parser = Parser::new(input.to_string());
+  let expr = parser.expr().unwrap();
 
-  parser.expr().unwrap()
+  debug!("parsed expr: {:?}", expr);
+
+  expr
 }
 
 #[cfg(test)]

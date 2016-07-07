@@ -35,6 +35,18 @@ mod tests {
   extern crate env_logger;
 
   #[test]
+  pub fn test_bool() {
+    let _ = env_logger::init();
+    assert_eq!(Expr::Bool(true), eval(parse("1 == 1")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 == 2")));
+    assert_eq!(Expr::Bool(false), eval(parse("(1 == 1) == (1 == 2)")));
+    assert_eq!(Expr::Bool(true), eval(parse("(5 == 2) == (1 == 2)")));
+    assert_eq!(Expr::Bool(true), eval(parse("(6 == 6) == true")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 == true")));
+    assert_eq!(Expr::Bool(true), eval(parse("false == false")));
+  }
+
+  #[test]
   pub fn test_spaces() {
     //let _ = env_logger::init();
     assert_eq!(Expr::Int(2), eval(parse("1 + 1")));
