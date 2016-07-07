@@ -1,4 +1,4 @@
-use expr::{Expr};
+use expr::{Expr, BinOp};
 
 #[derive(Clone, Debug, PartialEq)] 
 enum Token {
@@ -105,28 +105,28 @@ impl Parser {
 
   fn plus(&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
     match (e1, e2) {
-      (Some(e1), Some(e2)) => Some(Expr::Plus(Box::new(e1), Box::new(e2))),
+      (Some(e1), Some(e2)) => Some(Expr::BinOp(BinOp::Plus,Box::new(e1), Box::new(e2))),
       _ => panic!()
     }
   }
 
   fn minus (&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
     match (e1, e2) {
-      (Some(e1), Some(e2)) => Some(Expr::Minus(Box::new(e1), Box::new(e2))),
+      (Some(e1), Some(e2)) => Some(Expr::BinOp(BinOp::Minus,Box::new(e1), Box::new(e2))),
       _ => panic!()
     }
   }
 
   fn times (&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
     match (e1, e2) {
-      (Some(e1), Some(e2)) => Some(Expr::Times(Box::new(e1), Box::new(e2))),
+      (Some(e1), Some(e2)) => Some(Expr::BinOp(BinOp::Times,Box::new(e1), Box::new(e2))),
       _ => panic!()
     }
   }
 
   fn div (&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
     match (e1, e2) {
-      (Some(e1), Some(e2)) => Some(Expr::Div(Box::new(e1), Box::new(e2))),
+      (Some(e1), Some(e2)) => Some(Expr::BinOp(BinOp::Div,Box::new(e1), Box::new(e2))),
       _ => panic!()
     }
   }
@@ -136,7 +136,7 @@ impl Parser {
       Some(Token::Integer(n)) => {
         debug!("factor::Integer({})", n);
         self.eat();
-        return Some(Expr::Integer(n));
+        return Some(Expr::Int(n));
       },
       Some(Token::LParen) => {
         debug!("factor::LParen)");
@@ -217,25 +217,27 @@ pub fn parse(input: &str) -> Expr {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use expr::{Expr};
+  use expr::{Expr, BinOp};
   extern crate env_logger;
 
   #[test]
   fn test_mult_div() {
     //let _ = env_logger::init();
     assert_eq!(
-      Expr::Times(
-          Box::new(Expr::Integer(3)),
-          Box::new(Expr::Integer(4)),
-        ),
+      Expr::BinOp(
+        BinOp::Times,
+        Box::new(Expr::Int(3)),
+        Box::new(Expr::Int(4)),
+      ),
       parse("3*4")
     );
 
     assert_eq!(
-      Expr::Div(
-          Box::new(Expr::Integer(3)),
-          Box::new(Expr::Integer(4)),
-        ),
+      Expr::BinOp(
+        BinOp::Div,
+        Box::new(Expr::Int(3)),
+        Box::new(Expr::Int(4)),
+      ),
       parse("3/4")
     );
   }
@@ -244,31 +246,37 @@ mod tests {
   fn test_parse_add_subtract_parens() {
     //let _ = env_logger::init();
     assert_eq!(
-      Expr::Plus(
-          Box::new(Expr::Integer(3)),
-          Box::new(Expr::Integer(4)),
-        ),
+      Expr::BinOp(
+        BinOp::Plus,
+        Box::new(Expr::Int(3)),
+        Box::new(Expr::Int(4)),
+      ),
       parse("3+4")
     );
 
     assert_eq!(
-      Expr::Plus(
-        Box::new(Expr::Plus(
-          Box::new(Expr::Integer(3)),
-          Box::new(Expr::Integer(4)),
+      Expr::BinOp(
+        BinOp::Plus,
+        Box::new(
+          Expr::BinOp(
+            BinOp::Plus,
+            Box::new(Expr::Int(3)),
+            Box::new(Expr::Int(4)),
           ),
         ),
-        Box::new(Expr::Integer(5)),
+        Box::new(Expr::Int(5)),
       ),
       parse("3+4+5")
     );
 
     assert_eq!(
-      Expr::Plus(
-        Box::new(Expr::Integer(3)),
-        Box::new(Expr::Plus(
-          Box::new(Expr::Integer(4)),
-          Box::new(Expr::Integer(5)),
+      Expr::BinOp(BinOp::Plus,
+        Box::new(Expr::Int(3)),
+        Box::new(
+          Expr::BinOp(
+            BinOp::Plus,
+            Box::new(Expr::Int(4)),
+            Box::new(Expr::Int(5)),
           ),
         ),
       ),
@@ -276,31 +284,38 @@ mod tests {
     );
 
     assert_eq!(
-      Expr::Minus(
-          Box::new(Expr::Integer(3)),
-          Box::new(Expr::Integer(4)),
-        ),
+      Expr::BinOp(
+        BinOp::Minus,
+        Box::new(Expr::Int(3)),
+        Box::new(Expr::Int(4)),
+      ),
       parse("3-4")
     );
 
     assert_eq!(
-      Expr::Minus(
-        Box::new(Expr::Minus(
-          Box::new(Expr::Integer(3)),
-          Box::new(Expr::Integer(4)),
+      Expr::BinOp(
+        BinOp::Minus,
+        Box::new(
+          Expr::BinOp(
+            BinOp::Minus,
+            Box::new(Expr::Int(3)),
+            Box::new(Expr::Int(4)),
           ),
         ),
-        Box::new(Expr::Integer(5)),
+        Box::new(Expr::Int(5)),
       ),
       parse("3-4-5")
     );
 
     assert_eq!(
-      Expr::Minus(
-        Box::new(Expr::Integer(3)),
-        Box::new(Expr::Minus(
-          Box::new(Expr::Integer(4)),
-          Box::new(Expr::Integer(5)),
+      Expr::BinOp(
+        BinOp::Minus,
+        Box::new(Expr::Int(3)),
+        Box::new(
+          Expr::BinOp(
+            BinOp::Minus,
+            Box::new(Expr::Int(4)),
+            Box::new(Expr::Int(5)),
           ),
         ),
       ),
@@ -308,13 +323,16 @@ mod tests {
     );
 
     assert_eq!(
-      Expr::Minus(
-        Box::new(Expr::Plus(
-          Box::new(Expr::Integer(4)),
-          Box::new(Expr::Integer(7)),
+      Expr::BinOp(
+        BinOp::Minus,
+        Box::new(
+          Expr::BinOp(
+            BinOp::Plus,
+            Box::new(Expr::Int(4)),
+            Box::new(Expr::Int(7)),
           ),
         ),
-        Box::new(Expr::Integer(3)),
+        Box::new(Expr::Int(3)),
       ),
       parse("(4+7)-3")
     );
