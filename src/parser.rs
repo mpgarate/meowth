@@ -9,6 +9,9 @@ enum Token {
   RParen,
   LParen,
   Eq,
+  Ne,
+  Leq,
+  Geq,
   Lt,
   Gt,
   Int(isize),
@@ -71,8 +74,12 @@ impl Lexer {
     self.advance(spaces_str.len());
   }
 
+  fn peek_next(&mut self) -> Option<char> {
+    self.text.chars().next()
+  }
+
   pub fn get_next_token(&mut self) -> Option<Token> {
-    while self.text.chars().next() != None {
+    while self.peek_next() != None {
       debug!("get_next_token: {}", self.text);
       match self.text.chars().next() {
         Some('+') => {
@@ -100,16 +107,36 @@ impl Lexer {
           return Some(Token::RParen)
         },
         Some('=') => {
+          // TODO check if this is assigning or comparing
           self.advance(2);
           return Some(Token::Eq)
         },
+        Some('!') => {
+          // TODO check if this is !<bool> or !=
+          self.advance(2);
+          return Some(Token::Ne)
+        },
         Some('>') => {
           self.advance(1);
-          return Some(Token::Gt)
+
+          match self.peek_next() {
+            Some('=') => {
+              self.advance(1);
+              return Some(Token::Geq)
+            },
+            _ => return Some(Token::Gt),
+          }
         },
         Some('<') => {
           self.advance(1);
-          return Some(Token::Lt)
+
+          match self.peek_next() {
+            Some('=') => {
+              self.advance(1);
+              return Some(Token::Leq)
+            },
+            _ => return Some(Token::Lt),
+          }
         },
         Some(c) if c.is_alphabetic() => return self.lex_keyword(),
         Some(c) if c.is_digit(10) => return self.lex_integer(),
@@ -199,13 +226,16 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while (
+    while 
       op == Some(Token::Plus)
       || op  == Some(Token::Minus)
       || op == Some(Token::Eq)
+      || op == Some(Token::Ne)
       || op == Some(Token::Lt)
+      || op == Some(Token::Leq)
+      || op == Some(Token::Geq)
       || op == Some(Token::Gt)
-    ) {
+    {
       self.eat();
       let right_node = self.term();
 
@@ -213,6 +243,9 @@ impl Parser {
         Some(Token::Plus) => self.binop(BinOp::Plus, node, right_node),
         Some(Token::Minus) => self.binop(BinOp::Minus, node, right_node),
         Some(Token::Eq) => self.binop(BinOp::Eq, node, right_node),
+        Some(Token::Ne) => self.binop(BinOp::Ne, node, right_node),
+        Some(Token::Leq) => self.binop(BinOp::Leq, node, right_node),
+        Some(Token::Geq) => self.binop(BinOp::Geq, node, right_node),
         Some(Token::Lt) => self.binop(BinOp::Lt, node, right_node),
         Some(Token::Gt) => self.binop(BinOp::Gt, node, right_node),
         _ => panic!(),

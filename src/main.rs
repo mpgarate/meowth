@@ -35,8 +35,8 @@ mod tests {
   extern crate env_logger;
 
   #[test]
-  pub fn test_bool() {
-    let _ = env_logger::init();
+  pub fn test_comparison_operators() {
+    //let _ = env_logger::init();
     assert_eq!(Expr::Bool(true), eval(parse("1 == 1")));
     assert_eq!(Expr::Bool(false), eval(parse("1 == 2")));
     assert_eq!(Expr::Bool(false), eval(parse("(1 == 1) == (1 == 2)")));
@@ -51,6 +51,16 @@ mod tests {
     assert_eq!(Expr::Bool(true), eval(parse("88 > 34")));
     assert_eq!(Expr::Bool(false), eval(parse("1 < 1")));
     assert_eq!(Expr::Bool(false), eval(parse("1 > 1")));
+
+    assert_eq!(Expr::Bool(true), eval(parse("88 != 34")));
+    assert_eq!(Expr::Bool(false), eval(parse("88 != 88")));
+    assert_eq!(Expr::Bool(true), eval(parse("88 <= 88")));
+    assert_eq!(Expr::Bool(true), eval(parse("88 >= 88")));
+    assert_eq!(Expr::Bool(true), eval(parse("1 >= 0")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 >= 12")));
+
+    assert_eq!(Expr::Bool(false), eval(parse("true != true")));
+    assert_eq!(Expr::Bool(true), eval(parse("true != false")));
   }
 
   #[test]

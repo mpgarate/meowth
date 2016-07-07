@@ -5,6 +5,9 @@ pub enum BinOp {
   Times,
   Div,
   Eq,
+  Ne,
+  Leq,
+  Geq,
   Lt,
   Gt,
 }
@@ -31,11 +34,20 @@ pub fn eval(e: Expr) -> Expr {
     Expr::BinOp(BinOp::Eq, e1, e2) => {
       Expr::Bool(eval(*e1) == eval(*e2))
     },
+    Expr::BinOp(BinOp::Ne, e1, e2) => {
+      Expr::Bool(eval(*e1) != eval(*e2))
+    },
     Expr::BinOp(BinOp::Lt, e1, e2) => {
       Expr::Bool(to_int(eval(*e1)) < to_int(eval(*e2)))
     },
     Expr::BinOp(BinOp::Gt, e1, e2) => {
       Expr::Bool(to_int(eval(*e1)) > to_int(eval(*e2)))
+    },
+    Expr::BinOp(BinOp::Leq, e1, e2) => {
+      Expr::Bool(to_int(eval(*e1)) <= to_int(eval(*e2)))
+    },
+    Expr::BinOp(BinOp::Geq, e1, e2) => {
+      Expr::Bool(to_int(eval(*e1)) >= to_int(eval(*e2)))
     },
     Expr::BinOp(BinOp::Plus, e1, e2) => {
       Expr::Int(to_int(eval(*e1)) + to_int(eval(*e2)))
