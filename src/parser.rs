@@ -43,41 +43,62 @@ impl Lexer {
     }
   }
 
-  pub fn get_next_token(&mut self) -> Option<Token> {
-    debug!("get_next_token: {}", self.text);
-    match self.text.chars().next() {
-      Some('+') => {
-        self.cut_input_by(1);
-        Some(Token::Plus)
-      },
-      Some('-') => {
-        self.cut_input_by(1);
-        Some(Token::Minus)
-      },
-      Some('*') => {
-        self.cut_input_by(1);
-        Some(Token::Times)
-      },
-      Some('/') => {
-        self.cut_input_by(1);
-        Some(Token::Div)
-      },
-      Some('(') => {
-        self.cut_input_by(1);
-        Some(Token::LParen)
-      },
-      Some(')') => {
-        self.cut_input_by(1);
-        Some(Token::RParen)
-      },
-      Some(x) if x.is_digit(10) => self.lex_integer(),
-      Some(x) if x.is_whitespace() => None,
-      None => {
-        debug!("Lex'd none! EOF!");
-        None
+  fn skip_whitespace(&mut self) {
+    let mut c = self.text.chars().next();
+
+    loop {
+      debug!("skipping whitespace... {:?}", c);
+      self.cut_input_by(1);
+      c = self.text.chars().next();
+
+      if c == None || !c.unwrap().is_whitespace() {
+        break;
       }
-      _ => panic!()
     }
+  }
+
+  pub fn get_next_token(&mut self) -> Option<Token> {
+    while self.text.chars().next() != None {
+      debug!("get_next_token: {}", self.text);
+      match self.text.chars().next() {
+        Some('+') => {
+          self.cut_input_by(1);
+          return Some(Token::Plus)
+        },
+        Some('-') => {
+          self.cut_input_by(1);
+          return Some(Token::Minus)
+        },
+        Some('*') => {
+          self.cut_input_by(1);
+          return Some(Token::Times)
+        },
+        Some('/') => {
+          self.cut_input_by(1);
+          return Some(Token::Div)
+        },
+        Some('(') => {
+          self.cut_input_by(1);
+          return Some(Token::LParen)
+        },
+        Some(')') => {
+          self.cut_input_by(1);
+          return Some(Token::RParen)
+        },
+        Some(x) if x.is_digit(10) => return self.lex_integer(),
+        Some(x) if x.is_whitespace() => {
+          self.skip_whitespace();
+          continue;
+        }
+        None => {
+          debug!("Lex'd none! EOF!");
+          return None
+        }
+        _ => panic!()
+      }
+    }
+
+    None
   }
 }
 
