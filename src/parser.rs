@@ -8,7 +8,7 @@ enum Token {
   Div,
   RParen,
   LParen,
-  Integer(i64),
+  Integer(isize),
 }
 
 struct Lexer {
@@ -34,7 +34,7 @@ impl Lexer {
       .take_while(|c| c.is_digit(10))
       .collect();
 
-    match int_str.parse::<i64>() {
+    match int_str.parse::<isize>() {
       Ok(n) => {
         self.cut_input_by(int_str.len());
         return Some(Token::Integer(n));

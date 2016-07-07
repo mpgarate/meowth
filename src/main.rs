@@ -34,6 +34,19 @@ mod tests {
   use expr::{Expr, eval};
 
   #[test]
+  pub fn test_eval_mult() {
+    assert_eq!(Expr::Integer(12), eval(parse("6*2")));
+    assert_eq!(Expr::Integer(12), eval(parse("(3+3)*2")));
+    assert_eq!(Expr::Integer(0), eval(parse("(3+3)*0")));
+  }
+
+  #[test]
+  pub fn test_eval_div() {
+    assert_eq!(Expr::Integer(6), eval(parse("12/2")));
+    //assert_eq!(Expr::Float(1.5), eval(parse("3/2")));
+  }
+
+  #[test]
   pub fn test_eval_addition() {
     assert_eq!(Expr::Integer(3), eval(parse("1+2")));
     assert_eq!(Expr::Integer(16), eval(parse("5+7+4")));
