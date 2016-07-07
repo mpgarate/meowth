@@ -8,7 +8,7 @@ enum Token {
   Div,
   RParen,
   LParen,
-  Integer(isize),
+  Int(isize),
 }
 
 struct Lexer {
@@ -22,7 +22,7 @@ impl Lexer {
     }
   }
 
-  fn cut_input_by(&mut self, n: usize) {
+  fn advance(&mut self, n: usize) {
     let text = self.text.clone();
     let (_, t) = text.split_at(n);
     self.text = t.to_string();
@@ -36,25 +36,20 @@ impl Lexer {
 
     match int_str.parse::<isize>() {
       Ok(n) => {
-        self.cut_input_by(int_str.len());
-        return Some(Token::Integer(n));
+        self.advance(int_str.len());
+        return Some(Token::Int(n));
       }
       Err(_) => panic!()
     }
   }
 
   fn skip_whitespace(&mut self) {
-    let mut c = self.text.chars().next();
+    let spaces_str: String = self.text
+      .chars()
+      .take_while(|c| c.is_whitespace())
+      .collect();
 
-    loop {
-      debug!("skipping whitespace... {:?}", c);
-      self.cut_input_by(1);
-      c = self.text.chars().next();
-
-      if c == None || !c.unwrap().is_whitespace() {
-        break;
-      }
-    }
+    self.advance(spaces_str.len());
   }
 
   pub fn get_next_token(&mut self) -> Option<Token> {
@@ -62,27 +57,27 @@ impl Lexer {
       debug!("get_next_token: {}", self.text);
       match self.text.chars().next() {
         Some('+') => {
-          self.cut_input_by(1);
+          self.advance(1);
           return Some(Token::Plus)
         },
         Some('-') => {
-          self.cut_input_by(1);
+          self.advance(1);
           return Some(Token::Minus)
         },
         Some('*') => {
-          self.cut_input_by(1);
+          self.advance(1);
           return Some(Token::Times)
         },
         Some('/') => {
-          self.cut_input_by(1);
+          self.advance(1);
           return Some(Token::Div)
         },
         Some('(') => {
-          self.cut_input_by(1);
+          self.advance(1);
           return Some(Token::LParen)
         },
         Some(')') => {
-          self.cut_input_by(1);
+          self.advance(1);
           return Some(Token::RParen)
         },
         Some(x) if x.is_digit(10) => return self.lex_integer(),
@@ -90,10 +85,7 @@ impl Lexer {
           self.skip_whitespace();
           continue;
         }
-        None => {
-          debug!("Lex'd none! EOF!");
-          return None
-        }
+        None => return None,
         _ => panic!()
       }
     }
@@ -124,43 +116,17 @@ impl Parser {
     debug!("new current token: {:?}", self.current_token);
   }
 
-  fn plus(&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
-    match (e1, e2) {
-      (Some(e1), Some(e2)) => Some(Expr::BinOp(BinOp::Plus,Box::new(e1), Box::new(e2))),
-      _ => panic!()
-    }
-  }
-
-  fn minus (&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
-    match (e1, e2) {
-      (Some(e1), Some(e2)) => Some(Expr::BinOp(BinOp::Minus,Box::new(e1), Box::new(e2))),
-      _ => panic!()
-    }
-  }
-
-  fn times (&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
-    match (e1, e2) {
-      (Some(e1), Some(e2)) => Some(Expr::BinOp(BinOp::Times,Box::new(e1), Box::new(e2))),
-      _ => panic!()
-    }
-  }
-
-  fn div (&mut self, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
-    match (e1, e2) {
-      (Some(e1), Some(e2)) => Some(Expr::BinOp(BinOp::Div,Box::new(e1), Box::new(e2))),
-      _ => panic!()
-    }
+  fn binop(&mut self, bop: BinOp, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
+    Some(Expr::BinOp(bop, Box::new(e1.unwrap()), Box::new(e2.unwrap())))
   }
 
   fn factor(&mut self) -> Option<Expr> {
     match self.current_token {
-      Some(Token::Integer(n)) => {
-        debug!("factor::Integer({})", n);
+      Some(Token::Int(n)) => {
         self.eat();
         return Some(Expr::Int(n));
       },
       Some(Token::LParen) => {
-        debug!("factor::LParen)");
         self.eat();
         let node = self.expr();
         self.eat();
@@ -183,8 +149,8 @@ impl Parser {
       let right_node = self.term();
 
       node = match op {
-        Some(Token::Times) => self.times(node, right_node),
-        Some(Token::Div) => self.div(node, right_node),
+        Some(Token::Times) => self.binop(BinOp::Times, node, right_node),
+        Some(Token::Div) => self.binop(BinOp::Div, node, right_node),
         _ => panic!(),
       };
     }
@@ -193,33 +159,19 @@ impl Parser {
   }
 
   pub fn expr(&mut self) -> Option<Expr> {
-    debug!("");
-    debug!("left_node: (");
     let mut node = self.term();
-    debug!(") // left_node");
-    debug!("");
 
     while self.current_token == Some(Token::Plus) || self.current_token == Some(Token::Minus) {
-      debug!("expr::Op({:?})", self.current_token);
-
       let op = self.current_token.clone();
 
       self.eat();
-      debug!("");
-      debug!("right_node: (");
       let right_node = self.term();
-      debug!(") // right_node");
-      debug!("");
 
       node = match op {
-        Some(Token::Plus) => self.plus(node, right_node),
-        Some(Token::Minus) => self.minus(node, right_node),
+        Some(Token::Plus) => self.binop(BinOp::Plus, node, right_node),
+        Some(Token::Minus) => self.binop(BinOp::Minus, node, right_node),
         _ => panic!(),
       };
-
-      debug!("");
-      debug!("node: {:?}", node);
-      debug!("");
     }
     
     node 
@@ -229,10 +181,7 @@ impl Parser {
 pub fn parse(input: &str) -> Expr {
   let mut parser = Parser::new(input.to_string());
 
-  match parser.expr() {
-    Some(e) => e,
-    None => panic!(),
-  }
+  parser.expr().unwrap()
 }
 
 #[cfg(test)]
@@ -265,7 +214,6 @@ mod tests {
 
   #[test]
   fn test_parse_add_subtract_parens() {
-    //let _ = env_logger::init();
     assert_eq!(
       Expr::BinOp(
         BinOp::Plus,
