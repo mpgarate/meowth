@@ -5,6 +5,8 @@ pub enum BinOp {
   Times,
   Div,
   Eq,
+  Lt,
+  Gt,
 }
 
 #[derive(Debug, PartialEq)] 
@@ -28,6 +30,12 @@ pub fn eval(e: Expr) -> Expr {
   match e {
     Expr::BinOp(BinOp::Eq, e1, e2) => {
       Expr::Bool(eval(*e1) == eval(*e2))
+    },
+    Expr::BinOp(BinOp::Lt, e1, e2) => {
+      Expr::Bool(to_int(eval(*e1)) < to_int(eval(*e2)))
+    },
+    Expr::BinOp(BinOp::Gt, e1, e2) => {
+      Expr::Bool(to_int(eval(*e1)) > to_int(eval(*e2)))
     },
     Expr::BinOp(BinOp::Plus, e1, e2) => {
       Expr::Int(to_int(eval(*e1)) + to_int(eval(*e2)))

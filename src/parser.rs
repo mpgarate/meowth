@@ -9,6 +9,8 @@ enum Token {
   RParen,
   LParen,
   Eq,
+  Lt,
+  Gt,
   Int(isize),
   Bool(bool),
 }
@@ -101,6 +103,14 @@ impl Lexer {
           self.advance(2);
           return Some(Token::Eq)
         },
+        Some('>') => {
+          self.advance(1);
+          return Some(Token::Gt)
+        },
+        Some('<') => {
+          self.advance(1);
+          return Some(Token::Lt)
+        },
         Some(c) if c.is_alphabetic() => return self.lex_keyword(),
         Some(c) if c.is_digit(10) => return self.lex_integer(),
         Some(c) if c.is_whitespace() => {
@@ -189,7 +199,13 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while op == Some(Token::Plus) || op  == Some(Token::Minus) || op == Some(Token::Eq) {
+    while (
+      op == Some(Token::Plus)
+      || op  == Some(Token::Minus)
+      || op == Some(Token::Eq)
+      || op == Some(Token::Lt)
+      || op == Some(Token::Gt)
+    ) {
       self.eat();
       let right_node = self.term();
 
@@ -197,6 +213,8 @@ impl Parser {
         Some(Token::Plus) => self.binop(BinOp::Plus, node, right_node),
         Some(Token::Minus) => self.binop(BinOp::Minus, node, right_node),
         Some(Token::Eq) => self.binop(BinOp::Eq, node, right_node),
+        Some(Token::Lt) => self.binop(BinOp::Lt, node, right_node),
+        Some(Token::Gt) => self.binop(BinOp::Gt, node, right_node),
         _ => panic!(),
       };
 

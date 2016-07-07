@@ -44,6 +44,13 @@ mod tests {
     assert_eq!(Expr::Bool(true), eval(parse("(6 == 6) == true")));
     assert_eq!(Expr::Bool(false), eval(parse("1 == true")));
     assert_eq!(Expr::Bool(true), eval(parse("false == false")));
+
+    assert_eq!(Expr::Bool(true), eval(parse("1 > 0")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 < 0")));
+
+    assert_eq!(Expr::Bool(true), eval(parse("88 > 34")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 < 1")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 > 1")));
   }
 
   #[test]
