@@ -35,34 +35,22 @@ mod tests {
   extern crate env_logger;
 
   #[test]
-  pub fn test_comparison_operators() {
+  pub fn test_or_and_and() {
     let _ = env_logger::init();
+    assert_eq!(Expr::Bool(true), eval(parse("true && true")));
+    assert_eq!(Expr::Bool(false), eval(parse("false && false")));
+    assert_eq!(Expr::Bool(false), eval(parse("true && false")));
+    assert_eq!(Expr::Bool(false), eval(parse("false && true")));
 
-    assert_eq!(Expr::Bool(true), eval(parse("1 == 1")));
-    assert_eq!(Expr::Bool(false), eval(parse("1 == 2")));
-    assert_eq!(Expr::Bool(false), eval(parse("(1 == 1) == (1 == 2)")));
-    assert_eq!(Expr::Bool(true), eval(parse("(5 == 2) == (1 == 2)")));
-    assert_eq!(Expr::Bool(true), eval(parse("(6 == 6) == true")));
-    assert_eq!(Expr::Bool(false), eval(parse("1 == true")));
-    assert_eq!(Expr::Bool(true), eval(parse("false == false")));
+    assert_eq!(Expr::Bool(true), eval(parse("true || true")));
+    assert_eq!(Expr::Bool(false), eval(parse("false || false")));
+    assert_eq!(Expr::Bool(true), eval(parse("true || false")));
+    assert_eq!(Expr::Bool(true), eval(parse("false || true")));
+  }
 
-    assert_eq!(Expr::Bool(true), eval(parse("1 > 0")));
-    assert_eq!(Expr::Bool(false), eval(parse("1 < 0")));
 
-    assert_eq!(Expr::Bool(true), eval(parse("88 > 34")));
-    assert_eq!(Expr::Bool(false), eval(parse("1 < 1")));
-    assert_eq!(Expr::Bool(false), eval(parse("1 > 1")));
-
-    assert_eq!(Expr::Bool(true), eval(parse("88 != 34")));
-    assert_eq!(Expr::Bool(false), eval(parse("88 != 88")));
-    assert_eq!(Expr::Bool(true), eval(parse("88 <= 88")));
-    assert_eq!(Expr::Bool(true), eval(parse("88 >= 88")));
-    assert_eq!(Expr::Bool(true), eval(parse("1 >= 0")));
-    assert_eq!(Expr::Bool(false), eval(parse("1 >= 12")));
-
-    assert_eq!(Expr::Bool(false), eval(parse("true != true")));
-    assert_eq!(Expr::Bool(true), eval(parse("true != false")));
-
+  #[test]
+  pub fn test_not_and_neg() {
     assert_eq!(Expr::Bool(true), eval(parse("!false")));
 
     assert_eq!(Expr::Bool(true), eval(parse("!(true == false)")));
@@ -89,11 +77,36 @@ mod tests {
     assert_eq!(Expr::Int(1), eval(parse("(2 * 1) + -1")));
   }
 
-  // -(1 - -1)
+  #[test]
+  pub fn test_comparison_operators() {
+    assert_eq!(Expr::Bool(true), eval(parse("1 == 1")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 == 2")));
+    assert_eq!(Expr::Bool(false), eval(parse("(1 == 1) == (1 == 2)")));
+    assert_eq!(Expr::Bool(true), eval(parse("(5 == 2) == (1 == 2)")));
+    assert_eq!(Expr::Bool(true), eval(parse("(6 == 6) == true")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 == true")));
+    assert_eq!(Expr::Bool(true), eval(parse("false == false")));
+
+    assert_eq!(Expr::Bool(true), eval(parse("1 > 0")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 < 0")));
+
+    assert_eq!(Expr::Bool(true), eval(parse("88 > 34")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 < 1")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 > 1")));
+
+    assert_eq!(Expr::Bool(true), eval(parse("88 != 34")));
+    assert_eq!(Expr::Bool(false), eval(parse("88 != 88")));
+    assert_eq!(Expr::Bool(true), eval(parse("88 <= 88")));
+    assert_eq!(Expr::Bool(true), eval(parse("88 >= 88")));
+    assert_eq!(Expr::Bool(true), eval(parse("1 >= 0")));
+    assert_eq!(Expr::Bool(false), eval(parse("1 >= 12")));
+
+    assert_eq!(Expr::Bool(false), eval(parse("true != true")));
+    assert_eq!(Expr::Bool(true), eval(parse("true != false")));
+  }
 
   #[test]
   pub fn test_spaces() {
-    //let _ = env_logger::init();
     assert_eq!(Expr::Int(2), eval(parse("1 + 1")));
     assert_eq!(Expr::Int(12), eval(parse(" (3+   3)* 2      ")));
     assert_eq!(Expr::Int(7), eval(parse("1 + 3*(3 + (1 - 2))")));

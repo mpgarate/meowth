@@ -16,6 +16,8 @@ pub enum BinOp {
   Geq,
   Lt,
   Gt,
+  And,
+  Or,
 }
 
 #[derive(Debug, PartialEq)] 
@@ -53,6 +55,14 @@ pub fn eval(e: Expr) -> Expr {
     },
     Expr::UnOp(UnOp::Neg, e1) => {
       Expr::Int(-1 * to_int(eval(*e1)))
+    },
+    Expr::BinOp(BinOp::And, e1, e2) => {
+      // TODO: don't eval e2 if e1 was false
+      Expr::Bool(to_bool(eval(*e1)) && to_bool(eval(*e2)))
+    },
+    Expr::BinOp(BinOp::Or, e1, e2) => {
+      // TODO: don't eval e2 if e1 was true
+      Expr::Bool(to_bool(eval(*e1)) || to_bool(eval(*e2)))
     },
     Expr::BinOp(BinOp::Eq, e1, e2) => {
       Expr::Bool(eval(*e1) == eval(*e2))

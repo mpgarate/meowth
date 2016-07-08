@@ -15,6 +15,8 @@ enum Token {
   Lt,
   Gt,
   Not,
+  And,
+  Or,
   Int(isize),
   Bool(bool),
 }
@@ -106,6 +108,14 @@ impl Lexer {
         Some(')') => {
           self.advance(1);
           return Some(Token::RParen)
+        },
+        Some('&') => {
+          self.advance(2);
+          return Some(Token::And)
+        },
+        Some('|') => {
+          self.advance(2);
+          return Some(Token::Or)
         },
         Some('=') => {
           // TODO check if this is assigning or comparing
@@ -243,14 +253,15 @@ impl Parser {
 
     while 
       op == Some(Token::Plus)
-      || op  == Some(Token::Minus)
+      || op == Some(Token::Minus)
       || op == Some(Token::Eq)
       || op == Some(Token::Ne)
-      || op == Some(Token::Lt)
       || op == Some(Token::Leq)
       || op == Some(Token::Geq)
+      || op == Some(Token::Lt)
       || op == Some(Token::Gt)
-      || op == Some(Token::Not)
+      || op == Some(Token::And)
+      || op == Some(Token::Or)
     {
       self.eat();
       let right_node = self.term();
@@ -264,6 +275,8 @@ impl Parser {
         Some(Token::Geq) => self.binop(BinOp::Geq, node, right_node),
         Some(Token::Lt) => self.binop(BinOp::Lt, node, right_node),
         Some(Token::Gt) => self.binop(BinOp::Gt, node, right_node),
+        Some(Token::And) => self.binop(BinOp::And, node, right_node),
+        Some(Token::Or) => self.binop(BinOp::Or, node, right_node),
         _ => panic!(),
       };
 
