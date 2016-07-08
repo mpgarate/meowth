@@ -22,6 +22,33 @@ enum Token {
   Bool(bool),
 }
 
+impl Token {
+  pub fn is_term_bop(&self) -> bool {
+    match *self {
+      Token::Times => true,
+      Token::Div => true,
+      _ => false,
+    }
+  }
+
+  pub fn is_expr_bop(&self) -> bool {
+    match *self {
+      Token::Plus => true,
+      Token::Minus => true,
+      Token::Eq => true,
+      Token::Ne => true,
+      Token::Leq => true,
+      Token::Geq => true,
+      Token::Lt => true,
+      Token::Gt => true,
+      Token::And => true,
+      Token::Or => true,
+      Token::Mod => true,
+      _ => false,
+    }
+  }
+}
+
 struct Lexer {
   text: String,
 }
@@ -235,9 +262,9 @@ impl Parser {
   pub fn term(&mut self) -> Option<Expr> {
     let mut node = self.factor();
 
-    while self.current_token == Some(Token::Times) || self.current_token == Some(Token::Div) {
-      let op = self.current_token.clone();
+    let mut op = self.current_token.clone();
 
+    while op != None && op.clone().unwrap().is_term_bop() {
       self.eat();
       let right_node = self.term();
 
@@ -246,6 +273,8 @@ impl Parser {
         Some(Token::Div) => self.binop(BinOp::Div, node, right_node),
         _ => panic!(),
       };
+
+      op = self.current_token.clone();
     }
 
     node
@@ -256,19 +285,7 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while 
-      op == Some(Token::Plus)
-      || op == Some(Token::Minus)
-      || op == Some(Token::Eq)
-      || op == Some(Token::Ne)
-      || op == Some(Token::Leq)
-      || op == Some(Token::Geq)
-      || op == Some(Token::Lt)
-      || op == Some(Token::Gt)
-      || op == Some(Token::And)
-      || op == Some(Token::Or)
-      || op == Some(Token::Mod)
-    {
+    while op != None && op.clone().unwrap().is_expr_bop() {
       self.eat();
       let right_node = self.term();
 
