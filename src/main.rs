@@ -1,11 +1,7 @@
-#[macro_use]
-extern crate log;
+extern crate boxx;
 
-mod parser;
-mod expr;
-
-use parser::parse;
-use expr::eval;
+use boxx::parser::{parse};
+use boxx::expr::{eval};
 
 use std::io::{Write, stdout, stdin};
 
@@ -30,8 +26,9 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-  use parser::parse;
-  use expr::{Expr, eval};
+  extern crate boxx;
+  use boxx::parser::parse;
+  use boxx::expr::{Expr, eval};
   extern crate env_logger;
 
   #[test]
