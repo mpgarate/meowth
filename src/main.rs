@@ -35,8 +35,16 @@ mod tests {
   extern crate env_logger;
 
   #[test]
-  pub fn test_or_and_and() {
+  pub fn test_mod() {
     let _ = env_logger::init();
+    assert_eq!(Expr::Int(0), eval(parse("1 % 1")));
+    assert_eq!(Expr::Int(2), eval(parse("7 % 5")));
+    assert_eq!(Expr::Int(3), eval(parse("-7 % 5")));
+    assert_eq!(Expr::Int(-2), eval(parse("-7 % -5")));
+  }
+
+  #[test]
+  pub fn test_or_and_and() {
     assert_eq!(Expr::Bool(true), eval(parse("true && true")));
     assert_eq!(Expr::Bool(false), eval(parse("false && false")));
     assert_eq!(Expr::Bool(false), eval(parse("true && false")));

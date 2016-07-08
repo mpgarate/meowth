@@ -18,6 +18,7 @@ pub enum BinOp {
   Gt,
   And,
   Or,
+  Mod,
 }
 
 #[derive(Debug, PartialEq)] 
@@ -72,6 +73,15 @@ pub fn eval(e: Expr) -> Expr {
     },
     Expr::BinOp(BinOp::Lt, e1, e2) => {
       Expr::Bool(to_int(eval(*e1)) < to_int(eval(*e2)))
+    },
+    Expr::BinOp(BinOp::Mod, e1, e2) => {
+      let n1 = to_int(eval(*e1));
+      let n2 = to_int(eval(*e2));
+
+      // rust % gives the remainder, not modulus
+      let result = ((n1 % n2) + n2) % n2;
+
+      Expr::Int(result)
     },
     Expr::BinOp(BinOp::Gt, e1, e2) => {
       Expr::Bool(to_int(eval(*e1)) > to_int(eval(*e2)))

@@ -17,6 +17,7 @@ enum Token {
   Not,
   And,
   Or,
+  Mod,
   Int(isize),
   Bool(bool),
 }
@@ -100,6 +101,10 @@ impl Lexer {
         Some('/') => {
           self.advance(1);
           return Some(Token::Div)
+        },
+        Some('%') => {
+          self.advance(1);
+          return Some(Token::Mod)
         },
         Some('(') => {
           self.advance(1);
@@ -262,6 +267,7 @@ impl Parser {
       || op == Some(Token::Gt)
       || op == Some(Token::And)
       || op == Some(Token::Or)
+      || op == Some(Token::Mod)
     {
       self.eat();
       let right_node = self.term();
@@ -277,6 +283,7 @@ impl Parser {
         Some(Token::Gt) => self.binop(BinOp::Gt, node, right_node),
         Some(Token::And) => self.binop(BinOp::And, node, right_node),
         Some(Token::Or) => self.binop(BinOp::Or, node, right_node),
+        Some(Token::Mod) => self.binop(BinOp::Mod, node, right_node),
         _ => panic!(),
       };
 
