@@ -112,7 +112,8 @@ impl Lexer {
   pub fn get_next_token(&mut self) -> Option<Token> {
     while self.peek_next() != None {
       debug!("get_next_token: {}", self.text);
-      match self.text.chars().next() {
+
+      match self.peek_next() {
         Some('+') => {
           self.advance(1);
           return Some(Token::Plus)
@@ -149,43 +150,33 @@ impl Lexer {
           self.advance(2);
           return Some(Token::Or)
         },
-        Some('=') => {
-          // TODO check if this is assigning or comparing
+        Some('=') if self.text.starts_with("==") => {
           self.advance(2);
           return Some(Token::Eq)
         },
+        Some('!') if self.text.starts_with("!=") => {
+          self.advance(2);
+          return Some(Token::Ne)
+        },
         Some('!') => {
           self.advance(1);
-
-          match self.peek_next() {
-            Some('=') => {
-              self.advance(1);
-              return Some(Token::Ne)
-            },
-            _ => return Some(Token::Not),
-          }
+          return Some(Token::Not)
+        },
+        Some('>') if self.text.starts_with(">=") => {
+          self.advance(2);
+          return Some(Token::Geq)
         },
         Some('>') => {
           self.advance(1);
-
-          match self.peek_next() {
-            Some('=') => {
-              self.advance(1);
-              return Some(Token::Geq)
-            },
-            _ => return Some(Token::Gt),
-          }
+          return Some(Token::Gt)
+        },
+        Some('<') if self.text.starts_with("<=") => {
+          self.advance(2);
+          return Some(Token::Leq)
         },
         Some('<') => {
           self.advance(1);
-
-          match self.peek_next() {
-            Some('=') => {
-              self.advance(1);
-              return Some(Token::Leq)
-            },
-            _ => return Some(Token::Lt),
-          }
+          return Some(Token::Lt)
         },
         Some(c) if c.is_alphabetic() => return self.lex_keyword(),
         Some(c) if c.is_digit(10) => return self.lex_integer(),
