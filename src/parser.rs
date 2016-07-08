@@ -15,7 +15,6 @@ enum Token {
   Lt,
   Gt,
   Not,
-  Neg,
   Int(isize),
   Bool(bool),
 }
@@ -206,6 +205,10 @@ impl Parser {
       Some(Token::Not) => {
         self.eat();
         return Some(Expr::UnOp(UnOp::Not, Box::new(self.expr().unwrap())))
+      },
+      Some(Token::Minus) => {
+        self.eat();
+        return Some(Expr::UnOp(UnOp::Neg, Box::new(self.factor().unwrap())))
       },
       _ => {
         debug!("invalid factor: {:?}", self.current_token);

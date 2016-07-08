@@ -37,7 +37,7 @@ mod tests {
   #[test]
   pub fn test_comparison_operators() {
     let _ = env_logger::init();
-    /*
+
     assert_eq!(Expr::Bool(true), eval(parse("1 == 1")));
     assert_eq!(Expr::Bool(false), eval(parse("1 == 2")));
     assert_eq!(Expr::Bool(false), eval(parse("(1 == 1) == (1 == 2)")));
@@ -64,15 +64,32 @@ mod tests {
     assert_eq!(Expr::Bool(true), eval(parse("true != false")));
 
     assert_eq!(Expr::Bool(true), eval(parse("!false")));
-    */
 
     assert_eq!(Expr::Bool(true), eval(parse("!(true == false)")));
     assert_eq!(Expr::Bool(true), eval(parse("!((1 == 1) == (3 <= 2))")));
     assert_eq!(Expr::Bool(false), eval(parse("!((1 == 1) == !(3 <= 2))")));
     assert_eq!(Expr::Bool(true), eval(parse("!!(!(!(true)))")));
 
-    //assert_eq!(Expr::Int(-1), eval(parse("-1")));
+    assert_eq!(Expr::Int(-1), eval(parse("-1")));
+    assert_eq!(Expr::Int(-100), eval(parse("-(20 * 5)")));
+    assert_eq!(Expr::Int(-100), eval(parse("-(-20 * -5)")));
+    assert_eq!(Expr::Int(-100), eval(parse("(20 * -5)")));
+    assert_eq!(Expr::Int(-100), eval(parse("(-20 * 5)")));
+    assert_eq!(Expr::Int(100), eval(parse("(-20 * -5)")));
+    assert_eq!(Expr::Int(100), eval(parse("-(20 * -5)")));
+    assert_eq!(Expr::Int(100), eval(parse("-(-20 * 5)")));
+    assert_eq!(Expr::Int(0), eval(parse("1 + -1")));
+    assert_eq!(Expr::Int(2), eval(parse("1 - -1")));
+    assert_eq!(Expr::Int(0), eval(parse("-1 - -1")));
+    assert_eq!(Expr::Int(-2), eval(parse("-1 - 1")));
+    assert_eq!(Expr::Int(-2), eval(parse("-1 * 2")));
+    assert_eq!(Expr::Int(-2), eval(parse("2 * -1")));
+    assert_eq!(Expr::Int(-2), eval(parse("-2 * 1")));
+    assert_eq!(Expr::Int(-1), eval(parse("-(2 * 1) + 1")));
+    assert_eq!(Expr::Int(1), eval(parse("(2 * 1) + -1")));
   }
+
+  // -(1 - -1)
 
   #[test]
   pub fn test_spaces() {
