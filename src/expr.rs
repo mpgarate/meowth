@@ -1,4 +1,10 @@
 #[derive(Debug, PartialEq)] 
+pub enum UnOp {
+  Not,
+  Neg,
+}
+
+#[derive(Debug, PartialEq)] 
 pub enum BinOp {
   Plus,
   Minus,
@@ -17,6 +23,7 @@ pub enum Expr {
   Int(isize),
   Bool(bool),
   BinOp(BinOp, Box<Expr>, Box<Expr>),
+  UnOp(UnOp, Box<Expr>),
 }
 
 fn to_int(e: Expr) -> isize {
@@ -29,8 +36,24 @@ fn to_int(e: Expr) -> isize {
   }
 }
 
+fn to_bool(e: Expr) -> bool {
+  match e {
+    Expr::Bool(b) => b,
+    _ => {
+      debug!("cant turn into bool: {:?}", e);
+      panic!()
+    }
+  }
+}
+
 pub fn eval(e: Expr) -> Expr {
   match e {
+    Expr::UnOp(UnOp::Not, e1) => {
+      Expr::Bool(!to_bool(eval(*e1)))
+    },
+    Expr::UnOp(UnOp::Neg, e1) => {
+      Expr::Int(-1 * to_int(eval(*e1)))
+    },
     Expr::BinOp(BinOp::Eq, e1, e2) => {
       Expr::Bool(eval(*e1) == eval(*e2))
     },

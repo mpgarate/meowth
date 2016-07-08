@@ -6,6 +6,7 @@ RUST_LOG=boxx=debug cargo watch
 ```
 
 #### A few TODOs
+* mod, and, or
 * UnOp for negation
 * ternary op (if statement)
 * expression chain (e1; e2)

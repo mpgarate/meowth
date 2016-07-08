@@ -1,4 +1,4 @@
-use expr::{Expr, BinOp};
+use expr::{Expr, BinOp, UnOp};
 
 #[derive(Clone, Debug, PartialEq)] 
 enum Token {
@@ -14,6 +14,8 @@ enum Token {
   Geq,
   Lt,
   Gt,
+  Not,
+  Neg,
   Int(isize),
   Bool(bool),
 }
@@ -112,9 +114,15 @@ impl Lexer {
           return Some(Token::Eq)
         },
         Some('!') => {
-          // TODO check if this is !<bool> or !=
-          self.advance(2);
-          return Some(Token::Ne)
+          self.advance(1);
+
+          match self.peek_next() {
+            Some('=') => {
+              self.advance(1);
+              return Some(Token::Ne)
+            },
+            _ => return Some(Token::Not),
+          }
         },
         Some('>') => {
           self.advance(1);
@@ -195,6 +203,10 @@ impl Parser {
         self.eat();
         return node;
       },
+      Some(Token::Not) => {
+        self.eat();
+        return Some(Expr::UnOp(UnOp::Not, Box::new(self.expr().unwrap())))
+      },
       _ => {
         debug!("invalid factor: {:?}", self.current_token);
         panic!();
@@ -235,6 +247,7 @@ impl Parser {
       || op == Some(Token::Leq)
       || op == Some(Token::Geq)
       || op == Some(Token::Gt)
+      || op == Some(Token::Not)
     {
       self.eat();
       let right_node = self.term();
