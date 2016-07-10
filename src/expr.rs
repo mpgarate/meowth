@@ -109,7 +109,7 @@ pub fn eval(e: Expr) -> Expr {
       eval(*e2)
     },
     Expr::Ternary(e1, e2, e3) => {
-      match to_bool(*e1) {
+      match to_bool(eval(*e1)) {
         true => eval(*e2),
         false => eval(*e3),
       }

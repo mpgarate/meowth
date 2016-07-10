@@ -33,11 +33,13 @@ mod tests {
 
   #[test]
   pub fn test_ternary() {
+    let _ = env_logger::init();
     assert_eq!(Expr::Int(1), eval(parse("true ? 1 : 0")));
     assert_eq!(Expr::Int(0), eval(parse("false ? 1 : 0")));
     assert_eq!(Expr::Int(3), eval(parse("(false ? 1 : 0); 1 + 2")));
     assert_eq!(Expr::Int(3), eval(parse("false ? 1 : 0; 1 + 2")));
     assert_eq!(Expr::Int(0), eval(parse("((1 + 1) > 3) ? 1 : 0")));
+    //assert_eq!(Expr::Int(14), eval(parse("((1 + 1) > 3) ? true && false : 12 + 2")));
   }
 
   #[test]

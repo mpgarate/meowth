@@ -22,8 +22,11 @@ enum Token {
   Ternary,
   Else,
   Var(String),
+  TVar,
   Int(isize),
+  TInt,
   Bool(bool),
+  TBool,
 }
 
 impl Token {
@@ -229,7 +232,22 @@ impl Parser {
     }
   }
 
-  fn eat(&mut self) {
+  fn eat(&mut self, expected: Token) {
+    let actual = self.current_token.clone().unwrap();
+
+    if expected != actual {
+      let is_expected = match actual {
+        Token::Int(_) if expected == Token::TInt => true,
+        Token::Bool(_) if expected == Token::TBool=> true,
+        Token::Var(_) if expected == Token::TVar=> true,
+        _ => false,
+      };
+
+      if !is_expected {
+        panic!("expected token: {:?} actual: {:?}", expected, actual)
+      }
+    }
+
     self.current_token = self.lexer.get_next_token();
     debug!("new current token: {:?}", self.current_token);
   }
@@ -245,25 +263,25 @@ impl Parser {
   fn factor(&mut self) -> Option<Expr> {
     match self.current_token {
       Some(Token::Int(n)) => {
-        self.eat();
+        self.eat(Token::TInt);
         return Some(Expr::Int(n));
       },
       Some(Token::Bool(b)) => {
-        self.eat();
+        self.eat(Token::TBool);
         return Some(Expr::Bool(b));
       },
       Some(Token::LParen) => {
-        self.eat();
+        self.eat(Token::LParen);
         let node = self.expr();
-        self.eat();
+        self.eat(Token::RParen);
         return node;
       },
       Some(Token::Not) => {
-        self.eat();
+        self.eat(Token::Not);
         return Some(Expr::UnOp(UnOp::Not, Box::new(self.expr().unwrap())))
       },
       Some(Token::Minus) => {
-        self.eat();
+        self.eat(Token::Minus);
         return Some(Expr::UnOp(UnOp::Neg, Box::new(self.factor().unwrap())))
       },
       _ => {
@@ -279,7 +297,7 @@ impl Parser {
     let mut op = self.current_token.clone();
 
     while op != None && op.clone().unwrap().is_term_bop() {
-      self.eat();
+      self.eat(op.clone().unwrap());
       let right_node = self.term();
 
       node = match op {
@@ -300,7 +318,7 @@ impl Parser {
     let mut op = self.current_token.clone();
 
     while op != None && op.clone().unwrap().is_expr_op() {
-      self.eat();
+      self.eat(op.clone().unwrap());
       let right_node = self.term();
 
       node = match op {
@@ -317,7 +335,7 @@ impl Parser {
         Some(Token::Mod) => self.binop(BinOp::Mod, node, right_node),
         Some(Token::Seq) => self.binop(BinOp::Seq, node, right_node),
         Some(Token::Ternary) => {
-          self.eat();
+          self.eat(Token::Else);
           let e3 = self.expr();
           self.ternary(node, right_node, e3)
         },
