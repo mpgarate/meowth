@@ -39,7 +39,14 @@ mod tests {
     assert_eq!(Expr::Int(3), eval(parse("(false ? 1 : 0); 1 + 2")));
     assert_eq!(Expr::Int(3), eval(parse("false ? 1 : 0; 1 + 2")));
     assert_eq!(Expr::Int(0), eval(parse("((1 + 1) > 3) ? 1 : 0")));
-    //assert_eq!(Expr::Int(14), eval(parse("((1 + 1) > 3) ? true && false : 12 + 2")));
+    assert_eq!(Expr::Int(14), eval(parse("((1 + 1) > 3) ? true && false : 12 + 2")));
+    assert_eq!(Expr::Int(14), eval(parse("1 + 1 > 3 ? true && false : 12 + 2")));
+    assert_eq!(
+      Expr::Int(10),
+      eval(parse(
+          "(false || true) ? ((1 + 2 > 12) ? 9 : 10) : ((1 + 2 < 12) ? 6 : 7)"
+       ))
+    );
   }
 
   #[test]

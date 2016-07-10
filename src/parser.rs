@@ -38,7 +38,7 @@ impl Token {
     }
   }
 
-  pub fn is_expr_op(&self) -> bool {
+  pub fn is_expr_bop(&self) -> bool {
     match *self {
       Token::Plus => true,
       Token::Minus => true,
@@ -52,7 +52,6 @@ impl Token {
       Token::Or => true,
       Token::Mod => true,
       Token::Seq => true,
-      Token::Ternary => true,
       _ => false,
     }
   }
@@ -312,13 +311,15 @@ impl Parser {
     node
   }
 
-  pub fn expr(&mut self) -> Option<Expr> {
+  pub fn binop_expr(&mut self) -> Option<Expr> {
     let mut node = self.term();
 
     let mut op = self.current_token.clone();
 
-    while op != None && op.clone().unwrap().is_expr_op() {
+    while op != None && op.clone().unwrap().is_expr_bop() {
+      debug!("expr looping on op {:?}", op);
       self.eat(op.clone().unwrap());
+
       let right_node = self.term();
 
       node = match op {
@@ -334,11 +335,6 @@ impl Parser {
         Some(Token::Or) => self.binop(BinOp::Or, node, right_node),
         Some(Token::Mod) => self.binop(BinOp::Mod, node, right_node),
         Some(Token::Seq) => self.binop(BinOp::Seq, node, right_node),
-        Some(Token::Ternary) => {
-          self.eat(Token::Else);
-          let e3 = self.expr();
-          self.ternary(node, right_node, e3)
-        },
         _ => panic!(),
       };
 
@@ -346,6 +342,26 @@ impl Parser {
     }
     
     node 
+  }
+
+  pub fn expr(&mut self) -> Option<Expr> {
+    let mut node = self.binop_expr();
+
+    let mut op = self.current_token.clone();
+
+    while op != None && op.clone().unwrap() == Token::Ternary {
+      self.eat(op.clone().unwrap());
+      let e2 = self.binop_expr();
+
+      self.eat(Token::Else);
+
+      let e3 = self.binop_expr();
+      node = self.ternary(node, e2, e3);
+
+      op = self.current_token.clone();
+    }
+
+    node
   }
 }
 
