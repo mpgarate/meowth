@@ -28,6 +28,7 @@ pub enum Expr {
   Bool(bool),
   BinOp(BinOp, Box<Expr>, Box<Expr>),
   UnOp(UnOp, Box<Expr>),
+  Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
 }
 
 fn to_int(e: Expr) -> isize {
@@ -106,6 +107,12 @@ pub fn eval(e: Expr) -> Expr {
     Expr::BinOp(BinOp::Seq, e1, e2) => {
       eval(*e1);
       eval(*e2)
+    },
+    Expr::Ternary(e1, e2, e3) => {
+      match to_bool(*e1) {
+        true => eval(*e2),
+        false => eval(*e3),
+      }
     },
     Expr::Int(_) => e,
     Expr::Bool(_) => e,

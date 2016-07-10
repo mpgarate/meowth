@@ -19,6 +19,8 @@ enum Token {
   Or,
   Mod,
   Seq,
+  Ternary,
+  Else,
   Var(String),
   Int(isize),
   Bool(bool),
@@ -33,7 +35,7 @@ impl Token {
     }
   }
 
-  pub fn is_expr_bop(&self) -> bool {
+  pub fn is_expr_op(&self) -> bool {
     match *self {
       Token::Plus => true,
       Token::Minus => true,
@@ -47,6 +49,7 @@ impl Token {
       Token::Or => true,
       Token::Mod => true,
       Token::Seq => true,
+      Token::Ternary => true,
       _ => false,
     }
   }
@@ -185,13 +188,21 @@ impl Lexer {
         Some(';') => {
           self.advance(1);
           return Some(Token::Seq)
-        }
+        },
+        Some('?') => {
+          self.advance(1);
+          return Some(Token::Ternary)
+        },
+        Some(':') => {
+          self.advance(1);
+          return Some(Token::Else)
+        },
         Some(c) if c.is_alphabetic() => return self.lex_keyword(),
         Some(c) if c.is_digit(10) => return self.lex_integer(),
         Some(c) if c.is_whitespace() => {
           self.skip_whitespace();
           continue;
-        }
+        },
         None => return None,
         _ => panic!()
       }
@@ -221,6 +232,10 @@ impl Parser {
   fn eat(&mut self) {
     self.current_token = self.lexer.get_next_token();
     debug!("new current token: {:?}", self.current_token);
+  }
+
+  fn ternary(&mut self, e1: Option<Expr>, e2: Option<Expr>, e3: Option<Expr>) -> Option<Expr> {
+    Some(Expr::Ternary(Box::new(e1.unwrap()), Box::new(e2.unwrap()), Box::new(e3.unwrap())))
   }
 
   fn binop(&mut self, bop: BinOp, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
@@ -284,7 +299,7 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while op != None && op.clone().unwrap().is_expr_bop() {
+    while op != None && op.clone().unwrap().is_expr_op() {
       self.eat();
       let right_node = self.term();
 
@@ -301,6 +316,11 @@ impl Parser {
         Some(Token::Or) => self.binop(BinOp::Or, node, right_node),
         Some(Token::Mod) => self.binop(BinOp::Mod, node, right_node),
         Some(Token::Seq) => self.binop(BinOp::Seq, node, right_node),
+        Some(Token::Ternary) => {
+          self.eat();
+          let e3 = self.expr();
+          self.ternary(node, right_node, e3)
+        },
         _ => panic!(),
       };
 

@@ -32,6 +32,15 @@ mod tests {
   extern crate env_logger;
 
   #[test]
+  pub fn test_ternary() {
+    assert_eq!(Expr::Int(1), eval(parse("true ? 1 : 0")));
+    assert_eq!(Expr::Int(0), eval(parse("false ? 1 : 0")));
+    assert_eq!(Expr::Int(3), eval(parse("(false ? 1 : 0); 1 + 2")));
+    assert_eq!(Expr::Int(3), eval(parse("false ? 1 : 0; 1 + 2")));
+    assert_eq!(Expr::Int(0), eval(parse("((1 + 1) > 3) ? 1 : 0")));
+  }
+
+  #[test]
   pub fn test_seq() {
     let _ = env_logger::init();
     assert_eq!(Expr::Int(5), eval(parse("3;5")));
