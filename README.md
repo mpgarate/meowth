@@ -6,8 +6,6 @@ RUST_LOG=boxx=debug cargo watch
 ```
 
 #### A few TODOs
-* make the parser better with multi-character token matching
-* make the parser smarter about binop matching
 * clean up the parser in general
 * split apart lexer and parser?
 * refactor expr match thing to group similar binops

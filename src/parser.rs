@@ -18,6 +18,8 @@ enum Token {
   And,
   Or,
   Mod,
+  Seq,
+  Var(String),
   Int(isize),
   Bool(bool),
 }
@@ -44,6 +46,7 @@ impl Token {
       Token::And => true,
       Token::Or => true,
       Token::Mod => true,
+      Token::Seq => true,
       _ => false,
     }
   }
@@ -92,6 +95,7 @@ impl Lexer {
     match keyword.as_ref()  {
       "true" => Some(Token::Bool(true)),
       "false" => Some(Token::Bool(false)),
+      s if s.len() > 0 => Some(Token::Var(s.to_string())),
       _ => panic!()
     }
   }
@@ -178,6 +182,10 @@ impl Lexer {
           self.advance(1);
           return Some(Token::Lt)
         },
+        Some(';') => {
+          self.advance(1);
+          return Some(Token::Seq)
+        }
         Some(c) if c.is_alphabetic() => return self.lex_keyword(),
         Some(c) if c.is_digit(10) => return self.lex_integer(),
         Some(c) if c.is_whitespace() => {
@@ -292,6 +300,7 @@ impl Parser {
         Some(Token::And) => self.binop(BinOp::And, node, right_node),
         Some(Token::Or) => self.binop(BinOp::Or, node, right_node),
         Some(Token::Mod) => self.binop(BinOp::Mod, node, right_node),
+        Some(Token::Seq) => self.binop(BinOp::Seq, node, right_node),
         _ => panic!(),
       };
 

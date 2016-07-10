@@ -32,8 +32,14 @@ mod tests {
   extern crate env_logger;
 
   #[test]
-  pub fn test_mod() {
+  pub fn test_seq() {
     let _ = env_logger::init();
+    assert_eq!(Expr::Int(5), eval(parse("3;5")));
+    //assert_eq!(Expr::Int(4), eval(parse("let x = 3;let y = 1;x + y")));
+  }
+
+  #[test]
+  pub fn test_mod() {
     assert_eq!(Expr::Int(0), eval(parse("1 % 1")));
     assert_eq!(Expr::Int(2), eval(parse("7 % 5")));
     assert_eq!(Expr::Int(3), eval(parse("-7 % 5")));
