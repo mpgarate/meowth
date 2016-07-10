@@ -6,13 +6,11 @@ RUST_LOG=boxx=debug cargo watch
 ```
 
 #### A few TODOs
+* variable assignment (let x = 1)
 * clean up the parser in general
 * split apart lexer and parser?
 * refactor expr match thing to group similar binops
 * pull tests into separate files
 * exit command
-* ternary op (if statement)
-* expression chain (e1; e2)
-* variable assignment (let x = 1)
-* Number type(s) beyond integer
 * Human-readable errors
+* Number type(s) beyond integer

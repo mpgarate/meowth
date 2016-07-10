@@ -47,6 +47,10 @@ mod tests {
           "(false || true) ? ((1 + 2 > 12) ? 9 : 10) : ((1 + 2 < 12) ? 6 : 7)"
        ))
     );
+
+    assert_eq!(Expr::Bool(true), eval(parse("1 + 2 > (1 == 0 ? 5 : 1)")));
+
+    assert_eq!(Expr::Int(-1), eval(parse("true;false ? 1;2 : 0;-1")));
   }
 
   #[test]
