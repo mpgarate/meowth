@@ -53,16 +53,40 @@ fn to_bool(e: Expr) -> bool {
   }
 }
 
+
 fn sub(e: Expr, x: Expr, v: Expr) -> Expr {
   match (e.clone(), x.clone()) {
     (Expr::Var(ref s1), Expr::Var(ref s2)) if s1 == s2 => v,
     (Expr::Var(_), _) => e,
     (Expr::Int(_), _) => e,
     (Expr::Bool(_), _) => e,
-    (Expr::BinOp(op, e1, e2), _) => Expr::BinOp(op, Box::new(sub(*e1, x.clone(), v.clone())), Box::new(sub(*e2, x.clone(), v.clone()))),
-    (Expr::UnOp(op, e1), _) => Expr::UnOp(op, Box::new(sub(*e1, x.clone(), v.clone()))),
-    (Expr::Ternary(e1, e2, e3), _) => Expr::Ternary(Box::new(sub(*e1, x.clone(), v.clone())), Box::new(sub(*e2, x.clone(), v.clone())), Box::new(sub(*e3, x.clone(), v.clone()))),
-    (Expr::Let(e1, e2, e3), _) => Expr::Let(Box::new(sub(*e1, x.clone(), v.clone())), Box::new(sub(*e2, x.clone(), v.clone())), Box::new(sub(*e3, x.clone(), v.clone()))),
+    (Expr::BinOp(op, e1, e2), _) => { 
+      Expr::BinOp(
+        op,
+        Box::new(sub(*e1, x.clone(), v.clone())),
+        Box::new(sub(*e2, x.clone(), v.clone()))
+      )
+    },
+    (Expr::UnOp(op, e1), _) => {
+      Expr::UnOp(
+        op,
+        Box::new(sub(*e1, x.clone(), v.clone()))
+      )
+    },
+    (Expr::Ternary(e1, e2, e3), _) => {
+      Expr::Ternary(
+        Box::new(sub(*e1, x.clone(), v.clone())),
+        Box::new(sub(*e2, x.clone(), v.clone())),
+        Box::new(sub(*e3, x.clone(), v.clone()))
+      )
+    },
+    (Expr::Let(e1, e2, e3), _) => {
+      Expr::Let(
+        Box::new(sub(*e1, x.clone(), v.clone())),
+        Box::new(sub(*e2, x.clone(), v.clone())),
+        Box::new(sub(*e3, x.clone(), v.clone()))
+      )
+    },
   }
 }
 
