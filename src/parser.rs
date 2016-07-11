@@ -27,6 +27,8 @@ enum Token {
   TInt,
   Bool(bool),
   TBool,
+  Let,
+  Assign,
 }
 
 impl Token {
@@ -36,6 +38,7 @@ impl Token {
       Token::Div => true,
       _ => false,
     }
+  
   }
 
   pub fn is_expr_bop(&self) -> bool {
@@ -100,6 +103,7 @@ impl Lexer {
     match keyword.as_ref()  {
       "true" => Some(Token::Bool(true)),
       "false" => Some(Token::Bool(false)),
+      "let" => Some(Token::Let),
       s if s.len() > 0 => Some(Token::Var(s.to_string())),
       _ => panic!()
     }
@@ -162,6 +166,10 @@ impl Lexer {
         Some('=') if self.text.starts_with("==") => {
           self.advance(2);
           return Some(Token::Eq)
+        },
+        Some('=') => {
+          self.advance(1);
+          return Some(Token::Assign)
         },
         Some('!') if self.text.starts_with("!=") => {
           self.advance(2);
@@ -232,6 +240,10 @@ impl Parser {
   }
 
   fn eat(&mut self, expected: Token) {
+    if self.current_token == None {
+        panic!("expected token: {:?} actual: {:?}", expected, self.current_token)
+    }
+
     let actual = self.current_token.clone().unwrap();
 
     if expected != actual {
@@ -252,15 +264,15 @@ impl Parser {
   }
 
   fn ternary(&mut self, e1: Option<Expr>, e2: Option<Expr>, e3: Option<Expr>) -> Option<Expr> {
-    Some(Expr::Ternary(Box::new(e1.unwrap()), Box::new(e2.unwrap()), Box::new(e3.unwrap())))
+    Some(Expr::Ternary(to_box(e1), to_box(e2), to_box(e3)))
   }
 
   fn binop(&mut self, bop: BinOp, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
-    Some(Expr::BinOp(bop, Box::new(e1.unwrap()), Box::new(e2.unwrap())))
+    Some(Expr::BinOp(bop, to_box(e1), to_box(e2)))
   }
 
   fn factor(&mut self) -> Option<Expr> {
-    match self.current_token {
+    match self.current_token.clone() {
       Some(Token::Int(n)) => {
         self.eat(Token::TInt);
         return Some(Expr::Int(n));
@@ -268,6 +280,31 @@ impl Parser {
       Some(Token::Bool(b)) => {
         self.eat(Token::TBool);
         return Some(Expr::Bool(b));
+      },
+      Some(Token::Var(s)) => {
+        self.eat(Token::TVar);
+        return Some(Expr::Var(s));
+      },
+      Some(Token::Let) => {
+        self.eat(Token::Let);
+
+        let var = self.expr();
+
+        self.eat(Token::Assign);
+
+        let seq = self.expr();
+
+        // TODO: this is def hacky
+        let (e1, e2) = match seq {
+          Some(Expr::BinOp(BinOp::Seq, e1, e2)) => {
+            (e1, e2)
+          },
+          _ => panic!(),
+        };
+
+        debug!("var: {:?}", var);
+
+        return Some(Expr::Let(to_box(var), e1, e2));
       },
       Some(Token::LParen) => {
         self.eat(Token::LParen);
@@ -277,11 +314,11 @@ impl Parser {
       },
       Some(Token::Not) => {
         self.eat(Token::Not);
-        return Some(Expr::UnOp(UnOp::Not, Box::new(self.expr().unwrap())))
+        return Some(Expr::UnOp(UnOp::Not, to_box(self.expr())))
       },
       Some(Token::Minus) => {
         self.eat(Token::Minus);
-        return Some(Expr::UnOp(UnOp::Neg, Box::new(self.factor().unwrap())))
+        return Some(Expr::UnOp(UnOp::Neg, to_box(self.factor())))
       },
       _ => {
         debug!("invalid factor: {:?}", self.current_token);
@@ -353,10 +390,18 @@ impl Parser {
       self.eat(op.clone().unwrap());
       let e2 = self.binop_expr();
 
-      self.eat(Token::Else);
+      node = match op {
+        Some(Token::Ternary) => {
 
-      let e3 = self.binop_expr();
-      node = self.ternary(node, e2, e3);
+          self.eat(Token::Else);
+
+          let e3 = self.binop_expr();
+
+          self.ternary(node, e2, e3)
+        },
+        _ => panic!(),
+      };
+
 
       op = self.current_token.clone();
     }
@@ -364,6 +409,14 @@ impl Parser {
     node
   }
 }
+
+fn to_box(e: Option<Expr>) -> Box<Expr> {
+  match e {
+    Some(e) => Box::new(e),
+    None => panic!("cannot turn to box: {:?}", e),
+  }
+}
+
 
 pub fn parse(input: &str) -> Expr {
   let mut parser = Parser::new(input.to_string());

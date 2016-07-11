@@ -1,10 +1,10 @@
-#[derive(Debug, PartialEq)] 
+#[derive(Clone, Debug, PartialEq)] 
 pub enum UnOp {
   Not,
   Neg,
 }
 
-#[derive(Debug, PartialEq)] 
+#[derive(Clone, Debug, PartialEq)] 
 pub enum BinOp {
   Plus,
   Minus,
@@ -22,13 +22,15 @@ pub enum BinOp {
   Seq,
 }
 
-#[derive(Debug, PartialEq)] 
+#[derive(Clone, Debug, PartialEq)] 
 pub enum Expr {
   Int(isize),
   Bool(bool),
+  Var(String),
   BinOp(BinOp, Box<Expr>, Box<Expr>),
   UnOp(UnOp, Box<Expr>),
   Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
+  Let(Box<Expr>, Box<Expr>, Box<Expr>),
 }
 
 fn to_int(e: Expr) -> isize {
@@ -48,6 +50,19 @@ fn to_bool(e: Expr) -> bool {
       debug!("cant turn into bool: {:?}", e);
       panic!()
     }
+  }
+}
+
+fn sub(e: Expr, x: Expr, v: Expr) -> Expr {
+  match (e.clone(), x.clone()) {
+    (Expr::Var(ref s1), Expr::Var(ref s2)) if s1 == s2 => v,
+    (Expr::Var(_), _) => e,
+    (Expr::Int(_), _) => e,
+    (Expr::Bool(_), _) => e,
+    (Expr::BinOp(op, e1, e2), _) => Expr::BinOp(op, Box::new(sub(*e1, x.clone(), v.clone())), Box::new(sub(*e2, x.clone(), v.clone()))),
+    (Expr::UnOp(op, e1), _) => Expr::UnOp(op, Box::new(sub(*e1, x.clone(), v.clone()))),
+    (Expr::Ternary(e1, e2, e3), _) => Expr::Ternary(Box::new(sub(*e1, x.clone(), v.clone())), Box::new(sub(*e2, x.clone(), v.clone())), Box::new(sub(*e3, x.clone(), v.clone()))),
+    (Expr::Let(e1, e2, e3), _) => Expr::Let(Box::new(sub(*e1, x.clone(), v.clone())), Box::new(sub(*e2, x.clone(), v.clone())), Box::new(sub(*e3, x.clone(), v.clone()))),
   }
 }
 
@@ -114,6 +129,13 @@ pub fn eval(e: Expr) -> Expr {
         false => eval(*e3),
       }
     },
+    Expr::Let(x, e1, e2) => {
+      let v1 = eval(*e1);
+      let me2 = sub(*e2, *x, v1);
+
+      eval(me2)
+    },
+    Expr::Var(_) => e,
     Expr::Int(_) => e,
     Expr::Bool(_) => e,
   }
