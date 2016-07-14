@@ -32,6 +32,13 @@ mod tests {
   extern crate env_logger;
 
   #[test]
+  pub fn test_func() {
+    let _ = env_logger::init();
+    assert_eq!(Expr::Int(2), eval(parse("let foo = fn() { 1 + 1 }; foo()")));
+    //assert_eq!(Expr::Int(7), eval(parse("let foo = fn() { 1 + 3 }; foo() + 3")));
+  }
+
+  #[test]
   pub fn test_const_decl() {
     let _ = env_logger::init();
     assert_eq!(Expr::Int(1), eval(parse("let x = 1; x")));

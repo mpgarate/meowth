@@ -29,6 +29,11 @@ enum Token {
   TBool,
   Let,
   Assign,
+  FnDecl,
+  FnCall(String),
+  TFnCall,
+  LBracket,
+  RBracket,
 }
 
 impl Token {
@@ -55,6 +60,13 @@ impl Token {
       Token::Or => true,
       Token::Mod => true,
       Token::Seq => true,
+      _ => false,
+    }
+  }
+
+  pub fn is_expr_op(&self) -> bool {
+    match *self {
+      Token::Ternary => true,
       _ => false,
     }
   }
@@ -100,10 +112,14 @@ impl Lexer {
 
     self.advance(keyword.len());
 
+    let next_char = self.peek_next();
+
     match keyword.as_ref()  {
       "true" => Some(Token::Bool(true)),
       "false" => Some(Token::Bool(false)),
+      "fn" => Some(Token::FnDecl),
       "let" => Some(Token::Let),
+      s if next_char == Some('(') => Some(Token::FnCall(s.to_string())),
       s if s.len() > 0 => Some(Token::Var(s.to_string())),
       _ => panic!()
     }
@@ -207,6 +223,14 @@ impl Lexer {
           self.advance(1);
           return Some(Token::Else)
         },
+        Some('{') => {
+          self.advance(1);
+          return Some(Token::LBracket)
+        },
+        Some('}') => {
+          self.advance(1);
+          return Some(Token::RBracket)
+        },
         Some(c) if c.is_alphabetic() => return self.lex_keyword(),
         Some(c) if c.is_digit(10) => return self.lex_integer(),
         Some(c) if c.is_whitespace() => {
@@ -250,7 +274,8 @@ impl Parser {
       let is_expected = match actual {
         Token::Int(_) if expected == Token::TInt => true,
         Token::Bool(_) if expected == Token::TBool=> true,
-        Token::Var(_) if expected == Token::TVar=> true,
+        Token::Var(_) if expected == Token::TVar => true,
+        Token::FnCall(_) if expected == Token::TFnCall => true,
         _ => false,
       };
 
@@ -299,17 +324,51 @@ impl Parser {
           Some(Expr::BinOp(BinOp::Seq, e1, e2)) => {
             (e1, e2)
           },
-          _ => panic!(),
+          _ => {
+            debug!("expected seq, got {:?}", seq);
+            panic!();
+          }
         };
 
         debug!("var: {:?}", var);
 
         return Some(Expr::Let(to_box(var), e1, e2));
       },
+      Some(Token::FnDecl) => {
+        self.eat(Token::FnDecl);
+
+        self.eat(Token::LParen);
+
+        // TODO: grab params here
+
+        self.eat(Token::RParen);
+
+        self.eat(Token::LBracket);
+        let body = self.expr();
+        debug!("got fn body {:?}", body);
+        self.eat(Token::RBracket);
+
+        return Some(Expr::Func(to_box(body)));
+      },
+      Some(Token::FnCall(s)) => {
+        self.eat(Token::TFnCall);
+        // TODO: grab any params
+
+        self.eat(Token::LParen);
+        self.eat(Token::RParen);
+
+        return Some(Expr::FnCall(s));
+      },
       Some(Token::LParen) => {
         self.eat(Token::LParen);
         let node = self.expr();
         self.eat(Token::RParen);
+        return node;
+      },
+      Some(Token::LBracket) => {
+        self.eat(Token::LBracket);
+        let node = self.expr();
+        self.eat(Token::RBracket);
         return node;
       },
       Some(Token::Not) => {
@@ -386,7 +445,7 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while op != None && op.clone().unwrap() == Token::Ternary {
+    while op != None && op.clone().unwrap().is_expr_op() {
       self.eat(op.clone().unwrap());
       let e2 = self.binop_expr();
 
@@ -422,7 +481,7 @@ pub fn parse(input: &str) -> Expr {
   let mut parser = Parser::new(input.to_string());
   let expr = parser.expr().unwrap();
 
-  debug!("parsed expr: {:?}", expr);
+  debug!("parsed expr: {:#?}", expr);
 
   expr
 }

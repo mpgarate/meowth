@@ -31,6 +31,8 @@ pub enum Expr {
   UnOp(UnOp, Box<Expr>),
   Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
   Let(Box<Expr>, Box<Expr>, Box<Expr>),
+  Func(Box<Expr>),
+  FnCall(String),
 }
 
 fn to_int(e: Expr) -> isize {
@@ -53,11 +55,12 @@ fn to_bool(e: Expr) -> bool {
   }
 }
 
-
 fn sub(e: Expr, x: Expr, v: Expr) -> Expr {
   match (e.clone(), x.clone()) {
     (Expr::Var(ref s1), Expr::Var(ref s2)) if s1 == s2 => v,
     (Expr::Var(_), _) => e,
+    (Expr::FnCall(ref s1), Expr::Var(ref s2)) if s1 == s2 => v,
+    (Expr::FnCall(_), _) => e,
     (Expr::Int(_), _) => e,
     (Expr::Bool(_), _) => e,
     (Expr::BinOp(op, e1, e2), _) => { 
@@ -86,6 +89,9 @@ fn sub(e: Expr, x: Expr, v: Expr) -> Expr {
         Box::new(sub(*e2, x.clone(), v.clone())),
         Box::new(sub(*e3, x.clone(), v.clone()))
       )
+    },
+    (Expr::Func(e1), _) => {
+      Expr::Func(Box::new(sub(*e1, x.clone(), v.clone())))
     },
   }
 }
@@ -159,6 +165,10 @@ pub fn eval(e: Expr) -> Expr {
 
       eval(me2)
     },
+    Expr::Func(e1) => {
+      eval(*e1)
+    },
+    Expr::FnCall(_) => e,
     Expr::Var(_) => e,
     Expr::Int(_) => e,
     Expr::Bool(_) => e,
