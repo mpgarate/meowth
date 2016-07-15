@@ -270,27 +270,27 @@ impl Parser {
     debug!("new current token: {:?}", self.current_token);
   }
 
-  fn ternary(&mut self, e1: Option<Expr>, e2: Option<Expr>, e3: Option<Expr>) -> Option<Expr> {
-    Some(Expr::Ternary(to_box(e1), to_box(e2), to_box(e3)))
+  fn ternary(&mut self, e1: Expr, e2: Expr, e3: Expr) -> Expr {
+    Expr::Ternary(to_box(e1), to_box(e2), to_box(e3))
   }
 
-  fn binop(&mut self, bop: BinOp, e1: Option<Expr>, e2: Option<Expr>) -> Option<Expr> {
-    Some(Expr::BinOp(bop, to_box(e1), to_box(e2)))
+  fn binop(&mut self, bop: BinOp, e1: Expr, e2: Expr) -> Expr {
+    Expr::BinOp(bop, to_box(e1), to_box(e2))
   }
 
-  fn factor(&mut self) -> Option<Expr> {
+  fn factor(&mut self) -> Expr {
     match self.current_token.clone() {
       Some(Token::Int(n)) => {
         self.eat(Token::Int(n.clone()));
-        return Some(Expr::Int(n));
+        return Expr::Int(n);
       },
       Some(Token::Bool(b)) => {
         self.eat(Token::Bool(b.clone()));
-        return Some(Expr::Bool(b));
+        return Expr::Bool(b);
       },
       Some(Token::Var(s)) => {
         self.eat(Token::Var(s.clone()));
-        return Some(Expr::Var(s));
+        return Expr::Var(s);
       },
       Some(Token::Let) => {
         self.eat(Token::Let);
@@ -303,7 +303,7 @@ impl Parser {
 
         // TODO: this is def hacky
         let (e1, e2) = match seq {
-          Some(Expr::BinOp(BinOp::Seq, e1, e2)) => {
+          Expr::BinOp(BinOp::Seq, e1, e2) => {
             (e1, e2)
           },
           _ => {
@@ -314,7 +314,7 @@ impl Parser {
 
         debug!("var: {:?}", var);
 
-        return Some(Expr::Let(to_box(var), e1, e2));
+        return Expr::Let(to_box(var), e1, e2);
       },
       Some(Token::FnDecl) => {
         self.eat(Token::FnDecl);
@@ -330,7 +330,7 @@ impl Parser {
         debug!("got fn body {:?}", body);
         self.eat(Token::RBracket);
 
-        return Some(Expr::Func(to_box(body)));
+        return Expr::Func(to_box(body));
       },
       Some(Token::FnCall(s)) => {
         self.eat(Token::FnCall(s.clone()));
@@ -339,7 +339,7 @@ impl Parser {
         self.eat(Token::LParen);
         self.eat(Token::RParen);
 
-        return Some(Expr::FnCall(s));
+        return Expr::FnCall(s);
       },
       Some(Token::LParen) => {
         self.eat(Token::LParen);
@@ -355,11 +355,11 @@ impl Parser {
       },
       Some(Token::Not) => {
         self.eat(Token::Not);
-        return Some(Expr::UnOp(UnOp::Not, to_box(self.statement())))
+        return Expr::UnOp(UnOp::Not, to_box(self.statement()));
       },
       Some(Token::Minus) => {
         self.eat(Token::Minus);
-        return Some(Expr::UnOp(UnOp::Neg, to_box(self.factor())))
+        return Expr::UnOp(UnOp::Neg, to_box(self.factor()));
       },
       _ => {
         debug!("invalid factor: {:?}", self.current_token);
@@ -368,7 +368,7 @@ impl Parser {
     }
   }
 
-  pub fn term(&mut self) -> Option<Expr> {
+  pub fn term(&mut self) -> Expr {
     let mut node = self.factor();
 
     let mut op = self.current_token.clone();
@@ -389,7 +389,7 @@ impl Parser {
     node
   }
 
-  pub fn binop_expr(&mut self) -> Option<Expr> {
+  pub fn binop_expr(&mut self) -> Expr {
     let mut node = self.term();
 
     let mut op = self.current_token.clone();
@@ -422,7 +422,7 @@ impl Parser {
     node 
   }
 
-  pub fn statement(&mut self) -> Option<Expr> {
+  pub fn statement(&mut self) -> Expr {
     let mut node = self.binop_expr();
 
     let mut op = self.current_token.clone();
@@ -449,26 +449,23 @@ impl Parser {
     node
   }
 
-  pub fn block(&mut self) -> Option<Expr> {
+  pub fn block(&mut self) -> Expr {
     self.statement()
   }
 
-  pub fn program(&mut self) -> Option<Expr> {
+  pub fn program(&mut self) -> Expr {
     self.block()
   }
 }
 
-fn to_box(e: Option<Expr>) -> Box<Expr> {
-  match e {
-    Some(e) => Box::new(e),
-    None => panic!("cannot turn to box: {:?}", e),
-  }
+fn to_box(e: Expr) -> Box<Expr> {
+  Box::new(e)
 }
 
 
 pub fn parse(input: &str) -> Expr {
   let mut parser = Parser::new(input.to_string());
-  let expr = parser.program().unwrap();
+  let expr = parser.program();
 
   debug!("parsed expr: {:#?}", expr);
 
