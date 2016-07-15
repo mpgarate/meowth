@@ -398,28 +398,25 @@ impl Parser {
     node 
   }
 
+  fn parse_let(&mut self) -> Expr {
+    self.eat(Token::Let);
+    let var = self.term();
+    self.eat(Token::Assign);
+    let e2 = self.binop_expr();
+    self.eat(Token::Seq);
+    let e3 = self.statement();
+
+    return Expr::Let(Box::new(var), Box::new(e2), Box::new(e3));
+  }
+
   pub fn statement(&mut self) -> Expr {
-    let mut op = self.current_token.clone();
-
-    if op == Token::Let {
-      self.eat(Token::Let);
-
-      let var = self.term();
-
-      self.eat(Token::Assign);
-
-      let e2 = self.binop_expr();
-
-      self.eat(Token::Seq);
-
-      let e3 = self.statement();
-
-      return Expr::Let(to_box(var), to_box(e2), to_box(e3))
+    if self.current_token == Token::Let {
+      return self.parse_let();
     }
 
     let mut node = self.binop_expr();
 
-    op = self.current_token.clone();
+    let mut op = self.current_token.clone();
 
     while op.clone().is_expr_op() {
       self.eat(op.clone());
