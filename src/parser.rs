@@ -56,7 +56,6 @@ impl Token {
       Token::And => true,
       Token::Or => true,
       Token::Mod => true,
-      Token::Seq => true,
       _ => false,
     }
   }
@@ -64,6 +63,7 @@ impl Token {
   pub fn is_expr_op(&self) -> bool {
     match *self {
       Token::Ternary => true,
+      Token::Seq => true,
       _ => false,
     }
   }
@@ -293,30 +293,6 @@ impl Parser {
         self.eat(Token::Var(s.clone()));
         return Expr::Var(s);
       },
-      Token::Let => {
-        self.eat(Token::Let);
-
-        let var = self.statement();
-
-        self.eat(Token::Assign);
-
-        let seq = self.statement();
-
-        // TODO: this is def hacky
-        let (e1, e2) = match seq {
-          Expr::BinOp(BinOp::Seq, e1, e2) => {
-            (e1, e2)
-          },
-          _ => {
-            debug!("expected seq, got {:?}", seq);
-            panic!();
-          }
-        };
-
-        debug!("var: {:?}", var);
-
-        return Expr::Let(to_box(var), e1, e2);
-      },
       Token::FnDecl => {
         self.eat(Token::FnDecl);
 
@@ -413,7 +389,6 @@ impl Parser {
         Token::And => self.binop(BinOp::And, node, right_node),
         Token::Or => self.binop(BinOp::Or, node, right_node),
         Token::Mod => self.binop(BinOp::Mod, node, right_node),
-        Token::Seq => self.binop(BinOp::Seq, node, right_node),
         _ => panic!(),
       };
 
@@ -424,23 +399,47 @@ impl Parser {
   }
 
   pub fn statement(&mut self) -> Expr {
+    let mut op = self.current_token.clone();
+
+    if op == Token::Let {
+      self.eat(Token::Let);
+
+      let var = self.term();
+
+      self.eat(Token::Assign);
+      debug!("var: {:?}", var);
+
+      let e2 = self.binop_expr();
+
+      self.eat(Token::Seq);
+
+      let e3 = self.statement();
+
+      debug!("seq: {:?}", e3);
+
+      return Expr::Let(to_box(var), to_box(e2), to_box(e3))
+    }
+
     let mut node = self.binop_expr();
 
-    let mut op = self.current_token.clone();
+    op = self.current_token.clone();
 
     while op.clone().is_expr_op() {
       self.eat(op.clone());
-      let e2 = self.binop_expr();
+      let e2 = self.statement();
 
       node = match op {
         Token::Ternary => {
 
           self.eat(Token::Else);
 
-          let e3 = self.binop_expr();
+          let e3 = self.statement();
 
           self.ternary(node, e2, e3)
         },
+        Token::Seq => {
+          self.binop(BinOp::Seq, node, e2)
+        }
         _ => panic!(),
       };
 

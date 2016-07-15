@@ -35,12 +35,13 @@ mod tests {
   pub fn test_func() {
     let _ = env_logger::init();
     assert_eq!(Expr::Int(2), eval(parse("let foo = fn() { 1 + 1 }; foo()")));
-    //assert_eq!(Expr::Int(7), eval(parse("let foo = fn() { 1 + 3 }; foo() + 3")));
+    assert_eq!(Expr::Int(7), eval(parse("let foo = fn() { 1 + 3 }; foo() + 3")));
   }
 
   #[test]
   pub fn test_const_decl() {
     let _ = env_logger::init();
+    assert_eq!(Expr::Int(3), eval(parse("let x = 1 + 2; x")));
     assert_eq!(Expr::Int(1), eval(parse("let x = 1; x")));
     assert_eq!(Expr::Int(8), eval(parse("let x = 5; let y = 3; let z = x + y; z")));
   }
