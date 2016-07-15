@@ -30,6 +30,7 @@ enum Token {
   FnCall(String),
   LBracket,
   RBracket,
+  EOF,
 }
 
 impl Token {
@@ -85,7 +86,7 @@ impl Lexer {
     self.text = t.to_string();
   }
 
-  fn lex_integer(&mut self) -> Option<Token> {
+  fn lex_integer(&mut self) -> Token {
     let int_str: String = self.text
       .chars()
       .take_while(|c| c.is_digit(10))
@@ -94,13 +95,13 @@ impl Lexer {
     match int_str.parse::<isize>() {
       Ok(n) => {
         self.advance(int_str.len());
-        return Some(Token::Int(n));
+        return Token::Int(n);
       }
       Err(_) => panic!()
     }
   }
 
-  fn lex_keyword(&mut self) -> Option<Token> {
+  fn lex_keyword(&mut self) -> Token {
     let keyword: String = self.text
       .chars()
       .take_while(|c| c.is_alphabetic())
@@ -111,12 +112,12 @@ impl Lexer {
     let next_char = self.peek_next();
 
     match keyword.as_ref()  {
-      "true" => Some(Token::Bool(true)),
-      "false" => Some(Token::Bool(false)),
-      "fn" => Some(Token::FnDecl),
-      "let" => Some(Token::Let),
-      s if next_char == Some('(') => Some(Token::FnCall(s.to_string())),
-      s if s.len() > 0 => Some(Token::Var(s.to_string())),
+      "true" => Token::Bool(true),
+      "false" => Token::Bool(false),
+      "fn" => Token::FnDecl,
+      "let" => Token::Let,
+      s if next_char == Some('(') => Token::FnCall(s.to_string()),
+      s if s.len() > 0 => Token::Var(s.to_string()),
       _ => panic!()
     }
   }
@@ -134,98 +135,98 @@ impl Lexer {
     self.text.chars().next()
   }
 
-  pub fn get_next_token(&mut self) -> Option<Token> {
+  pub fn get_next_token(&mut self) -> Token {
     while self.peek_next() != None {
       debug!("get_next_token: {}", self.text);
 
       match self.peek_next() {
         Some('+') => {
           self.advance(1);
-          return Some(Token::Plus)
+          return Token::Plus
         },
         Some('-') => {
           self.advance(1);
-          return Some(Token::Minus)
+          return Token::Minus
         },
         Some('*') => {
           self.advance(1);
-          return Some(Token::Times)
+          return Token::Times
         },
         Some('/') => {
           self.advance(1);
-          return Some(Token::Div)
+          return Token::Div
         },
         Some('%') => {
           self.advance(1);
-          return Some(Token::Mod)
+          return Token::Mod
         },
         Some('(') => {
           self.advance(1);
-          return Some(Token::LParen)
+          return Token::LParen
         },
         Some(')') => {
           self.advance(1);
-          return Some(Token::RParen)
+          return Token::RParen
         },
         Some('&') => {
           self.advance(2);
-          return Some(Token::And)
+          return Token::And
         },
         Some('|') => {
           self.advance(2);
-          return Some(Token::Or)
+          return Token::Or
         },
         Some('=') if self.text.starts_with("==") => {
           self.advance(2);
-          return Some(Token::Eq)
+          return Token::Eq
         },
         Some('=') => {
           self.advance(1);
-          return Some(Token::Assign)
+          return Token::Assign
         },
         Some('!') if self.text.starts_with("!=") => {
           self.advance(2);
-          return Some(Token::Ne)
+          return Token::Ne
         },
         Some('!') => {
           self.advance(1);
-          return Some(Token::Not)
+          return Token::Not
         },
         Some('>') if self.text.starts_with(">=") => {
           self.advance(2);
-          return Some(Token::Geq)
+          return Token::Geq
         },
         Some('>') => {
           self.advance(1);
-          return Some(Token::Gt)
+          return Token::Gt
         },
         Some('<') if self.text.starts_with("<=") => {
           self.advance(2);
-          return Some(Token::Leq)
+          return Token::Leq
         },
         Some('<') => {
           self.advance(1);
-          return Some(Token::Lt)
+          return Token::Lt
         },
         Some(';') => {
           self.advance(1);
-          return Some(Token::Seq)
+          return Token::Seq
         },
         Some('?') => {
           self.advance(1);
-          return Some(Token::Ternary)
+          return Token::Ternary
         },
         Some(':') => {
           self.advance(1);
-          return Some(Token::Else)
+          return Token::Else
         },
         Some('{') => {
           self.advance(1);
-          return Some(Token::LBracket)
+          return Token::LBracket
         },
         Some('}') => {
           self.advance(1);
-          return Some(Token::RBracket)
+          return Token::RBracket
         },
         Some(c) if c.is_alphabetic() => return self.lex_keyword(),
         Some(c) if c.is_digit(10) => return self.lex_integer(),
@@ -233,18 +234,18 @@ impl Lexer {
           self.skip_whitespace();
           continue;
         },
-        None => return None,
+        None => return Token::EOF,
         _ => panic!()
       }
     }
 
-    None
+    Token::EOF
   }
 }
 
 struct Parser {
   lexer: Lexer,
-  current_token: Option<Token>,
+  current_token: Token,
 }
 
 impl Parser {
@@ -260,7 +261,7 @@ impl Parser {
   }
 
   fn eat(&mut self, expected: Token) {
-    let actual = self.current_token.clone().unwrap();
+    let actual = self.current_token.clone();
 
     if expected != actual {
       panic!("expected token: {:?} actual: {:?}", expected, actual)
@@ -280,19 +281,19 @@ impl Parser {
 
   fn factor(&mut self) -> Expr {
     match self.current_token.clone() {
-      Some(Token::Int(n)) => {
+      Token::Int(n) => {
         self.eat(Token::Int(n.clone()));
         return Expr::Int(n);
       },
-      Some(Token::Bool(b)) => {
+      Token::Bool(b) => {
         self.eat(Token::Bool(b.clone()));
         return Expr::Bool(b);
       },
-      Some(Token::Var(s)) => {
+      Token::Var(s) => {
         self.eat(Token::Var(s.clone()));
         return Expr::Var(s);
       },
-      Some(Token::Let) => {
+      Token::Let => {
         self.eat(Token::Let);
 
         let var = self.statement();
@@ -316,7 +317,7 @@ impl Parser {
 
         return Expr::Let(to_box(var), e1, e2);
       },
-      Some(Token::FnDecl) => {
+      Token::FnDecl => {
         self.eat(Token::FnDecl);
 
         self.eat(Token::LParen);
@@ -332,7 +333,7 @@ impl Parser {
 
         return Expr::Func(to_box(body));
       },
-      Some(Token::FnCall(s)) => {
+      Token::FnCall(s) => {
         self.eat(Token::FnCall(s.clone()));
         // TODO: grab any params
 
@@ -341,23 +342,23 @@ impl Parser {
 
         return Expr::FnCall(s);
       },
-      Some(Token::LParen) => {
+      Token::LParen => {
         self.eat(Token::LParen);
         let node = self.statement();
         self.eat(Token::RParen);
         return node;
       },
-      Some(Token::LBracket) => {
+      Token::LBracket => {
         self.eat(Token::LBracket);
         let node = self.statement();
         self.eat(Token::RBracket);
         return node;
       },
-      Some(Token::Not) => {
+      Token::Not => {
         self.eat(Token::Not);
         return Expr::UnOp(UnOp::Not, to_box(self.statement()));
       },
-      Some(Token::Minus) => {
+      Token::Minus => {
         self.eat(Token::Minus);
         return Expr::UnOp(UnOp::Neg, to_box(self.factor()));
       },
@@ -373,13 +374,13 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while op != None && op.clone().unwrap().is_term_bop() {
-      self.eat(op.clone().unwrap());
+    while op.clone().is_term_bop() {
+      self.eat(op.clone());
       let right_node = self.term();
 
       node = match op {
-        Some(Token::Times) => self.binop(BinOp::Times, node, right_node),
-        Some(Token::Div) => self.binop(BinOp::Div, node, right_node),
+        Token::Times => self.binop(BinOp::Times, node, right_node),
+        Token::Div => self.binop(BinOp::Div, node, right_node),
         _ => panic!(),
       };
 
@@ -394,25 +395,25 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while op != None && op.clone().unwrap().is_expr_bop() {
+    while op.clone().is_expr_bop() {
       debug!("expr looping on op {:?}", op);
-      self.eat(op.clone().unwrap());
+      self.eat(op.clone());
 
       let right_node = self.term();
 
       node = match op {
-        Some(Token::Plus) => self.binop(BinOp::Plus, node, right_node),
-        Some(Token::Minus) => self.binop(BinOp::Minus, node, right_node),
-        Some(Token::Eq) => self.binop(BinOp::Eq, node, right_node),
-        Some(Token::Ne) => self.binop(BinOp::Ne, node, right_node),
-        Some(Token::Leq) => self.binop(BinOp::Leq, node, right_node),
-        Some(Token::Geq) => self.binop(BinOp::Geq, node, right_node),
-        Some(Token::Lt) => self.binop(BinOp::Lt, node, right_node),
-        Some(Token::Gt) => self.binop(BinOp::Gt, node, right_node),
-        Some(Token::And) => self.binop(BinOp::And, node, right_node),
-        Some(Token::Or) => self.binop(BinOp::Or, node, right_node),
-        Some(Token::Mod) => self.binop(BinOp::Mod, node, right_node),
-        Some(Token::Seq) => self.binop(BinOp::Seq, node, right_node),
+        Token::Plus => self.binop(BinOp::Plus, node, right_node),
+        Token::Minus => self.binop(BinOp::Minus, node, right_node),
+        Token::Eq => self.binop(BinOp::Eq, node, right_node),
+        Token::Ne => self.binop(BinOp::Ne, node, right_node),
+        Token::Leq => self.binop(BinOp::Leq, node, right_node),
+        Token::Geq => self.binop(BinOp::Geq, node, right_node),
+        Token::Lt => self.binop(BinOp::Lt, node, right_node),
+        Token::Gt => self.binop(BinOp::Gt, node, right_node),
+        Token::And => self.binop(BinOp::And, node, right_node),
+        Token::Or => self.binop(BinOp::Or, node, right_node),
+        Token::Mod => self.binop(BinOp::Mod, node, right_node),
+        Token::Seq => self.binop(BinOp::Seq, node, right_node),
         _ => panic!(),
       };
 
@@ -427,12 +428,12 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while op != None && op.clone().unwrap().is_expr_op() {
-      self.eat(op.clone().unwrap());
+    while op.clone().is_expr_op() {
+      self.eat(op.clone());
       let e2 = self.binop_expr();
 
       node = match op {
-        Some(Token::Ternary) => {
+        Token::Ternary => {
 
           self.eat(Token::Else);
 
