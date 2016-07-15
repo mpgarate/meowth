@@ -260,10 +260,6 @@ impl Parser {
   }
 
   fn eat(&mut self, expected: Token) {
-    if self.current_token == None {
-        panic!("expected token: {:?} actual: {:?}", expected, self.current_token)
-    }
-
     let actual = self.current_token.clone().unwrap();
 
     if expected != actual {
@@ -299,11 +295,11 @@ impl Parser {
       Some(Token::Let) => {
         self.eat(Token::Let);
 
-        let var = self.expr();
+        let var = self.statement();
 
         self.eat(Token::Assign);
 
-        let seq = self.expr();
+        let seq = self.statement();
 
         // TODO: this is def hacky
         let (e1, e2) = match seq {
@@ -330,7 +326,7 @@ impl Parser {
         self.eat(Token::RParen);
 
         self.eat(Token::LBracket);
-        let body = self.expr();
+        let body = self.statement();
         debug!("got fn body {:?}", body);
         self.eat(Token::RBracket);
 
@@ -347,19 +343,19 @@ impl Parser {
       },
       Some(Token::LParen) => {
         self.eat(Token::LParen);
-        let node = self.expr();
+        let node = self.statement();
         self.eat(Token::RParen);
         return node;
       },
       Some(Token::LBracket) => {
         self.eat(Token::LBracket);
-        let node = self.expr();
+        let node = self.statement();
         self.eat(Token::RBracket);
         return node;
       },
       Some(Token::Not) => {
         self.eat(Token::Not);
-        return Some(Expr::UnOp(UnOp::Not, to_box(self.expr())))
+        return Some(Expr::UnOp(UnOp::Not, to_box(self.statement())))
       },
       Some(Token::Minus) => {
         self.eat(Token::Minus);
@@ -426,7 +422,7 @@ impl Parser {
     node 
   }
 
-  pub fn expr(&mut self) -> Option<Expr> {
+  pub fn statement(&mut self) -> Option<Expr> {
     let mut node = self.binop_expr();
 
     let mut op = self.current_token.clone();
@@ -447,11 +443,18 @@ impl Parser {
         _ => panic!(),
       };
 
-
       op = self.current_token.clone();
     }
 
     node
+  }
+
+  pub fn block(&mut self) -> Option<Expr> {
+    self.statement()
+  }
+
+  pub fn program(&mut self) -> Option<Expr> {
+    self.block()
   }
 }
 
@@ -465,7 +468,7 @@ fn to_box(e: Option<Expr>) -> Box<Expr> {
 
 pub fn parse(input: &str) -> Expr {
   let mut parser = Parser::new(input.to_string());
-  let expr = parser.expr().unwrap();
+  let expr = parser.program().unwrap();
 
   debug!("parsed expr: {:#?}", expr);
 
