@@ -36,6 +36,7 @@ mod tests {
     let _ = env_logger::init();
     assert_eq!(Expr::Int(2), eval(parse("let foo = fn() { 1 + 1 }; foo()")));
     assert_eq!(Expr::Int(7), eval(parse("let foo = fn() { 1 + 3 }; foo() + 3")));
+    assert_eq!(Expr::Int(9), eval(parse("let foo = fn() { 1 + 3 }; let bar = fn() { foo() + 1}; 4 + bar()")));
   }
 
   #[test]

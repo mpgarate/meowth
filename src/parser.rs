@@ -350,7 +350,7 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while op.clone().is_term_bop() {
+    while op.is_term_bop() {
       self.eat(op.clone());
       let right_node = self.term();
 
@@ -371,7 +371,7 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while op.clone().is_expr_bop() {
+    while op.is_expr_bop() {
       debug!("expr looping on op {:?}", op);
       self.eat(op.clone());
 
@@ -415,25 +415,19 @@ impl Parser {
     }
 
     let mut node = self.binop_expr();
-
     let mut op = self.current_token.clone();
 
-    while op.clone().is_expr_op() {
+    while op.is_expr_op() {
       self.eat(op.clone());
       let e2 = self.statement();
 
       node = match op {
         Token::Ternary => {
-
           self.eat(Token::Else);
-
           let e3 = self.statement();
-
           self.ternary(node, e2, e3)
         },
-        Token::Seq => {
-          self.binop(BinOp::Seq, node, e2)
-        }
+        Token::Seq => self.binop(BinOp::Seq, node, e2),
         _ => panic!(),
       };
 
