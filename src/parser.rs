@@ -407,15 +407,12 @@ impl Parser {
       let var = self.term();
 
       self.eat(Token::Assign);
-      debug!("var: {:?}", var);
 
       let e2 = self.binop_expr();
 
       self.eat(Token::Seq);
 
       let e3 = self.statement();
-
-      debug!("seq: {:?}", e3);
 
       return Expr::Let(to_box(var), to_box(e2), to_box(e3))
     }
