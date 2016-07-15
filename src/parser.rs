@@ -22,16 +22,12 @@ enum Token {
   Ternary,
   Else,
   Var(String),
-  TVar,
   Int(isize),
-  TInt,
   Bool(bool),
-  TBool,
   Let,
   Assign,
   FnDecl,
   FnCall(String),
-  TFnCall,
   LBracket,
   RBracket,
 }
@@ -271,17 +267,7 @@ impl Parser {
     let actual = self.current_token.clone().unwrap();
 
     if expected != actual {
-      let is_expected = match actual {
-        Token::Int(_) if expected == Token::TInt => true,
-        Token::Bool(_) if expected == Token::TBool=> true,
-        Token::Var(_) if expected == Token::TVar => true,
-        Token::FnCall(_) if expected == Token::TFnCall => true,
-        _ => false,
-      };
-
-      if !is_expected {
-        panic!("expected token: {:?} actual: {:?}", expected, actual)
-      }
+      panic!("expected token: {:?} actual: {:?}", expected, actual)
     }
 
     self.current_token = self.lexer.get_next_token();
@@ -299,15 +285,15 @@ impl Parser {
   fn factor(&mut self) -> Option<Expr> {
     match self.current_token.clone() {
       Some(Token::Int(n)) => {
-        self.eat(Token::TInt);
+        self.eat(Token::Int(n.clone()));
         return Some(Expr::Int(n));
       },
       Some(Token::Bool(b)) => {
-        self.eat(Token::TBool);
+        self.eat(Token::Bool(b.clone()));
         return Some(Expr::Bool(b));
       },
       Some(Token::Var(s)) => {
-        self.eat(Token::TVar);
+        self.eat(Token::Var(s.clone()));
         return Some(Expr::Var(s));
       },
       Some(Token::Let) => {
@@ -351,7 +337,7 @@ impl Parser {
         return Some(Expr::Func(to_box(body)));
       },
       Some(Token::FnCall(s)) => {
-        self.eat(Token::TFnCall);
+        self.eat(Token::FnCall(s.clone()));
         // TODO: grab any params
 
         self.eat(Token::LParen);
