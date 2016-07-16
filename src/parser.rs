@@ -108,7 +108,7 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while op.is_term_bop() {
+    while op.is_term_op() {
       self.eat(op.clone());
       let right_node = self.term();
 
@@ -129,7 +129,7 @@ impl Parser {
 
     let mut op = self.current_token.clone();
 
-    while op.is_expr_bop() {
+    while op.is_expr_op() {
       debug!("expr looping on op {:?}", op);
       self.eat(op.clone());
 

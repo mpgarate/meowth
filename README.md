@@ -6,8 +6,7 @@ RUST_LOG=boxx=debug cargo watch
 ```
 
 ### A few TODOs
-* [easy] pull tests into separate files
-* [medium] clean up the parser in general
+* [medium] clean up the parser + lexer in general
 * [medium] Number type(s) beyond integer
 * [hard] Human-readable errors
 * [easy] language-level exit command

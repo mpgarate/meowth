@@ -32,7 +32,7 @@ pub enum Token {
 }
 
 impl Token {
-  pub fn is_term_bop(&self) -> bool {
+  pub fn is_term_op(&self) -> bool {
     match *self {
       Token::Times => true,
       Token::Div => true,
@@ -41,7 +41,7 @@ impl Token {
   
   }
 
-  pub fn is_expr_bop(&self) -> bool {
+  pub fn is_expr_op(&self) -> bool {
     match *self {
       Token::Plus => true,
       Token::Minus => true,
