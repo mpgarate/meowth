@@ -208,7 +208,6 @@ fn to_box(e: Expr) -> Box<Expr> {
   Box::new(e)
 }
 
-
 pub fn parse(input: &str) -> Expr {
   let mut parser = Parser::new(input.to_string());
   let expr = parser.program();

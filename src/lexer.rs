@@ -166,11 +166,11 @@ impl Lexer {
           self.advance(1);
           return Token::RParen
         },
-        Some('&') => {
+        Some('&') if self.text.starts_with("&&") => {
           self.advance(2);
           return Token::And
         },
-        Some('|') => {
+        Some('|') if self.text.starts_with("||") => {
           self.advance(2);
           return Token::Or
         },
@@ -232,7 +232,6 @@ impl Lexer {
           self.skip_whitespace();
           continue;
         },
-        None => return Token::EOF,
         _ => panic!()
       }
     }

@@ -6,10 +6,10 @@ RUST_LOG=boxx=debug cargo watch
 ```
 
 ### A few TODOs
-* [medium] clean up the parser + lexer in general
 * [medium] Number type(s) beyond integer
 * [hard] Human-readable errors
 * [easy] language-level exit command
+* [medium] exponents **
 
 ### Pokemon
 * [medium] function parameters
