@@ -60,7 +60,7 @@ impl Token {
     }
   }
 
-  pub fn is_expr_op(&self) -> bool {
+  pub fn is_statement_op(&self) -> bool {
     match *self {
       Token::Ternary => true,
       Token::Seq => true,
@@ -417,7 +417,7 @@ impl Parser {
     let mut node = self.binop_expr();
     let mut op = self.current_token.clone();
 
-    while op.is_expr_op() {
+    while op.is_statement_op() {
       self.eat(op.clone());
       let e2 = self.statement();
 
