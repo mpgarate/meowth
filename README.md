@@ -5,7 +5,7 @@ While developing use this to see debug statements in tests
 RUST_LOG=boxx=debug cargo watch
 ```
 
-### A few TODOs
+### A few TODOs (post-pokemon)
 * [medium] Number type(s) beyond integer
 * [hard] Human-readable errors
 * [easy] language-level exit command
@@ -14,7 +14,6 @@ RUST_LOG=boxx=debug cargo watch
 ### Pokemon
 * [medium] function parameters
 * [medium] if, else if, else (separate from ternary)
-* [medium] some cleanup, but not too much
 * [easy] print statement
 * [hard] while loop
 * [hard] at runtime, var name should be accessible (not purely substituted)
