@@ -5,15 +5,15 @@ While developing use this to see debug statements in tests
 RUST_LOG=boxx=debug cargo watch
 ```
 
-#### A few TODOs
-* [medium] Number type(s) beyond integer
-* [hard] Human-readable errors
+### A few TODOs
+* [medium] split apart lexer and parser
 * [easy] pull tests into separate files
 * [medium] clean up the parser in general
-* [medium] split apart lexer and parser
+* [medium] Number type(s) beyond integer
+* [hard] Human-readable errors
 * [easy] language-level exit command
 
-# Pokemon
+### Pokemon
 * [medium] function parameters
 * [medium] if, else if, else (separate from ternary)
 * [medium] some cleanup, but not too much
@@ -24,4 +24,5 @@ RUST_LOG=boxx=debug cargo watch
 * [medium] ability to run standalone program files through interpreter
 * [breaking] type coercion for bool to number
 * [breaking] bike / mutable stack-like var binding
+* [breaking] rename a bunch of files and crates
 
