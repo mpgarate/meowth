@@ -1,3 +1,5 @@
+use parser::{parse};
+
 #[derive(Clone, Debug, PartialEq)] 
 pub enum UnOp {
   Not,
@@ -173,4 +175,8 @@ pub fn eval(e: Expr) -> Expr {
     Expr::Int(_) => e,
     Expr::Bool(_) => e,
   }
+}
+
+pub fn boxx(input: &str) -> Expr {
+  eval(parse(input))
 }
