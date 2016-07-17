@@ -3,8 +3,10 @@
 While developing use this to see debug statements in tests
 ```sh
 RUST_LOG=boxx=debug cargo watch
+
 ```
 ### Pokemon
+* [easy] allow underscores in var / fn names
 * [medium] function parameters
 * [medium] if, else if, else (separate from ternary)
 * [easy] print statement

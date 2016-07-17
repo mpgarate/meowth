@@ -9,6 +9,36 @@ mod tests {
   #[test]
   pub fn test_func() {
     let _ = env_logger::init();
+    assert_eq!(Expr::Int(12), boxx("fn ttwo(a) { 2 * a }; ttwo(ttwo(3))"));
+
+    /*
+    assert_eq!(
+      Expr::Int(8),
+      boxx("
+        fn foo(a) {
+          a > 10 ? foo(a - 3) : a
+        };
+
+        foo(20)
+      ")
+    );
+    */
+
+    assert_eq!(
+      Expr::Int(28),
+      boxx("
+        fn foo(a) {
+          1 + a
+        };
+
+        fn bar(b) {
+          5 * b
+        };
+        
+        foo(bar(4)) + 7
+      ")
+    );
+
     assert_eq!(Expr::Int(12), boxx("fn foo(a) { 1 + a }; foo(4) + 7"));
     assert_eq!(Expr::Int(12), boxx("let foo = fn(a) { 1 + a }; foo(4) + 7"));
 

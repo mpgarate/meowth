@@ -61,10 +61,12 @@ fn sub(e: Expr, x: Expr, v: Expr) -> Expr {
   match (e.clone(), x.clone()) {
     (Expr::Var(ref s1), Expr::Var(ref s2)) if s1 == s2 => v,
     (Expr::FnCall(v1, xs), _) => {
+      let xs2 = xs.iter().map(|xn| sub(xn.clone(), x.clone(), v.clone())).collect();
+
       if *v1 == x {
-        Expr::FnCall(Box::new(v), xs)
+        Expr::FnCall(Box::new(v), xs2)
       } else {
-        e
+        Expr::FnCall(v1, xs2)
       }
     },
     (Expr::Var(_), _) => e,
@@ -183,7 +185,10 @@ pub fn eval(e: Expr) -> Expr {
           let exp = xs.iter().zip(es.iter()).fold(*e1.clone(), |exp, (xn, en)| sub(exp, xn.clone(), en.clone()));
           eval(exp)
         },
-        _ => panic!(),
+        _ => {
+          debug!("expected a Func, got {:?}", v1);
+          panic!()
+        },
       }
     },
     Expr::Var(_) => e,

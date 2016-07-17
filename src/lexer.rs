@@ -233,7 +233,10 @@ impl Lexer {
           self.skip_whitespace();
           continue;
         },
-        _ => panic!()
+        c => {
+          debug!("unexpected char {:?}", c);
+          panic!()
+        }
       }
     }
 
