@@ -25,7 +25,6 @@ pub enum Token {
   Let,
   Assign,
   FnDecl,
-  FnCall(String),
   LBracket,
   RBracket,
   EOF,
@@ -107,14 +106,11 @@ impl Lexer {
 
     self.advance(keyword.len());
 
-    let next_char = self.peek_next();
-
     match keyword.as_ref()  {
       "true" => Token::Bool(true),
       "false" => Token::Bool(false),
       "fn" => Token::FnDecl,
       "let" => Token::Let,
-      s if next_char == Some('(') => Token::FnCall(s.to_string()),
       s if s.len() > 0 => Token::Var(s.to_string()),
       _ => panic!()
     }

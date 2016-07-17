@@ -49,6 +49,16 @@ impl Parser {
       },
       Token::Var(s) => {
         self.eat(Token::Var(s.clone()));
+
+        // fn call rule
+        if self.current_token == Token::LParen {
+          self.eat(Token::LParen);
+          // TODO grab params
+          self.eat(Token::RParen);
+
+          return Expr::FnCall(s);
+        }
+
         return Expr::Var(s);
       },
       Token::FnDecl => {
@@ -66,15 +76,6 @@ impl Parser {
         self.eat(Token::RBracket);
 
         return Expr::Func(to_box(body));
-      },
-      Token::FnCall(s) => {
-        self.eat(Token::FnCall(s.clone()));
-        // TODO: grab any params
-
-        self.eat(Token::LParen);
-        self.eat(Token::RParen);
-
-        return Expr::FnCall(s);
       },
       Token::LParen => {
         self.eat(Token::LParen);
@@ -167,9 +168,37 @@ impl Parser {
     return Expr::Let(Box::new(var), Box::new(e2), Box::new(e3));
   }
 
+  fn parse_named_fn(&mut self) -> Expr {
+    self.eat(Token::FnDecl);
+
+    let var = match self.current_token.clone() {
+      Token::Var(s) => {
+        self.eat(Token::Var(s.clone()));
+        Expr::Var(s)
+      }
+      _ => panic!()
+    };
+
+    debug!("var: {:?}", var);
+    self.eat(Token::LParen);
+    // TODO: grab params
+    self.eat(Token::RParen);
+    self.eat(Token::LBracket);
+    let body = self.statement();
+    self.eat(Token::RBracket);
+    self.eat(Token::Seq);
+    let e3 = self.statement();
+
+    let func = Expr::Func(Box::new(body));
+
+    return Expr::Let(Box::new(var), Box::new(func), Box::new(e3));
+  }
+
   pub fn statement(&mut self) -> Expr {
     if self.current_token == Token::Let {
       return self.parse_let();
+    } else if self.current_token == Token::FnDecl {
+      return self.parse_named_fn();
     }
 
     let mut node = self.binop_expr();
