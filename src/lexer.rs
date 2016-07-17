@@ -28,6 +28,7 @@ pub enum Token {
   LBracket,
   RBracket,
   EOF,
+  Comma,
 }
 
 impl Token {
@@ -221,6 +222,10 @@ impl Lexer {
         Some('}') => {
           self.advance(1);
           return Token::RBracket
+        },
+        Some(',') => {
+          self.advance(1);
+          return Token::Comma
         },
         Some(c) if c.is_alphabetic() => return self.lex_keyword(),
         Some(c) if c.is_digit(10) => return self.lex_integer(),

@@ -53,10 +53,12 @@ impl Parser {
         // fn call rule
         if self.current_token == Token::LParen {
           self.eat(Token::LParen);
+
+          let params = self.parse_fn_params();
           // TODO grab params
           self.eat(Token::RParen);
 
-          return Expr::FnCall(s);
+          return Expr::FnCall(Box::new(Expr::Var(s)), params);
         }
 
         return Expr::Var(s);
@@ -66,7 +68,7 @@ impl Parser {
 
         self.eat(Token::LParen);
 
-        // TODO: grab params here
+        let params = self.parse_fn_decl_params();
 
         self.eat(Token::RParen);
 
@@ -75,7 +77,7 @@ impl Parser {
         debug!("got fn body {:?}", body);
         self.eat(Token::RBracket);
 
-        return Expr::Func(to_box(body));
+        return Expr::Func(to_box(body), params);
       },
       Token::LParen => {
         self.eat(Token::LParen);
@@ -168,6 +170,48 @@ impl Parser {
     return Expr::Let(Box::new(var), Box::new(e2), Box::new(e3));
   }
 
+
+  fn parse_fn_params(&mut self) -> Vec<Expr> {
+    let mut params = Vec::new();
+    let mut token = self.current_token.clone();
+
+    while token != Token::RParen {
+      debug!("getting fn params");
+      let term = self.term();
+
+      params.push(term);
+
+      if self.current_token == Token::Comma {
+        self.eat(Token::Comma);
+      }
+
+      token = self.current_token.clone();
+    }
+
+    params
+  }
+
+  fn parse_fn_decl_params(&mut self) -> Vec<Expr> {
+    let mut params = Vec::new();
+    let mut token = self.current_token.clone();
+
+    while token != Token::RParen {
+      debug!("getting fn decl params");
+      match token.clone() {
+        Token::Var(s) => {
+          self.eat(Token::Var(s.clone()));
+          params.push(Expr::Var(s));
+        },
+        Token::Comma => self.eat(Token::Comma),
+        _ => panic!()
+      }
+
+      token = self.current_token.clone();
+    }
+
+    params
+  }
+
   fn parse_named_fn(&mut self) -> Expr {
     self.eat(Token::FnDecl);
 
@@ -179,9 +223,8 @@ impl Parser {
       _ => panic!()
     };
 
-    debug!("var: {:?}", var);
     self.eat(Token::LParen);
-    // TODO: grab params
+    let params = self.parse_fn_decl_params();
     self.eat(Token::RParen);
     self.eat(Token::LBracket);
     let body = self.statement();
@@ -189,7 +232,7 @@ impl Parser {
     self.eat(Token::Seq);
     let e3 = self.statement();
 
-    let func = Expr::Func(Box::new(body));
+    let func = Expr::Func(Box::new(body), params);
 
     return Expr::Let(Box::new(var), Box::new(func), Box::new(e3));
   }

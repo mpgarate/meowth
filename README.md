@@ -5,7 +5,6 @@ While developing use this to see debug statements in tests
 RUST_LOG=boxx=debug cargo watch
 ```
 ### Pokemon
-* [medium] declare function without let keyword
 * [medium] function parameters
 * [medium] if, else if, else (separate from ternary)
 * [easy] print statement

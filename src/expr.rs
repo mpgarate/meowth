@@ -33,8 +33,8 @@ pub enum Expr {
   UnOp(UnOp, Box<Expr>),
   Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
   Let(Box<Expr>, Box<Expr>, Box<Expr>),
-  Func(Box<Expr>),
-  FnCall(String),
+  Func(Box<Expr>, Vec<Expr>),
+  FnCall(Box<Expr>, Vec<Expr>),
 }
 
 fn to_int(e: Expr) -> isize {
@@ -60,9 +60,14 @@ fn to_bool(e: Expr) -> bool {
 fn sub(e: Expr, x: Expr, v: Expr) -> Expr {
   match (e.clone(), x.clone()) {
     (Expr::Var(ref s1), Expr::Var(ref s2)) if s1 == s2 => v,
+    (Expr::FnCall(v1, xs), _) => {
+      if *v1 == x {
+        Expr::FnCall(Box::new(v), xs)
+      } else {
+        e
+      }
+    },
     (Expr::Var(_), _) => e,
-    (Expr::FnCall(ref s1), Expr::Var(ref s2)) if s1 == s2 => v,
-    (Expr::FnCall(_), _) => e,
     (Expr::Int(_), _) => e,
     (Expr::Bool(_), _) => e,
     (Expr::BinOp(op, e1, e2), _) => { 
@@ -92,8 +97,13 @@ fn sub(e: Expr, x: Expr, v: Expr) -> Expr {
         Box::new(sub(*e3, x.clone(), v.clone()))
       )
     },
-    (Expr::Func(e1), _) => {
-      Expr::Func(Box::new(sub(*e1, x.clone(), v.clone())))
+    (Expr::Func(e1, xs), _) => {
+      let xs2 = xs.iter().map(|x1| sub(x1.clone(), x.clone(), v.clone())).collect();
+
+      Expr::Func(
+        Box::new(sub(*e1, x.clone(), v.clone())),
+        xs2
+      )
     },
   }
 }
@@ -167,13 +177,19 @@ pub fn eval(e: Expr) -> Expr {
 
       eval(me2)
     },
-    Expr::Func(e1) => {
-      eval(*e1)
+    Expr::FnCall(v1, es) => {
+      match *v1 {
+        Expr::Func(ref e1, ref xs) => {
+          let exp = xs.iter().zip(es.iter()).fold(*e1.clone(), |exp, (xn, en)| sub(exp, xn.clone(), en.clone()));
+          eval(exp)
+        },
+        _ => panic!(),
+      }
     },
-    Expr::FnCall(_) => e,
     Expr::Var(_) => e,
     Expr::Int(_) => e,
     Expr::Bool(_) => e,
+    Expr::Func(_, _) => e,
   }
 }
 
