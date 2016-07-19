@@ -9,6 +9,7 @@ mod tests {
   #[test]
   pub fn test_func() {
     let _ = env_logger::init();
+    assert_eq!(Expr::Int(12), boxx("fn sum(a, b) { a + b }; sum(sum(3, 4), 5)"));
     assert_eq!(Expr::Int(12), boxx("fn ttwo(a) { 2 * a }; ttwo(ttwo(3))"));
 
     assert_eq!(
