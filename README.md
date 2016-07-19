@@ -10,8 +10,6 @@ RUST_LOG=boxx=debug cargo watch
 * go through and try to clean up clones() and derefs that aren't needed
 
 ### Pokemon
-* [easy] allow underscores in var / fn names
-* [medium] function parameters
 * [medium] if, else if, else (separate from ternary)
 * [easy] print statement
 * [hard] while loop

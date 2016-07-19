@@ -10,7 +10,7 @@ mod tests {
   pub fn test_func() {
     let _ = env_logger::init();
     assert_eq!(Expr::Int(12), boxx("fn sum(a, b) { a + b }; sum(sum(3, 4), 5)"));
-    assert_eq!(Expr::Int(12), boxx("fn ttwo(a) { 2 * a }; ttwo(ttwo(3))"));
+    assert_eq!(Expr::Int(12), boxx("fn tx_two(a) { 2 * a }; tx_two(tx_two(3))"));
 
     assert_eq!(
       Expr::Int(41),
@@ -71,6 +71,8 @@ mod tests {
     assert_eq!(Expr::Int(3), boxx("let x = 1 + 2; x"));
     assert_eq!(Expr::Int(1), boxx("let x = 1; x"));
     assert_eq!(Expr::Int(8), boxx("let x = 5; let y = 3; let z = x + y; z"));
+
+    assert_eq!(Expr::Int(52), boxx("let underscore_name = 51; 1 + underscore_name"));
   }
 
   #[test]
@@ -106,7 +108,7 @@ mod tests {
   pub fn test_seq() {
     let _ = env_logger::init();
     assert_eq!(Expr::Int(5), boxx("3;5"));
-    //assert_eq!(Expr::Int(4), boxx("let x = 3;let y = 1;x + y"));
+    assert_eq!(Expr::Int(4), boxx("let x = 3;let y = 1;x + y"));
   }
 
   #[test]

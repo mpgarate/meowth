@@ -102,7 +102,7 @@ impl Lexer {
   fn lex_keyword(&mut self) -> Token {
     let keyword: String = self.text
       .chars()
-      .take_while(|c| c.is_alphabetic())
+      .take_while(|c| c.is_alphabetic() || *c == '_')
       .collect();
 
     self.advance(keyword.len());
