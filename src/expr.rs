@@ -81,12 +81,7 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
         Box::new(sub(*e2))
       )
     },
-    (Expr::UnOp(op, e1), _) => {
-      Expr::UnOp(
-        op,
-        Box::new(sub(*e1))
-      )
-    },
+    (Expr::UnOp(op, e1), _) => Expr::UnOp(op, Box::new(sub(*e1))),
     (Expr::Ternary(e1, e2, e3), _) => {
       Expr::Ternary(
         Box::new(sub(*e1)),
@@ -104,11 +99,7 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
     (Expr::Func(name, e1, xs), _) => {
       let xs2 = xs.iter().map(|xn| sub(xn.clone())).collect();
 
-      Expr::Func(
-        name,
-        Box::new(sub(*e1)),
-        xs2
-      )
+      Expr::Func(name, Box::new(sub(*e1)), xs2)
     },
   }
 }
@@ -186,16 +177,17 @@ pub fn eval(e: Expr) -> Expr {
       match *v1 {
         Expr::Func(ref name, ref e1, ref xs) => {
           // sub the params
-          let exp = xs.iter().zip(es.iter()).fold(*e1.clone(), |exp, (xn, en)| subst(exp, xn.clone(), en.clone()));
+          let exp = xs.iter().zip(es.iter())
+            .fold(
+              *e1.clone(),
+              |exp, (xn, en)| subst(exp, xn.clone(), en.clone())
+            );
 
           // sub the fn body for named functions
           match *name {
             None => eval(exp),
-            Some(ref s) => {
-              eval(subst(exp, *s.clone(), *v1.clone()))
-            },
+            Some(ref s) => eval(subst(exp, *s.clone(), *v1.clone()))
           }
-
         },
         _ => {
           debug!("expected a Func, got {:?}", v1);

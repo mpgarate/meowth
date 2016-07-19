@@ -6,8 +6,7 @@ RUST_LOG=boxx=debug cargo watch
 
 ```
 ### Small notes
-* be consistent about to_box vs Box::new in parser
-* create more helpers in parser?
+* create more helpers in parser
 * go through and try to clean up clones() and derefs that aren't needed
 
 ### Pokemon

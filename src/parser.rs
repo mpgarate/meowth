@@ -56,7 +56,7 @@ impl Parser {
           let params = self.parse_fn_params();
           self.eat(Token::RParen);
 
-          return Expr::FnCall(Box::new(Expr::Var(s)), params);
+          return Expr::FnCall(to_box(Expr::Var(s)), params);
         }
 
         return Expr::Var(s);
@@ -165,7 +165,7 @@ impl Parser {
     self.eat(Token::Seq);
     let e3 = self.statement();
 
-    return Expr::Let(Box::new(var), Box::new(e2), Box::new(e3));
+    return Expr::Let(to_box(var), to_box(e2), to_box(e3));
   }
 
 
@@ -230,9 +230,9 @@ impl Parser {
     self.eat(Token::Seq);
     let e3 = self.statement();
 
-    let func = Expr::Func(Some(Box::new(var.clone())), Box::new(body.clone()), params);
+    let func = Expr::Func(Some(to_box(var.clone())), to_box(body.clone()), params);
 
-    return Expr::Let(Box::new(var), Box::new(func), Box::new(e3));
+    return Expr::Let(to_box(var), to_box(func), to_box(e3));
   }
 
   pub fn statement(&mut self) -> Expr {
