@@ -57,15 +57,16 @@ fn to_bool(e: Expr) -> bool {
   }
 }
 
-// TODO: refactor this to use a closure
-fn sub(e: Expr, x: Expr, v: Expr) -> Expr {
+fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
+  let sub = |e1: Expr| subst(e1.clone(), x.clone(), v.clone());
+
   match (e.clone(), x.clone()) {
-    (Expr::Var(ref s1), Expr::Var(ref s2)) if s1 == s2 => v,
+    (Expr::Var(ref s1), Expr::Var(ref s2)) if s1 == s2 => v.clone(),
     (Expr::FnCall(v1, xs), _) => {
-      let xs2 = xs.iter().map(|xn| sub(xn.clone(), x.clone(), v.clone())).collect();
+      let xs2 = xs.iter().map(|xn| sub(xn.clone())).collect();
 
       if *v1 == x {
-        Expr::FnCall(Box::new(v), xs2)
+        Expr::FnCall(Box::new(v.clone()), xs2)
       } else {
         Expr::FnCall(v1, xs2)
       }
@@ -76,36 +77,36 @@ fn sub(e: Expr, x: Expr, v: Expr) -> Expr {
     (Expr::BinOp(op, e1, e2), _) => { 
       Expr::BinOp(
         op,
-        Box::new(sub(*e1, x.clone(), v.clone())),
-        Box::new(sub(*e2, x.clone(), v.clone()))
+        Box::new(sub(*e1)),
+        Box::new(sub(*e2))
       )
     },
     (Expr::UnOp(op, e1), _) => {
       Expr::UnOp(
         op,
-        Box::new(sub(*e1, x.clone(), v.clone()))
+        Box::new(sub(*e1))
       )
     },
     (Expr::Ternary(e1, e2, e3), _) => {
       Expr::Ternary(
-        Box::new(sub(*e1, x.clone(), v.clone())),
-        Box::new(sub(*e2, x.clone(), v.clone())),
-        Box::new(sub(*e3, x.clone(), v.clone()))
+        Box::new(sub(*e1)),
+        Box::new(sub(*e2)),
+        Box::new(sub(*e3))
       )
     },
     (Expr::Let(e1, e2, e3), _) => {
       Expr::Let(
-        Box::new(sub(*e1, x.clone(), v.clone())),
-        Box::new(sub(*e2, x.clone(), v.clone())),
-        Box::new(sub(*e3, x.clone(), v.clone()))
+        Box::new(sub(*e1)),
+        Box::new(sub(*e2)),
+        Box::new(sub(*e3))
       )
     },
     (Expr::Func(name, e1, xs), _) => {
-      let xs2 = xs.iter().map(|xn| sub(xn.clone(), x.clone(), v.clone())).collect();
+      let xs2 = xs.iter().map(|xn| sub(xn.clone())).collect();
 
       Expr::Func(
         name,
-        Box::new(sub(*e1, x.clone(), v.clone())),
+        Box::new(sub(*e1)),
         xs2
       )
     },
@@ -177,7 +178,7 @@ pub fn eval(e: Expr) -> Expr {
     },
     Expr::Let(x, e1, e2) => {
       let v1 = eval(*e1);
-      let me2 = sub(*e2, *x, v1);
+      let me2 = subst(*e2, *x, v1);
 
       eval(me2)
     },
@@ -185,13 +186,13 @@ pub fn eval(e: Expr) -> Expr {
       match *v1 {
         Expr::Func(ref name, ref e1, ref xs) => {
           // sub the params
-          let exp = xs.iter().zip(es.iter()).fold(*e1.clone(), |exp, (xn, en)| sub(exp, xn.clone(), en.clone()));
+          let exp = xs.iter().zip(es.iter()).fold(*e1.clone(), |exp, (xn, en)| subst(exp, xn.clone(), en.clone()));
 
           // sub the fn body for named functions
           match *name {
             None => eval(exp),
             Some(ref s) => {
-              eval(sub(exp, *s.clone(), *v1.clone()))
+              eval(subst(exp, *s.clone(), *v1.clone()))
             },
           }
 
