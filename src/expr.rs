@@ -33,7 +33,7 @@ pub enum Expr {
   UnOp(UnOp, Box<Expr>),
   Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
   Let(Box<Expr>, Box<Expr>, Box<Expr>),
-  Func(Box<Expr>, Vec<Expr>),
+  Func(Option<Box<Expr>>, Box<Expr>, Vec<Expr>),
   FnCall(Box<Expr>, Vec<Expr>),
 }
 
@@ -57,6 +57,7 @@ fn to_bool(e: Expr) -> bool {
   }
 }
 
+// TODO: refactor this to use a closure
 fn sub(e: Expr, x: Expr, v: Expr) -> Expr {
   match (e.clone(), x.clone()) {
     (Expr::Var(ref s1), Expr::Var(ref s2)) if s1 == s2 => v,
@@ -99,10 +100,11 @@ fn sub(e: Expr, x: Expr, v: Expr) -> Expr {
         Box::new(sub(*e3, x.clone(), v.clone()))
       )
     },
-    (Expr::Func(e1, xs), _) => {
-      let xs2 = xs.iter().map(|x1| sub(x1.clone(), x.clone(), v.clone())).collect();
+    (Expr::Func(name, e1, xs), _) => {
+      let xs2 = xs.iter().map(|xn| sub(xn.clone(), x.clone(), v.clone())).collect();
 
       Expr::Func(
+        name,
         Box::new(sub(*e1, x.clone(), v.clone())),
         xs2
       )
@@ -181,9 +183,18 @@ pub fn eval(e: Expr) -> Expr {
     },
     Expr::FnCall(v1, es) => {
       match *v1 {
-        Expr::Func(ref e1, ref xs) => {
+        Expr::Func(ref name, ref e1, ref xs) => {
+          // sub the params
           let exp = xs.iter().zip(es.iter()).fold(*e1.clone(), |exp, (xn, en)| sub(exp, xn.clone(), en.clone()));
-          eval(exp)
+
+          // sub the fn body for named functions
+          match *name {
+            None => eval(exp),
+            Some(ref s) => {
+              eval(sub(exp, *s.clone(), *v1.clone()))
+            },
+          }
+
         },
         _ => {
           debug!("expected a Func, got {:?}", v1);
@@ -194,7 +205,7 @@ pub fn eval(e: Expr) -> Expr {
     Expr::Var(_) => e,
     Expr::Int(_) => e,
     Expr::Bool(_) => e,
-    Expr::Func(_, _) => e,
+    Expr::Func(_, _, _) => e,
   }
 }
 

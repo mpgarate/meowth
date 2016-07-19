@@ -11,18 +11,27 @@ mod tests {
     let _ = env_logger::init();
     assert_eq!(Expr::Int(12), boxx("fn ttwo(a) { 2 * a }; ttwo(ttwo(3))"));
 
-    /*
     assert_eq!(
-      Expr::Int(8),
+      Expr::Int(41),
       boxx("
         fn foo(a) {
-          a > 10 ? foo(a - 3) : a
+          a < 40 ? foo(a + 3) : a
         };
 
         foo(20)
       ")
     );
-    */
+
+    assert_eq!(
+      Expr::Int(21),
+      boxx("
+        fn fib(n) {
+          n == 0 ? 0 : (n == 1 ? 1 : fib(n - 1) + fib(n - 2))
+        };
+
+        fib(8)
+      ")
+    );
 
     assert_eq!(
       Expr::Int(28),

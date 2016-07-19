@@ -5,6 +5,11 @@ While developing use this to see debug statements in tests
 RUST_LOG=boxx=debug cargo watch
 
 ```
+### Small notes
+* be consistent about to_box vs Box::new in parser
+* create more helpers in parser?
+* go through and try to clean up clones() and derefs that aren't needed
+
 ### Pokemon
 * [easy] allow underscores in var / fn names
 * [medium] function parameters

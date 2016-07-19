@@ -53,9 +53,7 @@ impl Parser {
         // fn call rule
         if self.current_token == Token::LParen {
           self.eat(Token::LParen);
-
           let params = self.parse_fn_params();
-          // TODO grab params
           self.eat(Token::RParen);
 
           return Expr::FnCall(Box::new(Expr::Var(s)), params);
@@ -77,7 +75,7 @@ impl Parser {
         debug!("got fn body {:?}", body);
         self.eat(Token::RBracket);
 
-        return Expr::Func(to_box(body), params);
+        return Expr::Func(None, to_box(body.clone()), params);
       },
       Token::LParen => {
         self.eat(Token::LParen);
@@ -177,7 +175,7 @@ impl Parser {
 
     while token != Token::RParen {
       debug!("getting fn params");
-      let term = self.term();
+      let term = self.binop_expr();
 
       params.push(term);
 
@@ -232,7 +230,7 @@ impl Parser {
     self.eat(Token::Seq);
     let e3 = self.statement();
 
-    let func = Expr::Func(Box::new(body), params);
+    let func = Expr::Func(Some(Box::new(var.clone())), Box::new(body.clone()), params);
 
     return Expr::Let(Box::new(var), Box::new(func), Box::new(e3));
   }
