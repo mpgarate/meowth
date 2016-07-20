@@ -109,6 +109,9 @@ mod tests {
     assert_eq!(Expr::Int(1), boxx("let x = 1; x"));
     assert_eq!(Expr::Int(8), boxx("let x = 5; let y = 3; let z = x + y; z"));
 
+    // using let keyword again re-binds value
+    assert_eq!(Expr::Int(5), boxx("let x = 2; let x = 3; x + 2"));
+
     assert_eq!(Expr::Int(52), boxx("let underscore_name = 51; 1 + underscore_name"));
   }
 
