@@ -91,7 +91,7 @@ impl Parser {
       },
       Token::Not => {
         self.eat(Token::Not);
-        return Expr::UnOp(UnOp::Not, to_box(self.statement()));
+        return Expr::UnOp(UnOp::Not, to_box(self.factor()));
       },
       Token::Minus => {
         self.eat(Token::Minus);

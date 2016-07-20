@@ -99,7 +99,6 @@ mod tests {
     // TODO: this should be parsed as a fn call assert_eq!(Expr::Int(4), boxx("fn() { 1 + 3 }()"));
     // TODO: have better failure message when ending a fn block with a semicolon
     // assert_eq!(Expr::Int(12), boxx("fn foo(a) { 1 + a; }; foo(4) + 7"));
-    // TODO: recursion
   }
 
   #[test]
@@ -178,7 +177,7 @@ mod tests {
     let _ = env_logger::init();
 
     // TODO: unop negate is not sticking to term
-    //assert_eq!(Expr::Bool(true), boxx("!true || true"));
+    assert_eq!(Expr::Bool(true), boxx("!true || true"));
 
     assert_eq!(Expr::Bool(true), boxx("!false"));
 
