@@ -8,13 +8,13 @@ RUST_LOG=boxx=debug cargo watch
 ### Small notes
 * create more helpers in parser
 * go through and try to clean up clones() and derefs that aren't needed
+* go through and think about statement vs block vs binop_expr, adjust usage and naming
 
 ### Pokemon
-* [medium] if, else if, else (separate from ternary)
-* [easy] print statement
-* [hard] while loop
 * [hard] at runtime, var name should be accessible (not purely substituted)
 * [hard] REPL should maintain state
+* [easy] print statement
+* [hard] while loop
 * [medium] ability to run standalone program files through interpreter
 * [breaking] type coercion for bool to number
 * [breaking] bike / mutable stack-like var binding

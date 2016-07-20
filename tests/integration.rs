@@ -41,8 +41,11 @@ mod tests {
   pub fn test_func() {
     let _ = env_logger::init();
 
-    // TODO: block should get its own scope
-    //assert_eq!(Expr::Int(2), boxx("let x = 4; fn foo() { let x = 1; x + 1 }; foo()"));
+    assert_eq!(Expr::Int(2), boxx("let x = 4; fn foo() { let x = 1; x + 1 }; foo()"));
+    assert_eq!(Expr::Int(6), boxx("let x = 5; fn foo() { x + 1 }; foo()"));
+    assert_eq!(Expr::Int(60), boxx("fn foo() { 5 }; fn bar() { fn foo() { 6 }; foo() * 10 }; bar()"));
+    assert_eq!(Expr::Int(50), boxx("fn foo() { 5 }; fn bar() { foo() * 10 }; bar()"));
+
     assert_eq!(Expr::Int(12), boxx("fn sum(a, b) { a + b }; sum(sum(3, 4), 5)"));
     assert_eq!(Expr::Int(12), boxx("fn tx_two(a) { 2 * a }; tx_two(tx_two(3))"));
 

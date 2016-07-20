@@ -90,15 +90,20 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
       )
     },
     (Expr::Let(e1, e2, e3), _) => {
+      let e3s = if *e1 == x {
+        *e3
+      } else {
+        sub(*e3)
+      };
+
       Expr::Let(
-        Box::new(sub(*e1)),
+        Box::new(*e1),
         Box::new(sub(*e2)),
-        Box::new(sub(*e3))
+        Box::new(e3s)
       )
     },
     (Expr::Func(name, e1, xs), _) => {
       let xs2 = xs.iter().map(|xn| sub(xn.clone())).collect();
-
       Expr::Func(name, Box::new(sub(*e1)), xs2)
     },
   }
