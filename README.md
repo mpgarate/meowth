@@ -13,6 +13,7 @@ RUST_LOG=boxx=debug cargo watch
 ### Pokemon
 * [hard] at runtime, var name should be accessible (not purely substituted)
 * [hard] REPL should maintain state
+  * consider using Mem https://github.com/mpgarate/ProgLang-Assignments/blob/master/HW6/src/main/scala/js/hw6/ast.scala#L135
 * [easy] print statement
 * [hard] while loop
 * [medium] ability to run standalone program files through interpreter
