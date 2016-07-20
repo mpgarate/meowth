@@ -31,22 +31,18 @@ mod tests {
       boxx("if (let x = 4; x > 3) { 52 } else { 30 }")
     );
 
-    /*
-     * TODO: SEQ seems broken after if statements
     assert_eq!(
       Expr::Int(22),
       boxx("if (true) { 11 } else { 0 }; 22")
     );
-    */
   }
 
   #[test]
   pub fn test_func() {
     let _ = env_logger::init();
 
-    // TODO block scope is not working
+    // TODO: block should get its own scope
     //assert_eq!(Expr::Int(2), boxx("let x = 4; fn foo() { let x = 1; x + 1 }; foo()"));
-
     assert_eq!(Expr::Int(12), boxx("fn sum(a, b) { a + b }; sum(sum(3, 4), 5)"));
     assert_eq!(Expr::Int(12), boxx("fn tx_two(a) { 2 * a }; tx_two(tx_two(3))"));
 

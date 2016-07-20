@@ -85,7 +85,7 @@ impl Parser {
       },
       Token::LBracket => {
         self.eat(Token::LBracket);
-        let node = self.statement();
+        let node = self.block();
         self.eat(Token::RBracket);
         return node;
       },
@@ -260,12 +260,12 @@ impl Parser {
 
     while op.is_statement_op() {
       self.eat(op.clone());
-      let e2 = self.statement();
+      let e2 = self.block();
 
       node = match op {
         Token::Ternary => {
           self.eat(Token::Else);
-          let e3 = self.statement();
+          let e3 = self.block();
           self.ternary(node, e2, e3)
         },
         Token::Seq => self.binop(BinOp::Seq, node, e2),
@@ -279,7 +279,22 @@ impl Parser {
   }
 
   pub fn block(&mut self) -> Expr {
-    self.statement()
+    let mut node = self.statement();
+    let mut op = self.current_token.clone();
+
+    while op.is_block_op() {
+      self.eat(op.clone());
+      let e2 = self.statement();
+
+      node = match op {
+        Token::Seq => self.binop(BinOp::Seq, node, e2),
+        _ => panic!()
+      };
+
+      op = self.current_token.clone();
+    }
+
+    node
   }
 
   pub fn program(&mut self) -> Expr {

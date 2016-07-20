@@ -62,6 +62,12 @@ impl Token {
   pub fn is_statement_op(&self) -> bool {
     match *self {
       Token::Ternary => true,
+      _ => false,
+    }
+  }
+
+  pub fn is_block_op(&self) -> bool {
+    match *self {
       Token::Seq => true,
       _ => false,
     }
