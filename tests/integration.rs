@@ -176,8 +176,9 @@ mod tests {
   pub fn test_not_and_neg() {
     let _ = env_logger::init();
 
-    // TODO: unop negate is not sticking to term
     assert_eq!(Expr::Bool(true), boxx("!true || true"));
+
+    assert_eq!(Expr::Int(0), boxx("-1 * -1 + -1"));
 
     assert_eq!(Expr::Bool(true), boxx("!false"));
 
