@@ -27,8 +27,9 @@ pub enum Token {
   FnDecl,
   LBracket,
   RBracket,
-  EOF,
   Comma,
+  If,
+  EOF,
 }
 
 impl Token {
@@ -112,6 +113,8 @@ impl Lexer {
       "false" => Token::Bool(false),
       "fn" => Token::FnDecl,
       "let" => Token::Let,
+      "if" => Token::If,
+      "else" => Token::Else,
       s if s.len() > 0 => Token::Var(s.to_string()),
       _ => panic!()
     }

@@ -7,8 +7,46 @@ mod tests {
   extern crate env_logger;
 
   #[test]
+  pub fn test_if_else() {
+    let _ = env_logger::init();
+
+    assert_eq!(
+      Expr::Int(34),
+      boxx("if (true && false) { 32 } else if (!true && true) { 33 } else { 34 }")
+    );
+
+    
+    assert_eq!(
+      Expr::Int(32),
+      boxx("if (true || false) { 32 } else if (!true && true) { 33 } else { 34 }")
+    );
+
+    assert_eq!(
+      Expr::Int(30),
+      boxx("if (true && false) { 32 } else { 30 }")
+    );
+
+    assert_eq!(
+      Expr::Int(52),
+      boxx("if (let x = 4; x > 3) { 52 } else { 30 }")
+    );
+
+    /*
+     * TODO: SEQ seems broken after if statements
+    assert_eq!(
+      Expr::Int(22),
+      boxx("if (true) { 11 } else { 0 }; 22")
+    );
+    */
+  }
+
+  #[test]
   pub fn test_func() {
     let _ = env_logger::init();
+
+    // TODO block scope is not working
+    //assert_eq!(Expr::Int(2), boxx("let x = 4; fn foo() { let x = 1; x + 1 }; foo()"));
+
     assert_eq!(Expr::Int(12), boxx("fn sum(a, b) { a + b }; sum(sum(3, 4), 5)"));
     assert_eq!(Expr::Int(12), boxx("fn tx_two(a) { 2 * a }; tx_two(tx_two(3))"));
 
@@ -135,6 +173,11 @@ mod tests {
 
   #[test]
   pub fn test_not_and_neg() {
+    let _ = env_logger::init();
+
+    // TODO: unop negate is not sticking to term
+    //assert_eq!(Expr::Bool(true), boxx("!true || true"));
+
     assert_eq!(Expr::Bool(true), boxx("!false"));
 
     assert_eq!(Expr::Bool(true), boxx("!(true == false)"));

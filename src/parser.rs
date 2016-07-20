@@ -235,11 +235,24 @@ impl Parser {
     return Expr::Let(to_box(var), to_box(func), to_box(e3));
   }
 
+  fn parse_if(&mut self) -> Expr {
+    self.eat(Token::If);
+    let e1 = self.binop_expr();
+    let e2 = self.statement();
+    let e3 = self.statement();
+    return self.ternary(e1, e2, e3);
+  }
+
   pub fn statement(&mut self) -> Expr {
     if self.current_token == Token::Let {
       return self.parse_let();
     } else if self.current_token == Token::FnDecl {
       return self.parse_named_fn();
+    } else if self.current_token == Token::If {
+      return self.parse_if();
+    } else if self.current_token == Token::Else {
+      self.eat(Token::Else);
+      return self.statement();
     }
 
     let mut node = self.binop_expr();
@@ -256,7 +269,7 @@ impl Parser {
           self.ternary(node, e2, e3)
         },
         Token::Seq => self.binop(BinOp::Seq, node, e2),
-        _ => panic!(),
+        _ => panic!()
       };
 
       op = self.current_token.clone();
