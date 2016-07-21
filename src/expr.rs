@@ -183,10 +183,7 @@ pub fn eval(e: Expr) -> Expr {
         Expr::Func(ref name, ref e1, ref xs) => {
           // sub the params
           let exp = xs.iter().zip(es.iter())
-            .fold(
-              *e1.clone(),
-              |exp, (xn, en)| subst(exp, xn.clone(), en.clone())
-            );
+            .fold(*e1.clone(), |exp, (xn, en)| subst(exp, xn.clone(), en.clone()));
 
           // sub the fn body for named functions
           match *name {

@@ -96,7 +96,8 @@ mod tests {
     assert_eq!(Expr::Int(2), boxx("let foo = fn() { 1 + 1 }; foo()"));
     assert_eq!(Expr::Int(7), boxx("let foo = fn() { 1 + 3 }; foo() + 3"));
     assert_eq!(Expr::Int(9), boxx("let foo = fn() { 1 + 3 }; let bar = fn() { foo() + 1}; 4 + bar()"));
-    // TODO: this should be parsed as a fn call assert_eq!(Expr::Int(4), boxx("fn() { 1 + 3 }()"));
+    // TODO: this should be parsed as a fn call
+    // assert_eq!(Expr::Int(4), boxx("fn() { 1 + 3 }()"));
     // TODO: have better failure message when ending a fn block with a semicolon
     // assert_eq!(Expr::Int(12), boxx("fn foo(a) { 1 + a; }; foo(4) + 7"));
   }
@@ -107,6 +108,9 @@ mod tests {
     assert_eq!(Expr::Int(3), boxx("let x = 1 + 2; x"));
     assert_eq!(Expr::Int(1), boxx("let x = 1; x"));
     assert_eq!(Expr::Int(8), boxx("let x = 5; let y = 3; let z = x + y; z"));
+
+    // TODO: should be able to assign a constant to a statement
+    //assert_eq!(Expr::Int(3), boxx("let x = (1 > 2) ? 0 : 3; x"));
 
     // using let keyword again re-binds value
     assert_eq!(Expr::Int(5), boxx("let x = 2; let x = 3; x + 2"));
