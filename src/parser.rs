@@ -34,7 +34,7 @@ impl Parser {
   }
 
   fn binop(&mut self, bop: BinOp, e1: Expr, e2: Expr) -> Expr {
-    Expr::BinOp(bop, to_box(e1), to_box(e2))
+    Expr::Bop(bop, to_box(e1), to_box(e2))
   }
 
   fn factor(&mut self) -> Expr {
@@ -91,11 +91,11 @@ impl Parser {
       },
       Token::Not => {
         self.eat(Token::Not);
-        return Expr::UnOp(UnOp::Not, to_box(self.factor()));
+        return Expr::Uop(UnOp::Not, to_box(self.factor()));
       },
       Token::Minus => {
         self.eat(Token::Minus);
-        return Expr::UnOp(UnOp::Neg, to_box(self.factor()));
+        return Expr::Uop(UnOp::Neg, to_box(self.factor()));
       },
       _ => {
         debug!("invalid factor: {:?}", self.current_token);

@@ -9,7 +9,7 @@ mod test {
   #[test]
   fn test_mult_div() {
     assert_eq!(
-      Expr::BinOp(
+      Expr::Bop(
         BinOp::Times,
         Box::new(Expr::Int(3)),
         Box::new(Expr::Int(4)),
@@ -18,7 +18,7 @@ mod test {
     );
 
     assert_eq!(
-      Expr::BinOp(
+      Expr::Bop(
         BinOp::Div,
         Box::new(Expr::Int(3)),
         Box::new(Expr::Int(4)),
@@ -30,7 +30,7 @@ mod test {
   #[test]
   fn test_parse_add_subtract_parens() {
     assert_eq!(
-      Expr::BinOp(
+      Expr::Bop(
         BinOp::Plus,
         Box::new(Expr::Int(3)),
         Box::new(Expr::Int(4)),
@@ -39,10 +39,10 @@ mod test {
     );
 
     assert_eq!(
-      Expr::BinOp(
+      Expr::Bop(
         BinOp::Plus,
         Box::new(
-          Expr::BinOp(
+          Expr::Bop(
             BinOp::Plus,
             Box::new(Expr::Int(3)),
             Box::new(Expr::Int(4)),
@@ -54,10 +54,10 @@ mod test {
     );
 
     assert_eq!(
-      Expr::BinOp(BinOp::Plus,
+      Expr::Bop(BinOp::Plus,
         Box::new(Expr::Int(3)),
         Box::new(
-          Expr::BinOp(
+          Expr::Bop(
             BinOp::Plus,
             Box::new(Expr::Int(4)),
             Box::new(Expr::Int(5)),
@@ -68,7 +68,7 @@ mod test {
     );
 
     assert_eq!(
-      Expr::BinOp(
+      Expr::Bop(
         BinOp::Minus,
         Box::new(Expr::Int(3)),
         Box::new(Expr::Int(4)),
@@ -77,10 +77,10 @@ mod test {
     );
 
     assert_eq!(
-      Expr::BinOp(
+      Expr::Bop(
         BinOp::Minus,
         Box::new(
-          Expr::BinOp(
+          Expr::Bop(
             BinOp::Minus,
             Box::new(Expr::Int(3)),
             Box::new(Expr::Int(4)),
@@ -92,11 +92,11 @@ mod test {
     );
 
     assert_eq!(
-      Expr::BinOp(
+      Expr::Bop(
         BinOp::Minus,
         Box::new(Expr::Int(3)),
         Box::new(
-          Expr::BinOp(
+          Expr::Bop(
             BinOp::Minus,
             Box::new(Expr::Int(4)),
             Box::new(Expr::Int(5)),
@@ -107,10 +107,10 @@ mod test {
     );
 
     assert_eq!(
-      Expr::BinOp(
+      Expr::Bop(
         BinOp::Minus,
         Box::new(
-          Expr::BinOp(
+          Expr::Bop(
             BinOp::Plus,
             Box::new(Expr::Int(4)),
             Box::new(Expr::Int(7)),
