@@ -141,7 +141,6 @@ pub fn step(e: Expr) -> Expr {
   debug!("step(e) : {:?}", e);
   match e {
     // TODO 'use Expr::*;
-    //
     /**
      * Values are ineligible for step
      */
@@ -153,16 +152,16 @@ pub fn step(e: Expr) -> Expr {
      * Base cases
      */
     Expr::UnOp(UnOp::Not, ref e1) if is_bool(e1) => {
-      Expr::Bool(!to_bool(&*e1))
+      Expr::Bool(!to_bool(e1))
     },
     Expr::UnOp(UnOp::Neg, ref e1) if is_int(e1) => {
-      Expr::Int(-1 * to_int(&*e1))
+      Expr::Int(-1 * to_int(e1))
     },
     Expr::BinOp(BinOp::And, ref e1, ref e2) if is_bool(e1) && is_bool(e2) => {
-      Expr::Bool(to_bool(&*e1) && to_bool(&*e2))
+      Expr::Bool(to_bool(e1) && to_bool(e2))
     },
     Expr::BinOp(BinOp::Or, ref e1, ref e2) if is_bool(e1) && is_bool(e2) => {
-      Expr::Bool(to_bool(&*e1) || to_bool(&*e2))
+      Expr::Bool(to_bool(e1) || to_bool(e2))
     },
     Expr::BinOp(BinOp::Eq, ref e1, ref e2) if is_value(e1) && is_value(e2) => {
       Expr::Bool(*e1 == *e2)
@@ -171,8 +170,8 @@ pub fn step(e: Expr) -> Expr {
       Expr::Bool(*e1 != *e2)
     },
     Expr::BinOp(BinOp::Mod, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
-      let n1 = to_int(&*e1);
-      let n2 = to_int(&*e2);
+      let n1 = to_int(e1);
+      let n2 = to_int(e2);
 
       // rust % gives the remainder, not modulus
       let result = ((n1 % n2) + n2) % n2;
@@ -180,34 +179,34 @@ pub fn step(e: Expr) -> Expr {
       Expr::Int(result)
     },
     Expr::BinOp(BinOp::Lt, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
-      Expr::Bool(to_int(&*e1) < to_int(&*e2))
+      Expr::Bool(to_int(e1) < to_int(e2))
     },
     Expr::BinOp(BinOp::Gt, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
-      Expr::Bool(to_int(&*e1) > to_int(&*e2))
+      Expr::Bool(to_int(e1) > to_int(e2))
     },
     Expr::BinOp(BinOp::Leq, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
-      Expr::Bool(to_int(&*e1) <= to_int(&*e2))
+      Expr::Bool(to_int(e1) <= to_int(e2))
     },
     Expr::BinOp(BinOp::Geq, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
-      Expr::Bool(to_int(&*e1) >= to_int(&*e2))
+      Expr::Bool(to_int(e1) >= to_int(e2))
     },
     Expr::BinOp(BinOp::Plus, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
-      Expr::Int(to_int(&*e1) + to_int(&*e2))
+      Expr::Int(to_int(e1) + to_int(e2))
     },
     Expr::BinOp(BinOp::Minus, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
-      Expr::Int(to_int(&*e1) - to_int(&*e2))
+      Expr::Int(to_int(e1) - to_int(e2))
     },
     Expr::BinOp(BinOp::Times, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
-      Expr::Int(to_int(&*e1) * to_int(&*e2))
+      Expr::Int(to_int(e1) * to_int(e2))
     },
     Expr::BinOp(BinOp::Div, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
-      Expr::Int(to_int(&*e1) / to_int(&*e2))
+      Expr::Int(to_int(e1) / to_int(e2))
     },
     Expr::BinOp(BinOp::Seq, ref e1, ref e2) if is_value(e1) => {
       *e2.clone()
     },
     Expr::Ternary(ref e1, ref e2, ref e3) if is_value(e1) => {
-      match to_bool(&*e1) {
+      match to_bool(e1) {
         true => *e2.clone(),
         false => *e3.clone(),
       }
