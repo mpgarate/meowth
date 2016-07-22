@@ -60,7 +60,7 @@ fn is_func(e: &Expr) -> bool {
 
 fn is_value(e: &Expr) -> bool {
   match *e {
-    Expr::Int(_) | Expr::Bool(_) | Expr::Func(_, _, _) => true,
+    Expr::Int(_) | Expr::Bool(_) | Expr::Var(_) | Expr::Func(_, _, _) => true,
     _ => false,
   }
 }
@@ -138,6 +138,7 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
 }
 
 pub fn step(e: Expr) -> Expr {
+  debug!("step(e) : {:?}", e);
   match e {
     // TODO 'use Expr::*;
     //
@@ -249,7 +250,7 @@ pub fn step(e: Expr) -> Expr {
       Expr::Ternary(Box::new(step(*e1)), e2, e3)
     },
     Expr::Let(ref e1, ref e2, ref e3) if is_value(e1) => {
-      Expr::Let(Box::new(step(*e1.clone())), Box::new(*e2.clone()), Box::new(*e3.clone()))
+      Expr::Let(Box::new(*e1.clone()), Box::new(step(*e2.clone())), Box::new(*e3.clone()))
     },
     Expr::Let(e1, e2, e3) => {
       Expr::Let(Box::new(step(*e1)), e2, e3)
