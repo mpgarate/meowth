@@ -138,12 +138,19 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
 }
 
 pub fn step(e: Expr) -> Expr {
-  if is_value(&e) {
-    debug!("stepping on a value {:?}", e);
-    panic!("stepping on a value");
-  }
-
   match e {
+    // TODO 'use Expr::*;
+    //
+    /**
+     * Values are ineligible for step
+     */
+    Expr::Int(_) | Expr::Bool(_) | Expr::Func(_, _, _) | Expr::Var(_) => {
+      debug!("stepping on a value {:?}", e);
+      panic!("stepping on a value");
+    }
+    /**
+     * Base cases
+     */
     Expr::UnOp(UnOp::Not, ref e1) if is_bool(e1) => {
       Expr::Bool(!to_bool(&*e1))
     },
@@ -198,7 +205,7 @@ pub fn step(e: Expr) -> Expr {
     Expr::BinOp(BinOp::Seq, ref e1, ref e2) if is_value(e1) => {
       *e2.clone()
     },
-    Expr::Ternary(ref e1, ref e2, ref e3) if is_value(&*e1) => {
+    Expr::Ternary(ref e1, ref e2, ref e3) if is_value(e1) => {
       match to_bool(&*e1) {
         true => *e2.clone(),
         false => *e3.clone(),
@@ -226,11 +233,39 @@ pub fn step(e: Expr) -> Expr {
         },
       }
     },
-    Expr::Var(_) => e,
-    Expr::Int(_) => e,
-    Expr::Bool(_) => e,
-    Expr::Func(_, _, _) => e,
-    _ => panic!() // TODO: search cases
+    /**
+     * Search Cases
+     */
+    Expr::BinOp(ref op, ref v1, ref e2) if is_value(v1) => {
+      Expr::BinOp(op.clone(), Box::new(*v1.clone()), Box::new(step(*e2.clone())))
+    },
+    Expr::BinOp(op, e1, e2) => {
+      Expr::BinOp(op, Box::new(step(*e1)), e2)
+    },
+    Expr::UnOp(op, e1) => {
+      Expr::UnOp(op, Box::new(step(*e1)))
+    },
+    Expr::Ternary(e1, e2, e3) => {
+      Expr::Ternary(Box::new(step(*e1)), e2, e3)
+    },
+    Expr::Let(ref e1, ref e2, ref e3) if is_value(e1) => {
+      Expr::Let(Box::new(step(*e1.clone())), Box::new(*e2.clone()), Box::new(*e3.clone()))
+    },
+    Expr::Let(e1, e2, e3) => {
+      Expr::Let(Box::new(step(*e1)), e2, e3)
+    },
+    Expr::FnCall(e1, mut xs) => {
+      let mut found_first = true;
+
+      for x in xs.iter_mut() {
+        if is_value(x) && found_first == true {
+          found_first = false;
+          *x = step(x.clone());
+        }
+      }
+
+      Expr::FnCall(e1, xs)
+    }
   }
 }
 

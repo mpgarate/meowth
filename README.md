@@ -9,6 +9,7 @@ RUST_LOG=boxx=debug cargo watch
 * create more helpers in parser
 * go through and try to clean up clones() and derefs that aren't needed
 * go through and think about statement vs block vs binop_expr, adjust usage and naming
+* consider making step act on a Box<Expr>
 
 ### Pokemon
 * [hard] at runtime, var name should be accessible (not purely substituted)

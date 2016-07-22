@@ -1,6 +1,5 @@
 extern crate boxx;
 
-use boxx::parser::{parse};
 use boxx::expr::{boxx};
 
 use std::io::{Write, stdout, stdin};
