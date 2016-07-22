@@ -1,7 +1,7 @@
 extern crate boxx;
 
 use boxx::parser::{parse};
-use boxx::expr::{eval};
+use boxx::expr::{boxx};
 
 use std::io::{Write, stdout, stdin};
 
@@ -16,7 +16,7 @@ fn main() {
         if input == "exit\n".to_string() { 
           break;
         }
-        println!("{:?}", eval(parse(&input)))
+        println!("{:?}", boxx(&input))
       },
       Err(e) => print!("error: {}", e)
     }

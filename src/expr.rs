@@ -37,8 +37,36 @@ pub enum Expr {
   FnCall(Box<Expr>, Vec<Expr>),
 }
 
-fn to_int(e: Expr) -> isize {
-  match e {
+fn is_int(e: &Expr) -> bool {
+  match *e {
+    Expr::Int(_) => true,
+    _ => false,
+  }
+}
+
+fn is_bool(e: &Expr) -> bool {
+  match *e {
+    Expr::Bool(_) => true,
+    _ => false,
+  }
+}
+
+fn is_func(e: &Expr) -> bool {
+  match *e {
+    Expr::Func(_, _, _) => true,
+    _ => false,
+  }
+}
+
+fn is_value(e: &Expr) -> bool {
+  match *e {
+    Expr::Int(_) | Expr::Bool(_) | Expr::Func(_, _, _) => true,
+    _ => false,
+  }
+}
+
+fn to_int(e: &Expr) -> isize {
+  match *e {
     Expr::Int(n) => n,
     _ => {
       debug!("cant turn into int: {:?}", e);
@@ -47,8 +75,8 @@ fn to_int(e: Expr) -> isize {
   }
 }
 
-fn to_bool(e: Expr) -> bool {
-  match e {
+fn to_bool(e: &Expr) -> bool {
+  match *e {
     Expr::Bool(b) => b,
     _ => {
       debug!("cant turn into bool: {:?}", e);
@@ -109,77 +137,78 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
   }
 }
 
-pub fn eval(e: Expr) -> Expr {
+pub fn step(e: Expr) -> Expr {
+  if is_value(&e) {
+    debug!("stepping on a value {:?}", e);
+    panic!("stepping on a value");
+  }
+
   match e {
-    Expr::UnOp(UnOp::Not, e1) => {
-      Expr::Bool(!to_bool(eval(*e1)))
+    Expr::UnOp(UnOp::Not, ref e1) if is_bool(e1) => {
+      Expr::Bool(!to_bool(&*e1))
     },
-    Expr::UnOp(UnOp::Neg, e1) => {
-      Expr::Int(-1 * to_int(eval(*e1)))
+    Expr::UnOp(UnOp::Neg, ref e1) if is_int(e1) => {
+      Expr::Int(-1 * to_int(&*e1))
     },
-    Expr::BinOp(BinOp::And, e1, e2) => {
-      Expr::Bool(to_bool(eval(*e1)) && to_bool(eval(*e2)))
+    Expr::BinOp(BinOp::And, ref e1, ref e2) if is_bool(e1) && is_bool(e2) => {
+      Expr::Bool(to_bool(&*e1) && to_bool(&*e2))
     },
-    Expr::BinOp(BinOp::Or, e1, e2) => {
-      Expr::Bool(to_bool(eval(*e1)) || to_bool(eval(*e2)))
+    Expr::BinOp(BinOp::Or, ref e1, ref e2) if is_bool(e1) && is_bool(e2) => {
+      Expr::Bool(to_bool(&*e1) || to_bool(&*e2))
     },
-    Expr::BinOp(BinOp::Eq, e1, e2) => {
-      Expr::Bool(eval(*e1) == eval(*e2))
+    Expr::BinOp(BinOp::Eq, ref e1, ref e2) if is_value(e1) && is_value(e2) => {
+      Expr::Bool(*e1 == *e2)
     },
-    Expr::BinOp(BinOp::Ne, e1, e2) => {
-      Expr::Bool(eval(*e1) != eval(*e2))
+    Expr::BinOp(BinOp::Ne, ref e1, ref e2) if is_value(e1) && is_value(e2) => {
+      Expr::Bool(*e1 != *e2)
     },
-    Expr::BinOp(BinOp::Mod, e1, e2) => {
-      let n1 = to_int(eval(*e1));
-      let n2 = to_int(eval(*e2));
+    Expr::BinOp(BinOp::Mod, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+      let n1 = to_int(&*e1);
+      let n2 = to_int(&*e2);
 
       // rust % gives the remainder, not modulus
       let result = ((n1 % n2) + n2) % n2;
 
       Expr::Int(result)
     },
-    Expr::BinOp(BinOp::Lt, e1, e2) => {
-      Expr::Bool(to_int(eval(*e1)) < to_int(eval(*e2)))
+    Expr::BinOp(BinOp::Lt, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+      Expr::Bool(to_int(&*e1) < to_int(&*e2))
     },
-    Expr::BinOp(BinOp::Gt, e1, e2) => {
-      Expr::Bool(to_int(eval(*e1)) > to_int(eval(*e2)))
+    Expr::BinOp(BinOp::Gt, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+      Expr::Bool(to_int(&*e1) > to_int(&*e2))
     },
-    Expr::BinOp(BinOp::Leq, e1, e2) => {
-      Expr::Bool(to_int(eval(*e1)) <= to_int(eval(*e2)))
+    Expr::BinOp(BinOp::Leq, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+      Expr::Bool(to_int(&*e1) <= to_int(&*e2))
     },
-    Expr::BinOp(BinOp::Geq, e1, e2) => {
-      Expr::Bool(to_int(eval(*e1)) >= to_int(eval(*e2)))
+    Expr::BinOp(BinOp::Geq, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+      Expr::Bool(to_int(&*e1) >= to_int(&*e2))
     },
-    Expr::BinOp(BinOp::Plus, e1, e2) => {
-      Expr::Int(to_int(eval(*e1)) + to_int(eval(*e2)))
+    Expr::BinOp(BinOp::Plus, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+      Expr::Int(to_int(&*e1) + to_int(&*e2))
     },
-    Expr::BinOp(BinOp::Minus, e1, e2) => {
-      Expr::Int(to_int(eval(*e1)) - to_int(eval(*e2)))
+    Expr::BinOp(BinOp::Minus, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+      Expr::Int(to_int(&*e1) - to_int(&*e2))
     },
-    Expr::BinOp(BinOp::Times, e1, e2) => {
-      Expr::Int(to_int(eval(*e1)) * to_int(eval(*e2)))
+    Expr::BinOp(BinOp::Times, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+      Expr::Int(to_int(&*e1) * to_int(&*e2))
     },
-    Expr::BinOp(BinOp::Div, e1, e2) => {
-      Expr::Int(to_int(eval(*e1)) / to_int(eval(*e2)))
+    Expr::BinOp(BinOp::Div, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+      Expr::Int(to_int(&*e1) / to_int(&*e2))
     },
-    Expr::BinOp(BinOp::Seq, e1, e2) => {
-      eval(*e1);
-      eval(*e2)
+    Expr::BinOp(BinOp::Seq, ref e1, ref e2) if is_value(e1) => {
+      *e2.clone()
     },
-    Expr::Ternary(e1, e2, e3) => {
-      match to_bool(eval(*e1)) {
-        true => eval(*e2),
-        false => eval(*e3),
+    Expr::Ternary(ref e1, ref e2, ref e3) if is_value(&*e1) => {
+      match to_bool(&*e1) {
+        true => *e2.clone(),
+        false => *e3.clone(),
       }
     },
-    Expr::Let(x, e1, e2) => {
-      let v1 = eval(*e1);
-      let me2 = subst(*e2, *x, v1);
-
-      eval(me2)
+    Expr::Let(ref x, ref e1, ref e2) if is_value(e1) => {
+      subst(*e2.clone(), *x.clone(), *e1.clone())
     },
-    Expr::FnCall(v1, es) => {
-      match *v1 {
+    Expr::FnCall(ref v1, ref es) if is_func(v1) => {
+      match **v1 {
         Expr::Func(ref name, ref e1, ref xs) => {
           // sub the params
           let exp = xs.iter().zip(es.iter())
@@ -187,8 +216,8 @@ pub fn eval(e: Expr) -> Expr {
 
           // sub the fn body for named functions
           match *name {
-            None => eval(exp),
-            Some(ref s) => eval(subst(exp, *s.clone(), *v1.clone()))
+            None => exp,
+            Some(ref s) => subst(exp, *s.clone(), *v1.clone())
           }
         },
         _ => {
@@ -201,9 +230,18 @@ pub fn eval(e: Expr) -> Expr {
     Expr::Int(_) => e,
     Expr::Bool(_) => e,
     Expr::Func(_, _, _) => e,
+    _ => panic!() // TODO: search cases
   }
 }
 
 pub fn boxx(input: &str) -> Expr {
-  eval(parse(input))
+  let mut exp = parse(input);
+
+  loop {
+    if is_value(&exp) {
+      return exp
+    } else {
+      exp = step(exp);
+    }
+  }
 }
