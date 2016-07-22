@@ -1,5 +1,7 @@
 use parser::{parse};
 use expr::Expr::*;
+use expr::UnOp::*;
+use expr::BinOp::*;
 
 #[derive(Clone, Debug, PartialEq)] 
 pub enum UnOp {
@@ -151,25 +153,25 @@ pub fn step(e: Expr) -> Expr {
     /**
      * Base cases
      */
-    Uop(UnOp::Not, ref e1) if is_bool(e1) => {
+    Uop(Not, ref e1) if is_bool(e1) => {
       Bool(!to_bool(e1))
     },
-    Uop(UnOp::Neg, ref e1) if is_int(e1) => {
+    Uop(Neg, ref e1) if is_int(e1) => {
       Int(-1 * to_int(e1))
     },
-    Bop(BinOp::And, ref e1, ref e2) if is_bool(e1) && is_bool(e2) => {
+    Bop(And, ref e1, ref e2) if is_bool(e1) && is_bool(e2) => {
       Bool(to_bool(e1) && to_bool(e2))
     },
-    Bop(BinOp::Or, ref e1, ref e2) if is_bool(e1) && is_bool(e2) => {
+    Bop(Or, ref e1, ref e2) if is_bool(e1) && is_bool(e2) => {
       Bool(to_bool(e1) || to_bool(e2))
     },
-    Bop(BinOp::Eq, ref e1, ref e2) if is_value(e1) && is_value(e2) => {
+    Bop(Eq, ref e1, ref e2) if is_value(e1) && is_value(e2) => {
       Bool(*e1 == *e2)
     },
-    Bop(BinOp::Ne, ref e1, ref e2) if is_value(e1) && is_value(e2) => {
+    Bop(Ne, ref e1, ref e2) if is_value(e1) && is_value(e2) => {
       Bool(*e1 != *e2)
     },
-    Bop(BinOp::Mod, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Mod, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
       let n1 = to_int(e1);
       let n2 = to_int(e2);
 
@@ -178,31 +180,31 @@ pub fn step(e: Expr) -> Expr {
 
       Int(result)
     },
-    Bop(BinOp::Lt, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Lt, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
       Bool(to_int(e1) < to_int(e2))
     },
-    Bop(BinOp::Gt, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Gt, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
       Bool(to_int(e1) > to_int(e2))
     },
-    Bop(BinOp::Leq, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Leq, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
       Bool(to_int(e1) <= to_int(e2))
     },
-    Bop(BinOp::Geq, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Geq, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
       Bool(to_int(e1) >= to_int(e2))
     },
-    Bop(BinOp::Plus, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Plus, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
       Int(to_int(e1) + to_int(e2))
     },
-    Bop(BinOp::Minus, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Minus, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
       Int(to_int(e1) - to_int(e2))
     },
-    Bop(BinOp::Times, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Times, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
       Int(to_int(e1) * to_int(e2))
     },
-    Bop(BinOp::Div, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Div, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
       Int(to_int(e1) / to_int(e2))
     },
-    Bop(BinOp::Seq, ref e1, ref e2) if is_value(e1) => {
+    Bop(Seq, ref e1, ref e2) if is_value(e1) => {
       *e2.clone()
     },
     Ternary(ref e1, ref e2, ref e3) if is_value(e1) => {
