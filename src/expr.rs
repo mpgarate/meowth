@@ -35,7 +35,7 @@ pub struct State {
 }
 
 impl State {
-  fn wrap(e: Expr) -> State {
+  fn from(e: Expr) -> State {
     return State {
       mem: HashMap::new(),
       expr: e,
@@ -273,23 +273,23 @@ pub fn step(mut state: State) -> State {
       )
     },
     Bop(op, e1, e2) => {
-      Bop(op, Box::new(step(state.with(*e1)).expr), e2)
+      Bop(op, Box::new(st_step(&mut state, &*e1)), e2)
     },
     Uop(op, e1) => {
-      Uop(op, Box::new(step(state.with(*e1)).expr))
+      Uop(op, Box::new(st_step(&mut state, &*e1)))
     },
     Ternary(e1, e2, e3) => {
-      Ternary(Box::new(step(state.with(*e1)).expr), e2, e3)
+      Ternary(Box::new(st_step(&mut state, &*e1)), e2, e3)
     },
     Let(ref e1, ref e2, ref e3) if is_value(e1) => {
       Let(
         Box::new(*e1.clone()),
-        Box::new(step(state.with(*e2.clone())).expr),
+        Box::new(st_step(&mut state, e2)),
         Box::new(*e3.clone())
       )
     },
     Let(e1, e2, e3) => {
-      Let(Box::new(step(state.with(*e1)).expr), e2, e3)
+      Let(Box::new(st_step(&mut state, &*e1)), e2, e3)
     },
     FnCall(e1, mut xs) => {
       let mut found_first = true;
@@ -297,7 +297,7 @@ pub fn step(mut state: State) -> State {
       for x in xs.iter_mut() {
         if is_value(x) && found_first == true {
           found_first = false;
-          *x = step(state.with(x.clone())).expr;
+          *x = st_step(&mut state, x);
         }
       }
 
@@ -309,7 +309,7 @@ pub fn step(mut state: State) -> State {
 }
 
 pub fn boxx(input: &str) -> Expr {
-  let mut state = State::wrap(parse(input));
+  let mut state = State::from(parse(input));
 
   let mut num_iterations = 0;
 
