@@ -27,6 +27,18 @@ pub enum BinOp {
   Seq,
 }
 
+pub struct State {
+  expr: Expr
+}
+
+impl State {
+  fn wrap(e: Expr) -> State {
+    return State {
+      expr: e
+    }
+  }
+}
+
 #[derive(Clone, Debug, PartialEq)] 
 pub enum Expr {
   Int(isize),
@@ -140,14 +152,16 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
   }
 }
 
-pub fn step(e: Expr) -> Expr {
-  debug!("step(e) : {:?}", e);
-  match e {
+pub fn step1(state: State) -> State {
+  let step = |e1: Expr| step1(State::wrap(e1)).expr;
+
+  //debug!("step(e) : {:?}", e);
+  let e1 = match state.expr {
     /**
      * Values are ineligible for step
      */
     Int(_) | Bool(_) | Func(_, _, _) | Var(_) => {
-      debug!("stepping on a value {:?}", e);
+      debug!("stepping on a value {:?}", state.expr);
       panic!("stepping on a value");
     }
     /**
@@ -268,17 +282,25 @@ pub fn step(e: Expr) -> Expr {
 
       FnCall(e1, xs)
     }
-  }
+  };
+
+  State::wrap(e1)
 }
 
 pub fn boxx(input: &str) -> Expr {
-  let mut exp = parse(input);
+  let mut state = State {
+    expr: parse(input)
+  };
+
+  let mut num_iterations = 0;
 
   loop {
-    if is_value(&exp) {
-      return exp
+    num_iterations += 1;
+    if is_value(&state.expr) {
+      debug!("--- iterations: {}", num_iterations);
+      return state.expr
     } else {
-      exp = step(exp);
+      state = step1(state);
     }
   }
 }
