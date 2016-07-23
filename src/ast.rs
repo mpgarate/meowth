@@ -83,31 +83,32 @@ impl Expr {
       _ => false,
     }
   }
-}
 
-pub fn is_value(e: &Expr) -> bool {
-  match *e {
-    Int(_) | Bool(_) | Var(_) | Func(_, _, _) => true,
-    _ => false,
-  }
-}
-
-pub fn to_int(e: &Expr) -> isize {
-  match *e {
-    Int(n) => n,
-    _ => {
-      debug!("cant turn into int: {:?}", e);
-      panic!()
+  pub fn is_value(&self) -> bool {
+    match *self {
+      Int(_) | Bool(_) | Var(_) | Func(_, _, _) => true,
+      _ => false,
     }
   }
-}
 
-pub fn to_bool(e: &Expr) -> bool {
-  match *e {
-    Bool(b) => b,
-    _ => {
-      debug!("cant turn into bool: {:?}", e);
-      panic!()
+
+  pub fn to_int(&self) -> isize {
+    match *self {
+      Int(n) => n,
+      _ => {
+        debug!("cant turn into int: {:?}", self);
+        panic!()
+      }
+    }
+  }
+
+  pub fn to_bool(&self) -> bool {
+    match *self {
+      Bool(b) => b,
+      _ => {
+        debug!("cant turn into bool: {:?}", self);
+        panic!()
+      }
     }
   }
 }

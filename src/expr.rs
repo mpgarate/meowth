@@ -72,26 +72,26 @@ pub fn step(mut state: State) -> State {
      * Base cases
      */
     Uop(Not, ref e1) if e1.is_bool() => {
-      Bool(!to_bool(e1))
+      Bool(!e1.to_bool())
     },
     Uop(Neg, ref e1) if e1.is_int() => {
-      Int(-1 * to_int(e1))
+      Int(-1 * e1.to_int())
     },
     Bop(And, ref e1, ref e2) if e1.is_bool() && e2.is_bool() => {
-      Bool(to_bool(e1) && to_bool(e2))
+      Bool(e1.to_bool() && e2.to_bool())
     },
     Bop(Or, ref e1, ref e2) if e1.is_bool() && e2.is_bool() => {
-      Bool(to_bool(e1) || to_bool(e2))
+      Bool(e1.to_bool() || e2.to_bool())
     },
-    Bop(Eq, ref e1, ref e2) if is_value(e1) && is_value(e2) => {
+    Bop(Eq, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
       Bool(*e1 == *e2)
     },
-    Bop(Ne, ref e1, ref e2) if is_value(e1) && is_value(e2) => {
+    Bop(Ne, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
       Bool(*e1 != *e2)
     },
     Bop(Mod, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-      let n1 = to_int(e1);
-      let n2 = to_int(e2);
+      let n1 = e1.to_int();
+      let n2 = e2.to_int();
 
       // rust % gives the remainder, not modulus
       let result = ((n1 % n2) + n2) % n2;
@@ -99,39 +99,39 @@ pub fn step(mut state: State) -> State {
       Int(result)
     },
     Bop(Lt, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-      Bool(to_int(e1) < to_int(e2))
+      Bool(e1.to_int() < e2.to_int())
     },
     Bop(Gt, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-      Bool(to_int(e1) > to_int(e2))
+      Bool(e1.to_int() > e2.to_int())
     },
     Bop(Leq, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-      Bool(to_int(e1) <= to_int(e2))
+      Bool(e1.to_int() <= e2.to_int())
     },
     Bop(Geq, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-      Bool(to_int(e1) >= to_int(e2))
+      Bool(e1.to_int() >= e2.to_int())
     },
     Bop(Plus, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-      Int(to_int(e1) + to_int(e2))
+      Int(e1.to_int() + e2.to_int())
     },
     Bop(Minus, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-      Int(to_int(e1) - to_int(e2))
+      Int(e1.to_int() - e2.to_int())
     },
     Bop(Times, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-      Int(to_int(e1) * to_int(e2))
+      Int(e1.to_int() * e2.to_int())
     },
     Bop(Div, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-      Int(to_int(e1) / to_int(e2))
+      Int(e1.to_int() / e2.to_int())
     },
-    Bop(Seq, ref e1, ref e2) if is_value(e1) => {
+    Bop(Seq, ref e1, ref e2) if e1.is_value() => {
       *e2.clone()
     },
-    Ternary(ref e1, ref e2, ref e3) if is_value(e1) => {
-      match to_bool(e1) {
+    Ternary(ref e1, ref e2, ref e3) if e1.is_value() => {
+      match e1.to_bool() {
         true => *e2.clone(),
         false => *e3.clone(),
       }
     },
-    Let(ref x, ref e1, ref e2) if is_value(e1) => {
+    Let(ref x, ref e1, ref e2) if e1.is_value() => {
       subst(*e2.clone(), *x.clone(), *e1.clone())
     },
     FnCall(ref v1, ref es) if v1.is_func() => {
@@ -156,7 +156,7 @@ pub fn step(mut state: State) -> State {
     /**
      * Search Cases
      */
-    Bop(ref op, ref v1, ref e2) if is_value(v1) => {
+    Bop(ref op, ref v1, ref e2) if v1.is_value() => {
       Bop(
         op.clone(),
         Box::new(*v1.clone()),
@@ -172,7 +172,7 @@ pub fn step(mut state: State) -> State {
     Ternary(e1, e2, e3) => {
       Ternary(Box::new(st_step(&mut state, &*e1)), e2, e3)
     },
-    Let(ref e1, ref e2, ref e3) if is_value(e1) => {
+    Let(ref e1, ref e2, ref e3) if e1.is_value() => {
       Let(
         Box::new(*e1.clone()),
         Box::new(st_step(&mut state, e2)),
@@ -186,7 +186,7 @@ pub fn step(mut state: State) -> State {
       let mut found_first = true;
 
       for x in xs.iter_mut() {
-        if is_value(x) && found_first == true {
+        if x.is_value() && found_first == true {
           found_first = false;
           *x = st_step(&mut state, x);
         }
@@ -206,7 +206,7 @@ pub fn boxx(input: &str) -> Expr {
 
   loop {
     num_iterations += 1;
-    if is_value(&state.expr) {
+    if state.expr.is_value() {
       debug!("--- iterations: {}", num_iterations);
       return state.expr
     } else {
