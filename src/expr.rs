@@ -2,6 +2,7 @@ use parser::{parse};
 use expr::Expr::*;
 use expr::UnOp::*;
 use expr::BinOp::*;
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, PartialEq)] 
 pub enum UnOp {
@@ -27,14 +28,26 @@ pub enum BinOp {
   Seq,
 }
 
+#[derive(Clone, Debug)] 
 pub struct State {
-  expr: Expr
+  mem: HashMap<String, String>,
+  expr: Expr,
 }
 
 impl State {
   fn wrap(e: Expr) -> State {
     return State {
-      expr: e
+      mem: HashMap::new(),
+      expr: e,
+    }
+  }
+
+  fn with(&mut self, e1: Expr) -> State {
+    let mem = self.mem.clone();
+
+    return State {
+      mem: mem,
+      expr: e1,
     }
   }
 }
@@ -152,18 +165,16 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
   }
 }
 
-pub fn step1(state: State) -> State {
-  let step = |e1: Expr| step1(State::wrap(e1)).expr;
-
+pub fn step(mut state: State) -> State {
   //debug!("step(e) : {:?}", e);
-  let e1 = match state.expr {
+  let e1 = match state.expr.clone() {
     /**
      * Values are ineligible for step
      */
     Int(_) | Bool(_) | Func(_, _, _) | Var(_) => {
       debug!("stepping on a value {:?}", state.expr);
       panic!("stepping on a value");
-    }
+    },
     /**
      * Base cases
      */
@@ -253,22 +264,30 @@ pub fn step1(state: State) -> State {
      * Search Cases
      */
     Bop(ref op, ref v1, ref e2) if is_value(v1) => {
-      Bop(op.clone(), Box::new(*v1.clone()), Box::new(step(*e2.clone())))
+      Bop(
+        op.clone(),
+        Box::new(*v1.clone()),
+        Box::new(step(state.with(*e2.clone())).expr)
+      )
     },
     Bop(op, e1, e2) => {
-      Bop(op, Box::new(step(*e1)), e2)
+      Bop(op, Box::new(step(state.with(*e1)).expr), e2)
     },
     Uop(op, e1) => {
-      Uop(op, Box::new(step(*e1)))
+      Uop(op, Box::new(step(state.with(*e1)).expr))
     },
     Ternary(e1, e2, e3) => {
-      Ternary(Box::new(step(*e1)), e2, e3)
+      Ternary(Box::new(step(state.with(*e1)).expr), e2, e3)
     },
     Let(ref e1, ref e2, ref e3) if is_value(e1) => {
-      Let(Box::new(*e1.clone()), Box::new(step(*e2.clone())), Box::new(*e3.clone()))
+      Let(
+        Box::new(*e1.clone()),
+        Box::new(step(state.with(*e2.clone())).expr),
+        Box::new(*e3.clone())
+      )
     },
     Let(e1, e2, e3) => {
-      Let(Box::new(step(*e1)), e2, e3)
+      Let(Box::new(step(state.with(*e1)).expr), e2, e3)
     },
     FnCall(e1, mut xs) => {
       let mut found_first = true;
@@ -276,7 +295,7 @@ pub fn step1(state: State) -> State {
       for x in xs.iter_mut() {
         if is_value(x) && found_first == true {
           found_first = false;
-          *x = step(x.clone());
+          *x = step(state.with(x.clone())).expr;
         }
       }
 
@@ -284,13 +303,11 @@ pub fn step1(state: State) -> State {
     }
   };
 
-  State::wrap(e1)
+  state.with(e1)
 }
 
 pub fn boxx(input: &str) -> Expr {
-  let mut state = State {
-    expr: parse(input)
-  };
+  let mut state = State::wrap(parse(input));
 
   let mut num_iterations = 0;
 
@@ -300,7 +317,7 @@ pub fn boxx(input: &str) -> Expr {
       debug!("--- iterations: {}", num_iterations);
       return state.expr
     } else {
-      state = step1(state);
+      state = step(state);
     }
   }
 }
