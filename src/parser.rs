@@ -61,22 +61,6 @@ impl Parser {
 
         return Expr::Var(s);
       },
-      Token::FnDecl => {
-        self.eat(Token::FnDecl);
-
-        self.eat(Token::LParen);
-
-        let params = self.parse_fn_decl_params();
-
-        self.eat(Token::RParen);
-
-        self.eat(Token::LBracket);
-        let body = self.statement();
-        debug!("got fn body {:?}", body);
-        self.eat(Token::RBracket);
-
-        return Expr::Func(None, to_box(body.clone()), params);
-      },
       Token::LParen => {
         self.eat(Token::LParen);
         let node = self.statement();
@@ -161,7 +145,7 @@ impl Parser {
     self.eat(Token::Let);
     let var = self.term();
     self.eat(Token::Assign);
-    let e2 = self.binop_expr();
+    let e2 = self.statement();
     self.eat(Token::Seq);
     let e3 = self.statement();
 
@@ -210,15 +194,16 @@ impl Parser {
     params
   }
 
-  fn parse_named_fn(&mut self) -> Expr {
+  fn parse_fn(&mut self) -> Expr {
+    debug!("parsing named fn...");
     self.eat(Token::FnDecl);
 
     let var = match self.current_token.clone() {
       Token::Var(s) => {
         self.eat(Token::Var(s.clone()));
-        Expr::Var(s)
-      }
-      _ => panic!()
+        Some(Expr::Var(s))
+      },
+      _ => None,
     };
 
     self.eat(Token::LParen);
@@ -227,12 +212,21 @@ impl Parser {
     self.eat(Token::LBracket);
     let body = self.statement();
     self.eat(Token::RBracket);
-    self.eat(Token::Seq);
-    let e3 = self.statement();
 
-    let func = Expr::Func(Some(to_box(var.clone())), to_box(body.clone()), params);
+    match var {
+      Some(v) => {
+        self.eat(Token::Seq);
+        let e3 = self.statement();
 
-    return Expr::Let(to_box(var), to_box(func), to_box(e3));
+        let func = Expr::Func(Some(to_box(v.clone())), to_box(body.clone()), params);
+
+        Expr::Let(to_box(v), to_box(func), to_box(e3))
+      },
+      None => {
+        Expr::Func(None, to_box(body.clone()), params)
+      }
+    }
+
   }
 
   fn parse_if(&mut self) -> Expr {
@@ -247,7 +241,7 @@ impl Parser {
     if self.current_token == Token::Let {
       return self.parse_let();
     } else if self.current_token == Token::FnDecl {
-      return self.parse_named_fn();
+      return self.parse_fn();
     } else if self.current_token == Token::If {
       return self.parse_if();
     } else if self.current_token == Token::Else {
@@ -265,10 +259,9 @@ impl Parser {
       node = match op {
         Token::Ternary => {
           self.eat(Token::Else);
-          let e3 = self.block();
+          let e3 = self.statement();
           self.ternary(node, e2, e3)
         },
-        Token::Seq => self.binop(BinOp::Seq, node, e2),
         _ => panic!()
       };
 
