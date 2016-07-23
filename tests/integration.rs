@@ -3,7 +3,8 @@ extern crate boxx;
 #[cfg(test)]
 mod tests {
   extern crate boxx;
-  use boxx::expr::{Expr, boxx};
+  use boxx::expr::boxx;
+  use boxx::ast::Expr;
   extern crate env_logger;
 
   #[test]
