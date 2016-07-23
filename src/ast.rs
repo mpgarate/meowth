@@ -1,7 +1,4 @@
-use parser::{parse};
 use ast::Expr::*;
-use ast::UnOp::*;
-use ast::BinOp::*;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, PartialEq)] 
@@ -65,24 +62,26 @@ pub enum Expr {
   FnCall(Box<Expr>, Vec<Expr>),
 }
 
-pub fn is_int(e: &Expr) -> bool {
-  match *e {
-    Int(_) => true,
-    _ => false,
+impl Expr {
+  pub fn is_int(&self) -> bool {
+    match *self {
+      Int(_) => true,
+      _ => false,
+    }
   }
-}
 
-pub fn is_bool(e: &Expr) -> bool {
-  match *e {
-    Bool(_) => true,
-    _ => false,
+  pub fn is_bool(&self) -> bool {
+    match *self {
+      Bool(_) => true,
+      _ => false,
+    }
   }
-}
 
-pub fn is_func(e: &Expr) -> bool {
-  match *e {
-    Func(_, _, _) => true,
-    _ => false,
+  pub fn is_func(&self) -> bool {
+    match *self {
+      Func(_, _, _) => true,
+      _ => false,
+    }
   }
 }
 

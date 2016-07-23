@@ -3,7 +3,6 @@ use ast::Expr::*;
 use ast::UnOp::*;
 use ast::BinOp::*;
 use ast::*;
-use std::collections::HashMap;
 
 fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
   let sub = |e1: Expr| subst(e1.clone(), x.clone(), v.clone());
@@ -72,16 +71,16 @@ pub fn step(mut state: State) -> State {
     /**
      * Base cases
      */
-    Uop(Not, ref e1) if is_bool(e1) => {
+    Uop(Not, ref e1) if e1.is_bool() => {
       Bool(!to_bool(e1))
     },
-    Uop(Neg, ref e1) if is_int(e1) => {
+    Uop(Neg, ref e1) if e1.is_int() => {
       Int(-1 * to_int(e1))
     },
-    Bop(And, ref e1, ref e2) if is_bool(e1) && is_bool(e2) => {
+    Bop(And, ref e1, ref e2) if e1.is_bool() && e2.is_bool() => {
       Bool(to_bool(e1) && to_bool(e2))
     },
-    Bop(Or, ref e1, ref e2) if is_bool(e1) && is_bool(e2) => {
+    Bop(Or, ref e1, ref e2) if e1.is_bool() && e2.is_bool() => {
       Bool(to_bool(e1) || to_bool(e2))
     },
     Bop(Eq, ref e1, ref e2) if is_value(e1) && is_value(e2) => {
@@ -90,7 +89,7 @@ pub fn step(mut state: State) -> State {
     Bop(Ne, ref e1, ref e2) if is_value(e1) && is_value(e2) => {
       Bool(*e1 != *e2)
     },
-    Bop(Mod, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Mod, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
       let n1 = to_int(e1);
       let n2 = to_int(e2);
 
@@ -99,28 +98,28 @@ pub fn step(mut state: State) -> State {
 
       Int(result)
     },
-    Bop(Lt, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Lt, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
       Bool(to_int(e1) < to_int(e2))
     },
-    Bop(Gt, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Gt, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
       Bool(to_int(e1) > to_int(e2))
     },
-    Bop(Leq, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Leq, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
       Bool(to_int(e1) <= to_int(e2))
     },
-    Bop(Geq, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Geq, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
       Bool(to_int(e1) >= to_int(e2))
     },
-    Bop(Plus, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Plus, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
       Int(to_int(e1) + to_int(e2))
     },
-    Bop(Minus, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Minus, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
       Int(to_int(e1) - to_int(e2))
     },
-    Bop(Times, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Times, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
       Int(to_int(e1) * to_int(e2))
     },
-    Bop(Div, ref e1, ref e2) if is_int(e1) && is_int(e2) => {
+    Bop(Div, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
       Int(to_int(e1) / to_int(e2))
     },
     Bop(Seq, ref e1, ref e2) if is_value(e1) => {
@@ -135,7 +134,7 @@ pub fn step(mut state: State) -> State {
     Let(ref x, ref e1, ref e2) if is_value(e1) => {
       subst(*e2.clone(), *x.clone(), *e1.clone())
     },
-    FnCall(ref v1, ref es) if is_func(v1) => {
+    FnCall(ref v1, ref es) if v1.is_func() => {
       match **v1 {
         Func(ref name, ref e1, ref xs) => {
           // sub the params
