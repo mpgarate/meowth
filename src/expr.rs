@@ -166,6 +166,8 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
 }
 
 pub fn step(mut state: State) -> State {
+  let st_step = |s: &mut State, e1: &Expr| step(s.with(e1.clone())).expr;
+
   //debug!("step(e) : {:?}", e);
   let e1 = match state.expr.clone() {
     /**
@@ -267,7 +269,7 @@ pub fn step(mut state: State) -> State {
       Bop(
         op.clone(),
         Box::new(*v1.clone()),
-        Box::new(step(state.with(*e2.clone())).expr)
+        Box::new(st_step(&mut state, e2))
       )
     },
     Bop(op, e1, e2) => {
