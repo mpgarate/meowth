@@ -141,6 +141,17 @@ impl Parser {
     node 
   }
 
+  fn parse_var(&mut self) -> Expr {
+    self.eat(Token::VarDecl);
+    let var = self.term();
+    self.eat(Token::Assign);
+    let e2 = self.statement();
+    self.eat(Token::Seq);
+    let e3 = self.statement();
+
+    return Expr::VarDecl(to_box(var), to_box(e2), to_box(e3));
+  }
+
   fn parse_let(&mut self) -> Expr {
     self.eat(Token::Let);
     let var = self.term();
@@ -226,7 +237,6 @@ impl Parser {
         Expr::Func(None, to_box(body.clone()), params)
       }
     }
-
   }
 
   fn parse_if(&mut self) -> Expr {
@@ -240,6 +250,8 @@ impl Parser {
   pub fn statement(&mut self) -> Expr {
     if self.current_token == Token::Let {
       return self.parse_let();
+    } else if self.current_token == Token::VarDecl {
+      return self.parse_var();
     } else if self.current_token == Token::FnDecl {
       return self.parse_fn();
     } else if self.current_token == Token::If {
@@ -254,14 +266,20 @@ impl Parser {
 
     while op.is_statement_op() {
       self.eat(op.clone());
-      let e2 = self.block();
 
       node = match op {
         Token::Ternary => {
+          let e2 = self.block();
           self.eat(Token::Else);
           let e3 = self.statement();
           self.ternary(node, e2, e3)
         },
+        Token::Assign => {
+          let e2 = self.statement();
+          self.eat(Token::Seq);
+          let e3 = self.statement();
+          Expr::Assign(to_box(node), to_box(e2), to_box(e3))
+        }
         _ => panic!()
       };
 
@@ -304,6 +322,7 @@ pub fn parse(input: &str) -> Expr {
   let expr = parser.program();
 
   debug!("parsed expr: {:#?}", expr);
+  debug!("original: {:#?}", input);
 
   expr
 }

@@ -23,6 +23,7 @@ pub enum Token {
   Int(isize),
   Bool(bool),
   Let,
+  VarDecl,
   Assign,
   FnDecl,
   LBracket,
@@ -62,6 +63,7 @@ impl Token {
   pub fn is_statement_op(&self) -> bool {
     match *self {
       Token::Ternary => true,
+      Token::Assign => true,
       _ => false,
     }
   }
@@ -119,6 +121,7 @@ impl Lexer {
       "false" => Token::Bool(false),
       "fn" => Token::FnDecl,
       "let" => Token::Let,
+      "var" => Token::VarDecl,
       "if" => Token::If,
       "else" => Token::Else,
       s if s.len() > 0 => Token::Var(s.to_string()),

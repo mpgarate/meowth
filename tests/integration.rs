@@ -8,6 +8,22 @@ mod tests {
   extern crate env_logger;
 
   #[test]
+  pub fn test_mut_var() {
+    let _ = env_logger::init();
+
+    assert_eq!(
+      Expr::Int(555),
+      boxx("var x = 55; var y = 500; x + y")
+    );
+
+    assert_eq!(
+      Expr::Int(2),
+      boxx("var x = 1; x = 2; x")
+    );
+  }
+
+
+  #[test]
   pub fn test_if_else() {
     let _ = env_logger::init();
 

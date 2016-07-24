@@ -9,6 +9,7 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
 
   match (e.clone(), x.clone()) {
     (Var(ref s1), Var(ref s2)) if s1 == s2 => v.clone(),
+    (Addr(ref a), Addr(ref b)) if a == b => v.clone(),
     (FnCall(v1, xs), _) => {
       let xs2 = xs.iter().map(|xn| sub(xn.clone())).collect();
 
@@ -21,11 +22,19 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
     (Var(_), _) => e,
     (Int(_), _) => e,
     (Bool(_), _) => e,
+    (Addr(_), _) => e,
     (Bop(op, e1, e2), _) => { 
       Bop(
         op,
         Box::new(sub(*e1)),
         Box::new(sub(*e2))
+      )
+    },
+    (Assign(e1, e2, e3), _) => {
+      Assign(
+        Box::new(sub(*e1)),
+        Box::new(sub(*e2)),
+        Box::new(sub(*e3))
       )
     },
     (Uop(op, e1), _) => Uop(op, Box::new(sub(*e1))),
@@ -53,14 +62,25 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
       let xs2 = xs.iter().map(|xn| sub(xn.clone())).collect();
       Func(name, Box::new(sub(*e1)), xs2)
     },
+    (VarDecl(e1, e2, e3), _) => {
+      VarDecl(
+        Box::new(*e1),
+        Box::new(sub(*e2)),
+        Box::new(sub(*e3))
+      )
+    }
   }
 }
 
 pub fn step(mut state: State) -> State {
   let st_step = |s: &mut State, e1: &Expr| step(s.with(e1.clone())).expr;
 
-  //debug!("step(e) : {:?}", e);
+  debug!("step(e) : {:?}", state.expr);
+  debug!("step(state) : {:?}", state.mem);
   let e1 = match state.expr.clone() {
+    Addr(addr) => {
+      state.get(addr)
+    },
     /**
      * Values are ineligible for step
      */
@@ -125,6 +145,12 @@ pub fn step(mut state: State) -> State {
     Bop(Seq, ref e1, ref e2) if e1.is_value() => {
       *e2.clone()
     },
+    Assign(ref v1, ref v2, ref e3) if v1.is_addr() && v2.is_value() => {
+      let addr = v1.to_addr();
+      state.assign(addr.clone(), *v2.clone());
+      debug!("done assigning {:?}", state.mem);
+      *e3.clone()
+    },
     Ternary(ref e1, ref e2, ref e3) if e1.is_value() => {
       match e1.to_bool() {
         true => *e2.clone(),
@@ -133,6 +159,10 @@ pub fn step(mut state: State) -> State {
     },
     Let(ref x, ref e1, ref e2) if e1.is_value() => {
       subst(*e2.clone(), *x.clone(), *e1.clone())
+    },
+    VarDecl(ref x, ref e1, ref e2) if e1.is_value() => {
+      let addr = state.alloc(*e1.clone());
+      subst(*e2.clone(), *x.clone(), Expr::Addr(addr))
     },
     FnCall(ref v1, ref es) if v1.is_func() => {
       match **v1 {
@@ -166,6 +196,12 @@ pub fn step(mut state: State) -> State {
     Bop(op, e1, e2) => {
       Bop(op, Box::new(st_step(&mut state, &*e1)), e2)
     },
+    Assign(ref e1, ref e2, ref e3) if e2.is_value() => {
+      Assign(e1.clone(), e2.clone(), Box::new(st_step(&mut state, &*e3)))
+    },
+    Assign(e1, e2, e3) => {
+      Assign(e1, Box::new(st_step(&mut state, &*e2)), e3)
+    },
     Uop(op, e1) => {
       Uop(op, Box::new(st_step(&mut state, &*e1)))
     },
@@ -181,6 +217,16 @@ pub fn step(mut state: State) -> State {
     },
     Let(e1, e2, e3) => {
       Let(Box::new(st_step(&mut state, &*e1)), e2, e3)
+    },
+    VarDecl(ref e1, ref e2, ref e3) if e1.is_value() => {
+      VarDecl(
+        Box::new(*e1.clone()),
+        Box::new(st_step(&mut state, e2)),
+        Box::new(*e3.clone())
+      )
+    },
+    VarDecl(e1, e2, e3) => {
+      VarDecl(Box::new(st_step(&mut state, &*e1)), e2, e3)
     },
     FnCall(e1, mut xs) => {
       let mut found_first = true;
