@@ -25,6 +25,12 @@ pub enum BinOp {
   Seq,
 }
 
+#[derive(Clone, Debug, PartialEq)] 
+pub enum Dec {
+  DVar,
+  DConst
+}
+
 #[derive(Clone, Debug)] 
 pub struct State {
   addr: usize,
@@ -86,7 +92,7 @@ pub enum Expr {
   Uop(UnOp, Box<Expr>),
   Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
   Let(Box<Expr>, Box<Expr>, Box<Expr>),
-  VarDecl(Box<Expr>, Box<Expr>, Box<Expr>),
+  Decl(Dec, Box<Expr>, Box<Expr>, Box<Expr>),
   Func(Option<Box<Expr>>, Box<Expr>, Vec<Expr>),
   FnCall(Box<Expr>, Vec<Expr>),
   Assign(Box<Expr>, Box<Expr>, Box<Expr>),

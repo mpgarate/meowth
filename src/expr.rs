@@ -62,8 +62,9 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
       let xs2 = xs.iter().map(|xn| sub(xn.clone())).collect();
       Func(name, Box::new(sub(*e1)), xs2)
     },
-    (VarDecl(e1, e2, e3), _) => {
-      VarDecl(
+    (Decl(d, e1, e2, e3), _) => {
+      Decl(
+        d,
         Box::new(*e1),
         Box::new(sub(*e2)),
         Box::new(sub(*e3))
@@ -160,7 +161,7 @@ pub fn step(mut state: State) -> State {
     Let(ref x, ref e1, ref e2) if e1.is_value() => {
       subst(*e2.clone(), *x.clone(), *e1.clone())
     },
-    VarDecl(ref x, ref e1, ref e2) if e1.is_value() => {
+    Decl(ref dt, ref x, ref e1, ref e2) if *dt == Dec::DVar && e1.is_value() => {
       let addr = state.alloc(*e1.clone());
       subst(*e2.clone(), *x.clone(), Expr::Addr(addr))
     },
@@ -218,15 +219,16 @@ pub fn step(mut state: State) -> State {
     Let(e1, e2, e3) => {
       Let(Box::new(st_step(&mut state, &*e1)), e2, e3)
     },
-    VarDecl(ref e1, ref e2, ref e3) if e1.is_value() => {
-      VarDecl(
+    Decl(ref dt, ref e1, ref e2, ref e3) if e1.is_value() => {
+      Decl(
+        dt.clone(),
         Box::new(*e1.clone()),
         Box::new(st_step(&mut state, e2)),
         Box::new(*e3.clone())
       )
     },
-    VarDecl(e1, e2, e3) => {
-      VarDecl(Box::new(st_step(&mut state, &*e1)), e2, e3)
+    Decl(dt, e1, e2, e3) => {
+      Decl(dt, Box::new(st_step(&mut state, &*e1)), e2, e3)
     },
     FnCall(e1, mut xs) => {
       let mut found_first = true;

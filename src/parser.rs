@@ -1,4 +1,4 @@
-use ast::{Expr, BinOp, UnOp};
+use ast::{Expr, BinOp, UnOp, Dec};
 use lexer::{Lexer, Token};
 
 struct Parser {
@@ -149,7 +149,7 @@ impl Parser {
     self.eat(Token::Seq);
     let e3 = self.statement();
 
-    return Expr::VarDecl(to_box(var), to_box(e2), to_box(e3));
+    return Expr::Decl(Dec::DVar, to_box(var), to_box(e2), to_box(e3));
   }
 
   fn parse_let(&mut self) -> Expr {
