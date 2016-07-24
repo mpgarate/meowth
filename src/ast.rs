@@ -51,15 +51,11 @@ impl State {
     let mem = self.mem.clone();
     let addr = self.addr.clone();
 
-    let nextS = State {
+    return State {
       addr: addr,
       mem: mem,
       expr: e1,
     };
-
-    debug!("next state: {:?}", nextS);
-
-    return nextS;
   }
 
   pub fn alloc(&mut self, v1: Expr) -> usize {
@@ -73,9 +69,7 @@ impl State {
   }
 
   pub fn assign(&mut self, addr: usize, v1: Expr) {
-    debug!("assigning {:?} as {:?}", addr, v1);
     self.mem.insert(addr, v1);
-    debug!("assigned {:?}", self.mem);
   }
 
   pub fn get(&mut self, addr: usize) -> Expr {
@@ -91,7 +85,6 @@ pub enum Expr {
   Bop(BinOp, Box<Expr>, Box<Expr>),
   Uop(UnOp, Box<Expr>),
   Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
-  Let(Box<Expr>, Box<Expr>, Box<Expr>),
   Decl(Dec, Box<Expr>, Box<Expr>, Box<Expr>),
   Func(Option<Box<Expr>>, Box<Expr>, Vec<Expr>),
   FnCall(Box<Expr>, Vec<Expr>),

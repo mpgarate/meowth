@@ -160,7 +160,7 @@ impl Parser {
     self.eat(Token::Seq);
     let e3 = self.statement();
 
-    return Expr::Let(to_box(var), to_box(e2), to_box(e3));
+    return Expr::Decl(Dec::DConst, to_box(var), to_box(e2), to_box(e3));
   }
 
 
@@ -231,7 +231,7 @@ impl Parser {
 
         let func = Expr::Func(Some(to_box(v.clone())), to_box(body.clone()), params);
 
-        Expr::Let(to_box(v), to_box(func), to_box(e3))
+        Expr::Decl(Dec::DConst, to_box(v), to_box(func), to_box(e3))
       },
       None => {
         Expr::Func(None, to_box(body.clone()), params)

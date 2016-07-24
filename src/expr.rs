@@ -2,6 +2,7 @@ use parser::{parse};
 use ast::Expr::*;
 use ast::UnOp::*;
 use ast::BinOp::*;
+use ast::Dec::*;
 use ast::*;
 
 fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
@@ -45,14 +46,15 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
         Box::new(sub(*e3))
       )
     },
-    (Let(e1, e2, e3), _) => {
+    (Decl(DConst, e1, e2, e3), _) => {
       let e3s = if *e1 == x {
         *e3
       } else {
         sub(*e3)
       };
 
-      Let(
+      Decl(
+        DConst,
         Box::new(*e1),
         Box::new(sub(*e2)),
         Box::new(e3s)
@@ -158,10 +160,10 @@ pub fn step(mut state: State) -> State {
         false => *e3.clone(),
       }
     },
-    Let(ref x, ref e1, ref e2) if e1.is_value() => {
+    Decl(ref dconst, ref x, ref e1, ref e2) if *dconst == DConst && e1.is_value() => {
       subst(*e2.clone(), *x.clone(), *e1.clone())
     },
-    Decl(ref dt, ref x, ref e1, ref e2) if *dt == Dec::DVar && e1.is_value() => {
+    Decl(ref dvar, ref x, ref e1, ref e2) if *dvar == DVar && e1.is_value() => {
       let addr = state.alloc(*e1.clone());
       subst(*e2.clone(), *x.clone(), Expr::Addr(addr))
     },
@@ -208,16 +210,6 @@ pub fn step(mut state: State) -> State {
     },
     Ternary(e1, e2, e3) => {
       Ternary(Box::new(st_step(&mut state, &*e1)), e2, e3)
-    },
-    Let(ref e1, ref e2, ref e3) if e1.is_value() => {
-      Let(
-        Box::new(*e1.clone()),
-        Box::new(st_step(&mut state, e2)),
-        Box::new(*e3.clone())
-      )
-    },
-    Let(e1, e2, e3) => {
-      Let(Box::new(st_step(&mut state, &*e1)), e2, e3)
     },
     Decl(ref dt, ref e1, ref e2, ref e3) if e1.is_value() => {
       Decl(
