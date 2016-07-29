@@ -189,9 +189,12 @@ pub fn step(mut state: State) -> State {
     Bop(op, e1, e2) => {
       Bop(op, Box::new(st_step(&mut state, &*e1)), e2)
     },
+    /*
+     * TODO: should there be a case like this?
     Assign(ref e1, ref v2, ref e3) if v2.is_value() => {
       Assign(e1.clone(), v2.clone(), Box::new(st_step(&mut state, &*e3)))
     },
+    */
     Assign(e1, e2, e3) => {
       Assign(e1, Box::new(st_step(&mut state, &*e2)), e3)
     },
@@ -201,6 +204,8 @@ pub fn step(mut state: State) -> State {
     Ternary(e1, e2, e3) => {
       Ternary(Box::new(st_step(&mut state, &*e1)), e2, e3)
     },
+    /*
+     * TODO: should there be a case like this?
     Decl(ref dt, ref addr, ref v1, ref e2) if v1.is_value() => {
       Decl(
         dt.clone(),
@@ -209,9 +214,12 @@ pub fn step(mut state: State) -> State {
         Box::new(st_step(&mut state, e2))
       )
     },
+    */
     Decl(dt, addr, e1, e2) => {
       Decl(dt, Box::new(*addr.clone()), Box::new(st_step(&mut state, &*e1)), e2)
     },
+    /*
+     * TODO: should there be a case like this?
     FnCall(ref v1, ref mut args) if v1.is_value() => {
       let mut found_first = true;
 
@@ -224,6 +232,7 @@ pub fn step(mut state: State) -> State {
 
       FnCall(Box::new(*v1.clone()), args.clone())
     }
+    */
     FnCall(e1, args) => {
       FnCall(Box::new(st_step(&mut state, &*e1)), args)
     }
