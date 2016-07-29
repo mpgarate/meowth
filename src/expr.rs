@@ -135,7 +135,7 @@ pub fn step(mut state: State) -> State {
     Bop(Div, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
       Int(e1.to_int() / e2.to_int())
     },
-    Bop(Seq, ref e1, ref e2) if e1.is_value() => {
+    Bop(Seq, ref v1, ref e2) if v1.is_value() => {
       *e2.clone()
     },
     Assign(ref v1, ref v2, ref e3) if v1.is_addr() && v2.is_value() => {
@@ -144,8 +144,8 @@ pub fn step(mut state: State) -> State {
       debug!("done assigning {:?}", state.mem);
       *e3.clone()
     },
-    Ternary(ref e1, ref e2, ref e3) if e1.is_value() => {
-      match e1.to_bool() {
+    Ternary(ref v1, ref e2, ref e3) if v1.is_value() => {
+      match v1.to_bool() {
         true => *e2.clone(),
         false => *e3.clone(),
       }
@@ -189,8 +189,8 @@ pub fn step(mut state: State) -> State {
     Bop(op, e1, e2) => {
       Bop(op, Box::new(st_step(&mut state, &*e1)), e2)
     },
-    Assign(ref e1, ref e2, ref e3) if e2.is_value() => {
-      Assign(e1.clone(), e2.clone(), Box::new(st_step(&mut state, &*e3)))
+    Assign(ref e1, ref v2, ref e3) if v2.is_value() => {
+      Assign(e1.clone(), v2.clone(), Box::new(st_step(&mut state, &*e3)))
     },
     Assign(e1, e2, e3) => {
       Assign(e1, Box::new(st_step(&mut state, &*e2)), e3)
