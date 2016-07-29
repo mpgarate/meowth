@@ -11,15 +11,45 @@ mod tests {
   pub fn test_mut_var() {
     let _ = env_logger::init();
 
-    assert_eq!(
-      Expr::Int(555),
-      boxx("var x = 55; var y = 500; x + y")
-    );
+    // TODO: handle EOF as valid
+    // assert_eq!(Expr::Int(2), boxx("var x = 2;"));
+
+    assert_eq!(Expr::Int(555), boxx("var x = 55; var y = 500; x + y"));
 
     assert_eq!(
       Expr::Int(2),
-      boxx("var x = 1; x = 2; x")
+      boxx("var x = 1; var y = 2; x = y; y = 3; x")
     );
+
+    assert_eq!(Expr::Int(2), boxx("var x = 1; x = 2; x"));
+
+    assert_eq!(
+      Expr::Int(5),
+      boxx("var x = 3; var y = 2; x = y; y = x; let z = 1; z + x + y")
+    );
+
+    assert_eq!(
+      Expr::Int(20),
+      boxx("
+        var x = 4;
+        fn foo(z) {
+          x * z 
+        };
+        foo(x) + x
+      ")
+    );
+
+    // TODO var decl in function should work, maybe be substituted before the fn is
+    // considered a value
+    /*
+    assert_eq!(
+      Expr::Int(15),
+      boxx("var x = 4; fn foo(z) { var x = 7; x + z }; foo(x) + x")
+    );
+    */
+
+    assert_eq!(Expr::Int(5), boxx("var x = 3; x = fn() { 4 + 1 }; x()"));
+    assert_eq!(Expr::Int(3), boxx("var x = fn() { 4 + 1 }; x = 3; x"));
   }
 
 
@@ -59,7 +89,8 @@ mod tests {
     let _ = env_logger::init();
 
     assert_eq!(Expr::Int(2), boxx("let x = 4; fn foo() { let x = 1; x + 1 }; foo()"));
-    assert_eq!(Expr::Int(6), boxx("let x = 5; fn foo() { x + 1 }; foo()"));
+    // TODO: this should not be allowed
+    // assert_eq!(Expr::Int(6), boxx("let x = 5; fn foo() { x + 1 }; foo()"));
     assert_eq!(Expr::Int(60), boxx("fn foo() { 5 }; fn bar() { fn foo() { 6 }; foo() * 10 }; bar()"));
     assert_eq!(Expr::Int(50), boxx("fn foo() { 5 }; fn bar() { foo() * 10 }; bar()"));
 
@@ -134,8 +165,7 @@ mod tests {
     assert_eq!(Expr::Int(1), boxx("let x = 1; x"));
     assert_eq!(Expr::Int(8), boxx("let x = 5; let y = 3; let z = x + y; z"));
 
-    // TODO: should be able to assign a constant to a statement
-    //assert_eq!(Expr::Int(3), boxx("let x = (1 > 2) ? 0 : 3; x"));
+    assert_eq!(Expr::Int(3), boxx("let x = (1 > 2) ? 0 : 3; x"));
 
     // using let keyword again re-binds value
     assert_eq!(Expr::Int(5), boxx("let x = 2; let x = 3; x + 2"));

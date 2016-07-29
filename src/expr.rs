@@ -10,15 +10,10 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
 
   match (e.clone(), x.clone()) {
     (Var(ref s1), Var(ref s2)) if s1 == s2 => v.clone(),
-    (Addr(ref a), Addr(ref b)) if a == b => v.clone(),
     (FnCall(v1, xs), _) => {
       let xs2 = xs.iter().map(|xn| sub(xn.clone())).collect();
 
-      if *v1 == x {
-        FnCall(Box::new(v.clone()), xs2)
-      } else {
-        FnCall(v1, xs2)
-      }
+      FnCall(Box::new(sub(*v1)), xs2)
     },
     (Var(_), _) => e,
     (Int(_), _) => e,
@@ -46,31 +41,26 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
         Box::new(sub(*e3))
       )
     },
-    (Decl(DConst, e1, e2, e3), _) => {
-      let e3s = if *e1 == x {
-        *e3
+    (Decl(d, y, e1, e2), _) => {
+      let e2s = if *y == x {
+        *e2
       } else {
-        sub(*e3)
+        sub(*e2)
       };
 
       Decl(
-        DConst,
-        Box::new(*e1),
-        Box::new(sub(*e2)),
-        Box::new(e3s)
+        d,
+        Box::new(*y),
+        Box::new(sub(*e1)),
+        Box::new(e2s)
       )
     },
     (Func(name, e1, xs), _) => {
-      let xs2 = xs.iter().map(|xn| sub(xn.clone())).collect();
-      Func(name, Box::new(sub(*e1)), xs2)
-    },
-    (Decl(d, e1, e2, e3), _) => {
-      Decl(
-        d,
-        Box::new(*e1),
-        Box::new(sub(*e2)),
-        Box::new(sub(*e3))
-      )
+      match xs.iter().find(|y| **y == x) {
+        Some(_) => e,
+        None if name == Some(Box::new(x.clone())) => e,
+        None => Func(name, Box::new(sub(*e1)), xs)
+      }
     }
   }
 }
@@ -160,11 +150,11 @@ pub fn step(mut state: State) -> State {
         false => *e3.clone(),
       }
     },
-    Decl(ref dconst, ref x, ref e1, ref e2) if *dconst == DConst && e1.is_value() => {
-      subst(*e2.clone(), *x.clone(), *e1.clone())
+    Decl(ref dconst, ref x, ref v1, ref e2) if *dconst == DConst && v1.is_value() => {
+      subst(*e2.clone(), *x.clone(), *v1.clone())
     },
-    Decl(ref dvar, ref x, ref e1, ref e2) if *dvar == DVar && e1.is_value() => {
-      let addr = state.alloc(*e1.clone());
+    Decl(ref dvar, ref x, ref v1, ref e2) if *dvar == DVar && v1.is_value() => {
+      let addr = state.alloc(*v1.clone());
       subst(*e2.clone(), *x.clone(), Expr::Addr(addr))
     },
     FnCall(ref v1, ref es) if v1.is_func() => {
@@ -211,31 +201,36 @@ pub fn step(mut state: State) -> State {
     Ternary(e1, e2, e3) => {
       Ternary(Box::new(st_step(&mut state, &*e1)), e2, e3)
     },
-    Decl(ref dt, ref e1, ref e2, ref e3) if e1.is_value() => {
+    Decl(ref dt, ref addr, ref v1, ref e2) if v1.is_value() => {
       Decl(
         dt.clone(),
-        Box::new(*e1.clone()),
-        Box::new(st_step(&mut state, e2)),
-        Box::new(*e3.clone())
+        Box::new(*addr.clone()),
+        Box::new(*v1.clone()),
+        Box::new(st_step(&mut state, e2))
       )
     },
-    Decl(dt, e1, e2, e3) => {
-      Decl(dt, Box::new(st_step(&mut state, &*e1)), e2, e3)
+    Decl(dt, addr, e1, e2) => {
+      Decl(dt, Box::new(*addr.clone()), Box::new(st_step(&mut state, &*e1)), e2)
     },
-    FnCall(e1, mut xs) => {
+    FnCall(ref v1, ref mut args) if v1.is_value() => {
       let mut found_first = true;
 
-      for x in xs.iter_mut() {
+      for x in args.iter_mut() {
         if x.is_value() && found_first == true {
           found_first = false;
           *x = st_step(&mut state, x);
         }
       }
 
-      FnCall(e1, xs)
+      FnCall(Box::new(*v1.clone()), args.clone())
+    }
+    FnCall(e1, args) => {
+      FnCall(Box::new(st_step(&mut state, &*e1)), args)
     }
   };
 
+  debug!("returning with mem {:?}" , state.mem);
+  debug!("returning with e {:?}" , state.expr);
   state.with(e1)
 }
 
@@ -250,7 +245,7 @@ pub fn boxx(input: &str) -> Expr {
       debug!("--- iterations: {}", num_iterations);
       return state.expr
     } else {
-      state = step(state);
+      state = step(state)
     }
   }
 }

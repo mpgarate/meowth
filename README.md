@@ -4,6 +4,9 @@ While developing use this to see debug statements in tests
 ```sh
 RUST_LOG=boxx=debug cargo watch
 
+# for individual tests
+RUST_LOG=boxx=debug cargo watch "test test_mut_var"
+
 ```
 ### Small notes
 * create more helpers in parser
