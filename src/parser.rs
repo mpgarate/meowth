@@ -37,29 +37,6 @@ impl Parser {
     Expr::Bop(bop, to_box(e1), to_box(e2))
   }
 
-  fn parse_var(&mut self) -> Expr {
-    self.eat(Token::VarDecl);
-    let var = self.term();
-    self.eat(Token::Assign);
-    let e2 = self.statement();
-    self.eat(Token::Seq);
-    let e3 = self.block();
-
-    return Expr::Decl(Dec::DVar, to_box(var), to_box(e2), to_box(e3));
-  }
-
-  fn parse_let(&mut self) -> Expr {
-    self.eat(Token::Let);
-    let var = self.term();
-    self.eat(Token::Assign);
-    let e2 = self.statement();
-    self.eat(Token::Seq);
-    let e3 = self.block();
-
-    return Expr::Decl(Dec::DConst, to_box(var), to_box(e2), to_box(e3));
-  }
-
-
   fn parse_fn_params(&mut self) -> Vec<Expr> {
     let mut params = Vec::new();
     let mut token = self.current_token.clone();
@@ -143,7 +120,6 @@ impl Parser {
     return self.ternary(e1, e2, e3);
   }
 
-
   fn factor(&mut self) -> Expr {
     match self.current_token.clone() {
       Token::Int(n) => {
@@ -170,6 +146,33 @@ impl Parser {
       },
       Token::FnDecl => {
         return self.parse_fn();
+      },
+      Token::VarDecl => {
+        self.eat(Token::VarDecl);
+        let var = self.term();
+        self.eat(Token::Assign);
+        let e2 = self.statement();
+        self.eat(Token::Seq);
+        let e3 = self.block();
+
+        return Expr::Decl(Dec::DVar, to_box(var), to_box(e2), to_box(e3));
+      },
+      Token::Let => {
+        self.eat(Token::Let);
+        let var = self.term();
+        self.eat(Token::Assign);
+        let e2 = self.statement();
+        self.eat(Token::Seq);
+        let e3 = self.block();
+
+        return Expr::Decl(Dec::DConst, to_box(var), to_box(e2), to_box(e3));
+      },
+      Token::If => {
+        return self.parse_if();
+      },
+      Token::Else => {
+        self.eat(Token::Else);
+        return self.statement();
       },
       Token::LParen => {
         self.eat(Token::LParen);
@@ -253,17 +256,6 @@ impl Parser {
   }
 
   pub fn statement(&mut self) -> Expr {
-    if self.current_token == Token::Let {
-      return self.parse_let();
-    } else if self.current_token == Token::VarDecl {
-      return self.parse_var();
-    } else if self.current_token == Token::If {
-      return self.parse_if();
-    } else if self.current_token == Token::Else {
-      self.eat(Token::Else);
-      return self.statement();
-    }
-
     let mut node = self.binop_expr();
     let mut op = self.current_token.clone();
 
