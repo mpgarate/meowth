@@ -44,7 +44,6 @@ mod tests {
       boxx("var x = 4; fn foo(z) { var x = 7; x + z }; foo(x) + x")
     );
 
-    // TODO: should be able to reassign to new type
     assert_eq!(Expr::Int(5), boxx("var x = 3; x = fn() { 4 + 1 }; x()"));
     assert_eq!(Expr::Int(3), boxx("var x = fn() { 4 + 1 }; x = 3; x"));
   }
@@ -86,8 +85,7 @@ mod tests {
     let _ = env_logger::init();
 
     assert_eq!(Expr::Int(2), boxx("let x = 4; fn foo() { let x = 1; x + 1 }; foo()"));
-    // TODO: this should not be allowed
-    // assert_eq!(Expr::Int(6), boxx("let x = 5; fn foo() { x + 1 }; foo()"));
+    assert_eq!(Expr::Int(6), boxx("let x = 5; fn foo() { x + 1 }; foo()"));
     assert_eq!(Expr::Int(60), boxx("fn foo() { 5 }; fn bar() { fn foo() { 6 }; foo() * 10 }; bar()"));
     assert_eq!(Expr::Int(50), boxx("fn foo() { 5 }; fn bar() { foo() * 10 }; bar()"));
 
