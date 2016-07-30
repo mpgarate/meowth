@@ -132,6 +132,7 @@ impl Parser {
         Token::And => self.binop(BinOp::And, node, right_node),
         Token::Or => self.binop(BinOp::Or, node, right_node),
         Token::Mod => self.binop(BinOp::Mod, node, right_node),
+        Token::Assign => self.binop(BinOp::Assign, node, right_node),
         _ => panic!(),
       };
 
@@ -147,7 +148,7 @@ impl Parser {
     self.eat(Token::Assign);
     let e2 = self.statement();
     self.eat(Token::Seq);
-    let e3 = self.statement();
+    let e3 = self.block();
 
     return Expr::Decl(Dec::DVar, to_box(var), to_box(e2), to_box(e3));
   }
@@ -158,7 +159,7 @@ impl Parser {
     self.eat(Token::Assign);
     let e2 = self.statement();
     self.eat(Token::Seq);
-    let e3 = self.statement();
+    let e3 = self.block();
 
     return Expr::Decl(Dec::DConst, to_box(var), to_box(e2), to_box(e3));
   }
@@ -274,12 +275,6 @@ impl Parser {
           let e3 = self.statement();
           self.ternary(node, e2, e3)
         },
-        Token::Assign => {
-          let e2 = self.statement();
-          self.eat(Token::Seq);
-          let e3 = self.statement();
-          Expr::Assign(to_box(node), to_box(e2), to_box(e3))
-        }
         _ => panic!()
       };
 

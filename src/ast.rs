@@ -23,6 +23,7 @@ pub enum BinOp {
   Or,
   Mod,
   Seq,
+  Assign,
 }
 
 #[derive(Clone, Debug, PartialEq)] 
@@ -34,7 +35,7 @@ pub enum Dec {
 #[derive(Clone, Debug)] 
 pub struct State {
   addr: usize,
-  pub mem: HashMap<usize, Expr>,
+  pub mem: Vec<HashMap<usize, Expr>>,
   pub expr: Expr,
 }
 
@@ -42,20 +43,29 @@ impl State {
   pub fn from(e: Expr) -> State {
     return State {
       addr: 0,
-      mem: HashMap::new(),
+      mem: vec!(HashMap::new()),
       expr: e,
     }
   }
 
-  pub fn with(&mut self, e1: Expr) -> State {
-    let mem = self.mem.clone();
-    let addr = self.addr.clone();
+  pub fn begin_scope(&mut self) {
+    self.mem.push(HashMap::new());
+  }
 
-    return State {
-      addr: addr,
-      mem: mem,
-      expr: e1,
-    };
+  pub fn end_scope(&mut self) {
+    self.mem.pop();
+  }
+
+  pub fn push(&mut self, s: State) {
+    match s.mem.last() {
+      Some(map) => self.mem.push(map.clone()),
+      _ => (),
+    }
+  }
+
+  pub fn with(&mut self, e1: Expr) -> &mut State {
+    self.expr = e1;
+    return self;
   }
 
   pub fn alloc(&mut self, v1: Expr) -> usize {
@@ -63,17 +73,29 @@ impl State {
     addr += 1;
     self.addr = addr;
 
-    self.assign(addr, v1);
+    self.mem[0].insert(addr, v1);
 
     return self.addr;
   }
 
   pub fn assign(&mut self, addr: usize, v1: Expr) {
-    self.mem.insert(addr, v1);
+    match self.mem.iter_mut().find(|m| m.contains_key(&addr)) {
+      Some(m) => m.insert(addr, v1),
+      None => {
+        debug!("cannot assign; no value for addr {:?}", addr);
+        panic!("cannot assign; no value for addr")
+      }
+    };
   }
 
   pub fn get(&mut self, addr: usize) -> Expr {
-    self.mem.get(&addr).unwrap().clone()
+    match self.mem.iter().find(|m| m.contains_key(&addr)) {
+      Some(m) => m.get(&addr).unwrap().clone(),
+      None => {
+        debug!("no value for addr {:?}", addr);
+        panic!("no value for addr")
+      }
+    }
   }
 }
 
@@ -88,7 +110,6 @@ pub enum Expr {
   Decl(Dec, Box<Expr>, Box<Expr>, Box<Expr>),
   Func(Option<Box<Expr>>, Box<Expr>, Vec<Expr>),
   FnCall(Box<Expr>, Vec<Expr>),
-  Assign(Box<Expr>, Box<Expr>, Box<Expr>),
   Addr(usize),
 }
 

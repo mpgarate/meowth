@@ -26,13 +26,6 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
         Box::new(sub(*e2))
       )
     },
-    (Assign(e1, e2, e3), _) => {
-      Assign(
-        Box::new(sub(*e1)),
-        Box::new(sub(*e2)),
-        Box::new(sub(*e3))
-      )
-    },
     (Uop(op, e1), _) => Uop(op, Box::new(sub(*e1))),
     (Ternary(e1, e2, e3), _) => {
       Ternary(
@@ -65,8 +58,12 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
   }
 }
 
-pub fn step(mut state: State) -> State {
-  let st_step = |s: &mut State, e1: &Expr| step(s.with(e1.clone())).expr;
+pub fn step(state: &mut State) -> &mut State {
+  let st_step = |s: &mut State, e1: &Expr| {
+    step(s.with(e1.clone())).expr.clone()
+  };
+
+  state.begin_scope();
 
   debug!("step(e) : {:?}", state.expr);
   debug!("step(state) : {:?}", state.mem);
@@ -138,11 +135,11 @@ pub fn step(mut state: State) -> State {
     Bop(Seq, ref v1, ref e2) if v1.is_value() => {
       *e2.clone()
     },
-    Assign(ref v1, ref v2, ref e3) if v1.is_addr() && v2.is_value() => {
+    Bop(Assign, ref v1, ref v2) if v1.is_addr() && v2.is_value() => {
       let addr = v1.to_addr();
       state.assign(addr.clone(), *v2.clone());
       debug!("done assigning {:?}", state.mem);
-      *e3.clone()
+      *v2.clone()
     },
     Ternary(ref v1, ref e2, ref e3) if v1.is_value() => {
       match v1.to_bool() {
@@ -150,13 +147,15 @@ pub fn step(mut state: State) -> State {
         false => *e3.clone(),
       }
     },
-    Decl(ref dconst, ref x, ref v1, ref e2) if *dconst == DConst && v1.is_value() => {
+    Decl(DConst, ref x, ref v1, ref e2) if v1.is_value() => {
       subst(*e2.clone(), *x.clone(), *v1.clone())
     },
-    Decl(ref dvar, ref x, ref v1, ref e2) if *dvar == DVar && v1.is_value() => {
+    Decl(DVar, ref x, ref v1, ref e2) if v1.is_value() => {
+      debug!("allocing {:?}", v1);
       let addr = state.alloc(*v1.clone());
       subst(*e2.clone(), *x.clone(), Expr::Addr(addr))
     },
+    // TODO: check that all of es are values
     FnCall(ref v1, ref es) if v1.is_func() => {
       match **v1 {
         Func(ref name, ref e1, ref xs) => {
@@ -183,26 +182,24 @@ pub fn step(mut state: State) -> State {
       Bop(
         op.clone(),
         Box::new(*v1.clone()),
-        Box::new(st_step(&mut state, e2))
+        Box::new(st_step(state, e2))
+      )
+    },
+    Bop(Assign, ref v1, ref e2) if v1.is_addr() => {
+      Bop(
+        Assign,
+        Box::new(*v1.clone()),
+        Box::new(st_step(state, e2))
       )
     },
     Bop(op, e1, e2) => {
-      Bop(op, Box::new(st_step(&mut state, &*e1)), e2)
-    },
-    /*
-     * TODO: should there be a case like this?
-    Assign(ref e1, ref v2, ref e3) if v2.is_value() => {
-      Assign(e1.clone(), v2.clone(), Box::new(st_step(&mut state, &*e3)))
-    },
-    */
-    Assign(e1, e2, e3) => {
-      Assign(e1, Box::new(st_step(&mut state, &*e2)), e3)
+      Bop(op, Box::new(st_step(state, &*e1)), e2)
     },
     Uop(op, e1) => {
-      Uop(op, Box::new(st_step(&mut state, &*e1)))
+      Uop(op, Box::new(st_step(state, &*e1)))
     },
     Ternary(e1, e2, e3) => {
-      Ternary(Box::new(st_step(&mut state, &*e1)), e2, e3)
+      Ternary(Box::new(st_step(state, &*e1)), e2, e3)
     },
     /*
      * TODO: should there be a case like this?
@@ -211,12 +208,12 @@ pub fn step(mut state: State) -> State {
         dt.clone(),
         Box::new(*addr.clone()),
         Box::new(*v1.clone()),
-        Box::new(st_step(&mut state, e2))
+        Box::new(st_step(state, e2))
       )
     },
     */
     Decl(dt, addr, e1, e2) => {
-      Decl(dt, Box::new(*addr.clone()), Box::new(st_step(&mut state, &*e1)), e2)
+      Decl(dt, Box::new(*addr.clone()), Box::new(st_step(state, &*e1)), e2)
     },
     /*
      * TODO: should there be a case like this?
@@ -226,7 +223,7 @@ pub fn step(mut state: State) -> State {
       for x in args.iter_mut() {
         if x.is_value() && found_first == true {
           found_first = false;
-          *x = st_step(&mut state, x);
+          *x = st_step(state, x);
         }
       }
 
@@ -234,12 +231,13 @@ pub fn step(mut state: State) -> State {
     }
     */
     FnCall(e1, args) => {
-      FnCall(Box::new(st_step(&mut state, &*e1)), args)
+      FnCall(Box::new(st_step(state, &*e1)), args)
     }
   };
 
   debug!("returning with mem {:?}" , state.mem);
   debug!("returning with e {:?}" , state.expr);
+  state.end_scope();
   state.with(e1)
 }
 
@@ -254,7 +252,7 @@ pub fn boxx(input: &str) -> Expr {
       debug!("--- iterations: {}", num_iterations);
       return state.expr
     } else {
-      state = step(state)
+      step(&mut state);
     }
   }
 }

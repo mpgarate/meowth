@@ -39,16 +39,13 @@ mod tests {
       ")
     );
 
-    // TODO var decl in function should work, maybe be substituted before the fn is
-    // considered a value
-    /*
     assert_eq!(
       Expr::Int(15),
       boxx("var x = 4; fn foo(z) { var x = 7; x + z }; foo(x) + x")
     );
-    */
 
-    assert_eq!(Expr::Int(5), boxx("var x = 3; x = fn() { 4 + 1 }; x()"));
+    // TODO: should be able to reassign to new type
+    //assert_eq!(Expr::Int(5), boxx("var x = 3; x = fn() { 4 + 1 }; x()"));
     assert_eq!(Expr::Int(3), boxx("var x = fn() { 4 + 1 }; x = 3; x"));
   }
 

@@ -56,6 +56,7 @@ impl Token {
       Token::And => true,
       Token::Or => true,
       Token::Mod => true,
+      Token::Assign => true,
       _ => false,
     }
   }
@@ -63,7 +64,6 @@ impl Token {
   pub fn is_statement_op(&self) -> bool {
     match *self {
       Token::Ternary => true,
-      Token::Assign => true,
       _ => false,
     }
   }
