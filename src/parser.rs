@@ -107,7 +107,18 @@ impl Parser {
         Expr::Decl(Dec::DConst, to_box(v), to_box(func), to_box(e3))
       },
       None => {
-        Expr::Func(None, to_box(body.clone()), params)
+        let func = Expr::Func(None, to_box(body.clone()), params);
+
+        // fn call rule
+        if self.current_token == Token::LParen {
+          self.eat(Token::LParen);
+          let params = self.parse_fn_params();
+          self.eat(Token::RParen);
+
+          Expr::FnCall(to_box(func), params)
+        } else {
+          func
+        }
       }
     }
   }

@@ -144,8 +144,8 @@ mod tests {
     assert_eq!(Expr::Int(7), boxx("let foo = fn() { 1 + 3 }; foo() + 3"));
     assert_eq!(Expr::Int(9), boxx("let foo = fn() { 1 + 3 }; let bar = fn() { foo() + 1}; 4 + bar()"));
 
-    // TODO: this should be parsed as a fn call
-    // assert_eq!(Expr::Int(4), boxx("fn() { 1 + 3 }()"));
+    assert_eq!(Expr::Int(4), boxx("fn() { 1 + 3 }()"));
+    assert_eq!(Expr::Int(4), boxx("let foo = fn() { 1 + 3 }(); foo"));
     
     // TODO: have better failure message when ending a fn block with a semicolon
     // assert_eq!(Expr::Int(12), boxx("fn foo(a) { 1 + a; }; foo(4) + 7"));
