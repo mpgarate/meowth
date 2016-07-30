@@ -19,6 +19,7 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
     (Int(_), _) => e,
     (Bool(_), _) => e,
     (Addr(_), _) => e,
+    (Scope(e1, a), _) => Scope(Box::new(sub(*e1)), a),
     (Bop(op, e1, e2), _) => { 
       Bop(
         op,
@@ -62,8 +63,6 @@ pub fn step(state: &mut State) -> &mut State {
   let st_step = |s: &mut State, e1: &Expr| {
     step(s.with(e1.clone())).expr.clone()
   };
-
-  state.begin_scope();
 
   debug!("step(e) : {:?}", state.expr);
   debug!("step(state) : {:?}", state.mem);
@@ -153,7 +152,12 @@ pub fn step(state: &mut State) -> &mut State {
     Decl(DVar, ref x, ref v1, ref e2) if v1.is_value() => {
       debug!("allocing {:?}", v1);
       let addr = state.alloc(*v1.clone());
-      subst(*e2.clone(), *x.clone(), Expr::Addr(addr))
+      let scope = Scope(Box::new(*e2.clone()), addr);
+      subst(scope, *x.clone(), Expr::Addr(addr))
+    },
+    Scope(ref v1, addr) if v1.is_value() => {
+      state.free(addr);
+      *v1.clone()
     },
     // TODO: check that all of es are values
     FnCall(ref v1, ref es) if v1.is_func() => {
@@ -194,6 +198,9 @@ pub fn step(state: &mut State) -> &mut State {
     },
     Bop(op, e1, e2) => {
       Bop(op, Box::new(st_step(state, &*e1)), e2)
+    },
+    Scope(e1, addr) => {
+      Scope(Box::new(st_step(state, &*e1)), addr)
     },
     Uop(op, e1) => {
       Uop(op, Box::new(st_step(state, &*e1)))
@@ -237,7 +244,6 @@ pub fn step(state: &mut State) -> &mut State {
 
   debug!("returning with mem {:?}" , state.mem);
   debug!("returning with e {:?}" , state.expr);
-  state.end_scope();
   state.with(e1)
 }
 

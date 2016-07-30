@@ -48,21 +48,6 @@ impl State {
     }
   }
 
-  pub fn begin_scope(&mut self) {
-    self.mem.push(HashMap::new());
-  }
-
-  pub fn end_scope(&mut self) {
-    self.mem.pop();
-  }
-
-  pub fn push(&mut self, s: State) {
-    match s.mem.last() {
-      Some(map) => self.mem.push(map.clone()),
-      _ => (),
-    }
-  }
-
   pub fn with(&mut self, e1: Expr) -> &mut State {
     self.expr = e1;
     return self;
@@ -78,12 +63,22 @@ impl State {
     return self.addr;
   }
 
+  pub fn free(&mut self, addr: usize) {
+    match self.mem.iter_mut().find(|m| m.contains_key(&addr)) {
+      Some(m) => m.remove(&addr),
+      None => {
+        debug!("cannot remove; no addr {:?}", addr);
+        panic!("cannot remove; no addr")
+      },
+    };
+  }
+
   pub fn assign(&mut self, addr: usize, v1: Expr) {
     match self.mem.iter_mut().find(|m| m.contains_key(&addr)) {
       Some(m) => m.insert(addr, v1),
       None => {
-        debug!("cannot assign; no value for addr {:?}", addr);
-        panic!("cannot assign; no value for addr")
+        debug!("cannot assign; no addr {:?}", addr);
+        panic!("cannot assign; no addr")
       }
     };
   }
@@ -111,6 +106,7 @@ pub enum Expr {
   Func(Option<Box<Expr>>, Box<Expr>, Vec<Expr>),
   FnCall(Box<Expr>, Vec<Expr>),
   Addr(usize),
+  Scope(Box<Expr>, usize),
 }
 
 impl Expr {
