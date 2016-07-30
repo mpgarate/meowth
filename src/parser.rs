@@ -37,6 +37,113 @@ impl Parser {
     Expr::Bop(bop, to_box(e1), to_box(e2))
   }
 
+  fn parse_var(&mut self) -> Expr {
+    self.eat(Token::VarDecl);
+    let var = self.term();
+    self.eat(Token::Assign);
+    let e2 = self.statement();
+    self.eat(Token::Seq);
+    let e3 = self.block();
+
+    return Expr::Decl(Dec::DVar, to_box(var), to_box(e2), to_box(e3));
+  }
+
+  fn parse_let(&mut self) -> Expr {
+    self.eat(Token::Let);
+    let var = self.term();
+    self.eat(Token::Assign);
+    let e2 = self.statement();
+    self.eat(Token::Seq);
+    let e3 = self.block();
+
+    return Expr::Decl(Dec::DConst, to_box(var), to_box(e2), to_box(e3));
+  }
+
+
+  fn parse_fn_params(&mut self) -> Vec<Expr> {
+    let mut params = Vec::new();
+    let mut token = self.current_token.clone();
+
+    while token != Token::RParen {
+      debug!("getting fn params");
+      let term = self.binop_expr();
+
+      params.push(term);
+
+      if self.current_token == Token::Comma {
+        self.eat(Token::Comma);
+      }
+
+      token = self.current_token.clone();
+    }
+
+    params
+  }
+
+  fn parse_fn_decl_params(&mut self) -> Vec<Expr> {
+    let mut params = Vec::new();
+    let mut token = self.current_token.clone();
+
+    while token != Token::RParen {
+      debug!("getting fn decl params");
+      match token.clone() {
+        Token::Var(s) => {
+          self.eat(Token::Var(s.clone()));
+          params.push(Expr::Var(s));
+        },
+        Token::Comma => self.eat(Token::Comma),
+        _ => panic!()
+      }
+
+      token = self.current_token.clone();
+    }
+
+    params
+  }
+
+  fn parse_fn(&mut self) -> Expr {
+    debug!("parsing named fn...");
+    self.eat(Token::FnDecl);
+
+    let var = match self.current_token.clone() {
+      Token::Var(s) => {
+        self.eat(Token::Var(s.clone()));
+        Some(Expr::Var(s))
+      },
+      _ => None,
+    };
+
+    self.eat(Token::LParen);
+    let params = self.parse_fn_decl_params();
+    self.eat(Token::RParen);
+    self.eat(Token::LBracket);
+    let body = self.statement();
+    self.eat(Token::RBracket);
+
+    match var {
+      Some(v) => {
+        self.eat(Token::Seq);
+        let e3 = self.statement();
+
+        let func = Expr::Func(Some(to_box(v.clone())), to_box(body.clone()), params);
+
+        Expr::Decl(Dec::DConst, to_box(v), to_box(func), to_box(e3))
+      },
+      None => {
+        Expr::Func(None, to_box(body.clone()), params)
+      }
+    }
+  }
+
+  fn parse_if(&mut self) -> Expr {
+    self.eat(Token::If);
+    let e1 = self.binop_expr();
+    let e2 = self.statement();
+    let e3 = self.statement();
+    return self.ternary(e1, e2, e3);
+  }
+
+
   fn factor(&mut self) -> Expr {
     match self.current_token.clone() {
       Token::Int(n) => {
@@ -143,112 +250,6 @@ impl Parser {
     }
     
     node 
-  }
-
-  fn parse_var(&mut self) -> Expr {
-    self.eat(Token::VarDecl);
-    let var = self.term();
-    self.eat(Token::Assign);
-    let e2 = self.statement();
-    self.eat(Token::Seq);
-    let e3 = self.block();
-
-    return Expr::Decl(Dec::DVar, to_box(var), to_box(e2), to_box(e3));
-  }
-
-  fn parse_let(&mut self) -> Expr {
-    self.eat(Token::Let);
-    let var = self.term();
-    self.eat(Token::Assign);
-    let e2 = self.statement();
-    self.eat(Token::Seq);
-    let e3 = self.block();
-
-    return Expr::Decl(Dec::DConst, to_box(var), to_box(e2), to_box(e3));
-  }
-
-
-  fn parse_fn_params(&mut self) -> Vec<Expr> {
-    let mut params = Vec::new();
-    let mut token = self.current_token.clone();
-
-    while token != Token::RParen {
-      debug!("getting fn params");
-      let term = self.binop_expr();
-
-      params.push(term);
-
-      if self.current_token == Token::Comma {
-        self.eat(Token::Comma);
-      }
-
-      token = self.current_token.clone();
-    }
-
-    params
-  }
-
-  fn parse_fn_decl_params(&mut self) -> Vec<Expr> {
-    let mut params = Vec::new();
-    let mut token = self.current_token.clone();
-
-    while token != Token::RParen {
-      debug!("getting fn decl params");
-      match token.clone() {
-        Token::Var(s) => {
-          self.eat(Token::Var(s.clone()));
-          params.push(Expr::Var(s));
-        },
-        Token::Comma => self.eat(Token::Comma),
-        _ => panic!()
-      }
-
-      token = self.current_token.clone();
-    }
-
-    params
-  }
-
-  fn parse_fn(&mut self) -> Expr {
-    debug!("parsing named fn...");
-    self.eat(Token::FnDecl);
-
-    let var = match self.current_token.clone() {
-      Token::Var(s) => {
-        self.eat(Token::Var(s.clone()));
-        Some(Expr::Var(s))
-      },
-      _ => None,
-    };
-
-    self.eat(Token::LParen);
-    let params = self.parse_fn_decl_params();
-    self.eat(Token::RParen);
-    self.eat(Token::LBracket);
-    let body = self.statement();
-    self.eat(Token::RBracket);
-
-    match var {
-      Some(v) => {
-        self.eat(Token::Seq);
-        let e3 = self.statement();
-
-        let func = Expr::Func(Some(to_box(v.clone())), to_box(body.clone()), params);
-
-        Expr::Decl(Dec::DConst, to_box(v), to_box(func), to_box(e3))
-      },
-      None => {
-        Expr::Func(None, to_box(body.clone()), params)
-      }
-    }
-  }
-
-  fn parse_if(&mut self) -> Expr {
-    self.eat(Token::If);
-    let e1 = self.binop_expr();
-    let e2 = self.statement();
-    let e3 = self.statement();
-    return self.ternary(e1, e2, e3);
   }
 
   pub fn statement(&mut self) -> Expr {
