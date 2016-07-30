@@ -5,10 +5,6 @@ use ast::BinOp::*;
 use ast::Dec::*;
 use ast::*;
 
-fn all<I, F>(iter: I, f: F) -> bool where I: IntoIterator, F: FnMut(I::Item) -> bool {
-  iter.into_iter().all(f)
-}
-
 fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
   let sub = |e1: Expr| subst(e1.clone(), x.clone(), v.clone());
 
@@ -163,8 +159,9 @@ pub fn step(state: &mut State) -> &mut State {
       state.free(addr);
       *v1.clone()
     },
-    // TODO: check that all of es are values
-    FnCall(ref v1, ref es) if v1.is_func() && all(es.iter(), |v| v.is_value()) => {
+    // lambda lift so we can use iter() in guard
+    // https://github.com/rust-lang/rfcs/issues/1006
+    FnCall(ref v1, ref es) if v1.is_func() && (|| es.iter().all(|v| v.is_value()))() => {
       match **v1 {
         Func(ref name, ref e1, ref xs) => {
           // sub the params
