@@ -5,6 +5,10 @@ use ast::BinOp::*;
 use ast::Dec::*;
 use ast::*;
 
+fn all<I, F>(iter: I, f: F) -> bool where I: IntoIterator, F: FnMut(I::Item) -> bool {
+  iter.into_iter().all(f)
+}
+
 fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
   let sub = |e1: Expr| subst(e1.clone(), x.clone(), v.clone());
 
@@ -160,7 +164,7 @@ pub fn step(state: &mut State) -> &mut State {
       *v1.clone()
     },
     // TODO: check that all of es are values
-    FnCall(ref v1, ref es) if v1.is_func() => {
+    FnCall(ref v1, ref es) if v1.is_func() && all(es.iter(), |v| v.is_value()) => {
       match **v1 {
         Func(ref name, ref e1, ref xs) => {
           // sub the params
@@ -208,38 +212,26 @@ pub fn step(state: &mut State) -> &mut State {
     Ternary(e1, e2, e3) => {
       Ternary(Box::new(st_step(state, &*e1)), e2, e3)
     },
-    /*
-     * TODO: should there be a case like this?
-    Decl(ref dt, ref addr, ref v1, ref e2) if v1.is_value() => {
-      Decl(
-        dt.clone(),
-        Box::new(*addr.clone()),
-        Box::new(*v1.clone()),
-        Box::new(st_step(state, e2))
-      )
-    },
-    */
     Decl(dt, addr, e1, e2) => {
       Decl(dt, Box::new(*addr.clone()), Box::new(st_step(state, &*e1)), e2)
     },
-    /*
-     * TODO: should there be a case like this?
-    FnCall(ref v1, ref mut args) if v1.is_value() => {
-      let mut found_first = true;
+    FnCall(ref v1, ref args) if v1.is_value() => {
+      let mut found_nonvalue = false;
 
-      for x in args.iter_mut() {
-        if x.is_value() && found_first == true {
-          found_first = false;
-          *x = st_step(state, x);
+      let args2 = args.iter().map(|e| {
+        if !found_nonvalue && !e.is_value() {
+          found_nonvalue = true;
+          st_step(state, e)
+        } else {
+          e.clone()
         }
-      }
+      }).collect();
 
-      FnCall(Box::new(*v1.clone()), args.clone())
-    }
-    */
+      FnCall(v1.clone(), args2)
+    },
     FnCall(e1, args) => {
       FnCall(Box::new(st_step(state, &*e1)), args)
-    }
+    },
   };
 
   debug!("returning with mem {:?}" , state.mem);
