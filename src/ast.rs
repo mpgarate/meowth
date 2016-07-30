@@ -35,7 +35,7 @@ pub enum Dec {
 #[derive(Clone, Debug)] 
 pub struct State {
   addr: usize,
-  pub mem: Vec<HashMap<usize, Expr>>,
+  pub mem: HashMap<usize, Expr>,
   pub expr: Expr,
 }
 
@@ -43,7 +43,7 @@ impl State {
   pub fn from(e: Expr) -> State {
     return State {
       addr: 0,
-      mem: vec!(HashMap::new()),
+      mem: HashMap::new(),
       expr: e,
     }
   }
@@ -58,38 +58,26 @@ impl State {
     addr += 1;
     self.addr = addr;
 
-    self.mem[0].insert(addr, v1);
+    self.mem.insert(addr, v1);
 
     return self.addr;
   }
 
   pub fn free(&mut self, addr: usize) {
-    match self.mem.iter_mut().find(|m| m.contains_key(&addr)) {
-      Some(m) => m.remove(&addr),
-      None => {
-        debug!("cannot remove; no addr {:?}", addr);
-        panic!("cannot remove; no addr")
-      },
-    };
+    self.mem.remove(&addr);
   }
 
   pub fn assign(&mut self, addr: usize, v1: Expr) {
-    match self.mem.iter_mut().find(|m| m.contains_key(&addr)) {
-      Some(m) => m.insert(addr, v1),
-      None => {
-        debug!("cannot assign; no addr {:?}", addr);
-        panic!("cannot assign; no addr")
-      }
-    };
+    self.mem.insert(addr, v1);
   }
 
   pub fn get(&mut self, addr: usize) -> Expr {
-    match self.mem.iter().find(|m| m.contains_key(&addr)) {
-      Some(m) => m.get(&addr).unwrap().clone(),
-      None => {
-        debug!("no value for addr {:?}", addr);
-        panic!("no value for addr")
-      }
+    match self.mem.get(&addr) {
+      Some(v) => v.clone(),
+      _ => {
+        debug!("cannot get addr {:?}", addr);
+        panic!("cannot get addr");
+      },
     }
   }
 }
