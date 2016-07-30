@@ -61,6 +61,9 @@ impl Parser {
 
         return Expr::Var(s);
       },
+      Token::FnDecl => {
+        return self.parse_fn();
+      },
       Token::LParen => {
         self.eat(Token::LParen);
         let node = self.statement();
@@ -253,8 +256,6 @@ impl Parser {
       return self.parse_let();
     } else if self.current_token == Token::VarDecl {
       return self.parse_var();
-    } else if self.current_token == Token::FnDecl {
-      return self.parse_fn();
     } else if self.current_token == Token::If {
       return self.parse_if();
     } else if self.current_token == Token::Else {
