@@ -22,11 +22,23 @@ mod tests {
     // TODO: it should be ok to omit the `; 0`
     assert_eq!(Expr::Int(0), repl.eval("fn foo(x, y, z) { x + y + z }; 0"));
     assert_eq!(Expr::Int(1100), repl.eval("foo(100, 400, 600)"));
+    // TODO: this test should not pass, z out of scope
+    // assert_eq!(Expr::Int(600), repl.eval("z"));
+
 
     // TODO: it should be ok to omit the `; 0`
     assert_eq!(Expr::Int(0), repl.eval("var z = 55; 0"));
     // TODO: var decl not working, need to preserve memory state
     // assert_eq!(Expr::Int(55), repl.eval("z"));
+
+    // ideas:
+    // create undefined value
+    // wrap substitutions in a scope, pop from substitions when done
+    // only use subst for inserting addresses
+    // treat repl as a Scope + EOF that waits for next input
+    //
+    //
+    // no more substituting values or addresses, always lookup name in mem + maintain scopes
   }
 
   #[test]
