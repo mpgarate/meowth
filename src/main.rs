@@ -1,10 +1,13 @@
 extern crate boxx;
 
 use boxx::expr::{boxx};
+use boxx::repl::{Repl};
 
 use std::io::{Write, stdout, stdin};
 
 fn main() {
+  let mut repl = Repl::new();
+
   loop {
     print!("boxx> ");
     let _ = stdout().flush();
@@ -15,7 +18,7 @@ fn main() {
         if input == "exit\n".to_string() { 
           break;
         }
-        println!("{:?}", boxx(&input))
+        println!("{:?}", repl.eval(&input))
       },
       Err(e) => print!("error: {}", e)
     }

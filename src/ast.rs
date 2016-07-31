@@ -1,5 +1,4 @@
 use ast::Expr::*;
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, PartialEq)] 
 pub enum UnOp {
@@ -30,56 +29,6 @@ pub enum BinOp {
 pub enum Dec {
   DVar,
   DConst
-}
-
-#[derive(Clone, Debug)] 
-pub struct State {
-  addr: usize,
-  pub mem: HashMap<usize, Expr>,
-  pub expr: Expr,
-}
-
-impl State {
-  pub fn from(e: Expr) -> State {
-    return State {
-      addr: 0,
-      mem: HashMap::new(),
-      expr: e,
-    }
-  }
-
-  pub fn with(&mut self, e1: Expr) -> &mut State {
-    self.expr = e1;
-    return self;
-  }
-
-  pub fn alloc(&mut self, v1: Expr) -> usize {
-    let mut addr = self.addr;
-    addr += 1;
-    self.addr = addr;
-
-    self.mem.insert(addr, v1);
-
-    return self.addr;
-  }
-
-  pub fn free(&mut self, addr: usize) {
-    self.mem.remove(&addr);
-  }
-
-  pub fn assign(&mut self, addr: usize, v1: Expr) {
-    self.mem.insert(addr, v1);
-  }
-
-  pub fn get(&mut self, addr: usize) -> Expr {
-    match self.mem.get(&addr) {
-      Some(v) => v.clone(),
-      _ => {
-        debug!("cannot get addr {:?}", addr);
-        panic!("cannot get addr");
-      },
-    }
-  }
 }
 
 #[derive(Clone, Debug, PartialEq)] 
