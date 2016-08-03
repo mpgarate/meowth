@@ -77,12 +77,17 @@ mod tests {
     );
 
     /*
-     * TODO: should be able to reassign inside fn
+       TODO: allow var bindings so that fn params can be reassigned
     assert_eq!(
       Expr::Int(23),
       boxx("var x = 4; fn foo(z) { var x = 7; z = x; x = 12; x + z }; foo(x) + x")
     );
     */
+
+    assert_eq!(
+      Expr::Int(13),
+      boxx("var x = 10; var foo = fn(x) { var foo = fn (y) { var x = 3; y + x }; foo(x) }; foo(x) ")
+    );
 
     assert_eq!(Expr::Int(5), boxx("var x = 3; x = fn() { 4 + 1 }; x()"));
     assert_eq!(Expr::Int(3), boxx("var x = fn() { 4 + 1 }; x = 3; x"));
