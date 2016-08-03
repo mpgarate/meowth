@@ -5,7 +5,7 @@ mod tests {
   extern crate boxx;
   use boxx::expr::boxx;
   use boxx::ast::Expr;
-  use boxx::repl::Repl;
+  //use boxx::repl::Repl;
 
   extern crate env_logger;
 
@@ -72,8 +72,6 @@ mod tests {
     );
 
     /*
-     * 
-     * TODO: this should be possible by looking at a stack of accessible variables in memory
     assert_eq!(
       Expr::Int(15),
       boxx("var x = 4; fn foo(z) { var x = 7; x + z }; foo(x) + x")

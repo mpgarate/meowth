@@ -59,9 +59,11 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
   }
 }
 
-pub fn step(state: &mut State) -> &mut State {
+pub fn step(mut state: State) -> State {
   let st_step = |s: &mut State, e1: &Expr| {
-    step(s.with(e1.clone())).expr.clone()
+    let s2 = step(s.clone().with(e1.clone()));
+    s.merge_mem(s2.clone());
+    s2.expr.clone()
   };
 
   debug!("step(e) : {:?}", state.expr);
@@ -155,6 +157,7 @@ pub fn step(state: &mut State) -> &mut State {
       Scope(Box::new(*e2.clone()), x.to_var())
     },
     Scope(ref v1, ref x) if v1.is_value() => {
+      debug!("freeing {:?}", x);
       state.free(x.clone());
       *v1.clone()
     },
@@ -186,30 +189,30 @@ pub fn step(state: &mut State) -> &mut State {
       Bop(
         op.clone(),
         Box::new(*v1.clone()),
-        Box::new(st_step(state, e2))
+        Box::new(st_step(&mut state, e2))
       )
     },
     Bop(Assign, ref v1, ref e2) if v1.is_var() => {
       Bop(
         Assign,
         Box::new(*v1.clone()),
-        Box::new(st_step(state, e2))
+        Box::new(st_step(&mut state, e2))
       )
     },
     Bop(op, e1, e2) => {
-      Bop(op, Box::new(st_step(state, &*e1)), e2)
+      Bop(op, Box::new(st_step(&mut state, &*e1)), e2)
     },
     Scope(e1, addr) => {
-      Scope(Box::new(st_step(state, &*e1)), addr)
+      Scope(Box::new(st_step(&mut state, &*e1)), addr)
     },
     Uop(op, e1) => {
-      Uop(op, Box::new(st_step(state, &*e1)))
+      Uop(op, Box::new(st_step(&mut state, &*e1)))
     },
     Ternary(e1, e2, e3) => {
-      Ternary(Box::new(st_step(state, &*e1)), e2, e3)
+      Ternary(Box::new(st_step(&mut state, &*e1)), e2, e3)
     },
     Decl(dt, addr, e1, e2) => {
-      Decl(dt, Box::new(*addr.clone()), Box::new(st_step(state, &*e1)), e2)
+      Decl(dt, Box::new(*addr.clone()), Box::new(st_step(&mut state, &*e1)), e2)
     },
     FnCall(ref v1, ref args) if v1.is_value() => {
       let mut found_nonvalue = false;
@@ -217,7 +220,7 @@ pub fn step(state: &mut State) -> &mut State {
       let args2 = args.iter().map(|e| {
         if !found_nonvalue && !e.is_value() {
           found_nonvalue = true;
-          st_step(state, e)
+          st_step(&mut state, e)
         } else {
           e.clone()
         }
@@ -226,12 +229,12 @@ pub fn step(state: &mut State) -> &mut State {
       FnCall(v1.clone(), args2)
     },
     FnCall(e1, args) => {
-      FnCall(Box::new(st_step(state, &*e1)), args)
+      FnCall(Box::new(st_step(&mut state, &*e1)), args)
     },
   };
 
   debug!("returning with mem {:?}" , state.mem);
-  debug!("returning with e {:?}" , state.expr);
+  debug!("returning with e {:?}" , e1);
   state.with(e1)
 }
 
@@ -246,7 +249,7 @@ pub fn boxx(input: &str) -> Expr {
       debug!("--- iterations: {}", num_iterations);
       return state.expr
     } else {
-      step(&mut state);
+      state = step(state);
     }
   }
 }

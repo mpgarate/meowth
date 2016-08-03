@@ -7,10 +7,10 @@ pub struct Substitution {
   pub v: Expr,
 }
 
+#[derive(Clone, Debug)] 
 pub struct State {
   pub mem: HashMap<String, Expr>,
   pub expr: Expr,
-  pub substitutions: Vec<Substitution>,
 }
 
 impl State {
@@ -18,13 +18,14 @@ impl State {
     return State {
       mem: HashMap::new(),
       expr: e,
-      substitutions: Vec::new(),
     }
   }
 
-  pub fn with(&mut self, e1: Expr) -> &mut State {
-    self.expr = e1;
-    return self;
+  pub fn with(&mut self, e1: Expr) -> State {
+    return State {
+      mem: self.mem.clone(),
+      expr: e1,
+    }
   }
 
   pub fn alloc(&mut self, x: String, v1: Expr) {
@@ -49,10 +50,9 @@ impl State {
     }
   }
 
-  pub fn push_sub(&mut self, x: Expr, v: Expr) {
-    debug!("push_sub");
-    debug!("x: {:?}", x);
-    debug!("v: {:?}", v);
-    self.substitutions.push(Substitution { x: x, v: v});
+  pub fn merge_mem(&mut self, other: State) {
+    for (k,v) in other.mem {
+      self.mem.insert(k, v);
+    }
   }
 }
