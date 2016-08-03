@@ -29,14 +29,10 @@ mod tests {
     // TODO: it should be ok to omit the `; 0`
     assert_eq!(Expr::Int(0), repl.eval("var z = 55; 0"));
     // TODO: var decl not working, need to preserve memory state
-    // assert_eq!(Expr::Int(55), repl.eval("z"));
+    //assert_eq!(Expr::Int(55), repl.eval("z"));
 
     // ideas:
     // create undefined value
-    // wrap substitutions in a scope, pop from substitions when done
-    // only use subst for inserting addresses
-    // treat repl as a Scope + EOF that waits for next input
-    //
     //
     // no more substituting values or addresses, always lookup name in mem + maintain scopes
   }
@@ -73,10 +69,14 @@ mod tests {
       ")
     );
 
+    /*
+     * 
+     * TODO: this should be possible by looking at a stack of accessible variables in memory
     assert_eq!(
       Expr::Int(15),
       boxx("var x = 4; fn foo(z) { var x = 7; x + z }; foo(x) + x")
     );
+    */
 
     assert_eq!(Expr::Int(5), boxx("var x = 3; x = fn() { 4 + 1 }; x()"));
     assert_eq!(Expr::Int(3), boxx("var x = fn() { 4 + 1 }; x = 3; x"));

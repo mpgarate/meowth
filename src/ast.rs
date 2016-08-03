@@ -42,8 +42,7 @@ pub enum Expr {
   Decl(Dec, Box<Expr>, Box<Expr>, Box<Expr>),
   Func(Option<Box<Expr>>, Box<Expr>, Vec<Expr>),
   FnCall(Box<Expr>, Vec<Expr>),
-  Addr(usize),
-  Scope(Box<Expr>, usize),
+  Scope(Box<Expr>, String),
 }
 
 impl Expr {
@@ -68,16 +67,16 @@ impl Expr {
     }
   }
 
-  pub fn is_value(&self) -> bool {
+  pub fn is_var(&self) -> bool {
     match *self {
-      Int(_) | Bool(_) | Var(_) | Func(_, _, _) => true,
+      Var(_) => true,
       _ => false,
     }
   }
 
-  pub fn is_addr(&self) -> bool {
+  pub fn is_value(&self) -> bool {
     match *self {
-      Addr(_) => true,
+      Int(_) | Bool(_) | Func(_, _, _) => true,
       _ => false,
     }
   }
@@ -92,21 +91,21 @@ impl Expr {
     }
   }
 
-  pub fn to_bool(&self) -> bool {
+  pub fn to_var(&self) -> String {
     match *self {
-      Bool(b) => b,
+      Var(ref x) => x.clone(),
       _ => {
-        debug!("cant turn into bool: {:?}", self);
+        debug!("cant turn into int: {:?}", self);
         panic!()
       }
     }
   }
 
-  pub fn to_addr(&self) -> usize {
+  pub fn to_bool(&self) -> bool {
     match *self {
-      Addr(a) => a,
+      Bool(b) => b,
       _ => {
-        debug!("cant turn into addr: {:?}", self);
+        debug!("cant turn into bool: {:?}", self);
         panic!()
       }
     }

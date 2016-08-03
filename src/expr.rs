@@ -38,7 +38,6 @@ fn substitute(e: Expr, x: Expr, v: Expr) -> Expr {
     (Var(_), _) => e,
     (Int(_), _) => e,
     (Bool(_), _) => e,
-    (Addr(_), _) => e,
     (Scope(e1, a), _) => Scope(Box::new(sub(*e1)), a),
     (Bop(op, e1, e2), _) => { 
       Bop(
@@ -87,13 +86,13 @@ pub fn step(state: &mut State) -> &mut State {
   debug!("step(e) : {:?}", state.expr);
   debug!("step(state) : {:?}", state.mem);
   let e1 = match state.expr.clone() {
-    Addr(addr) => {
-      state.get(addr)
+    Var(x) => {
+      state.get(x)
     },
     /**
      * Values are ineligible for step
      */
-    Int(_) | Bool(_) | Func(_, _, _) | Var(_) => {
+    Int(_) | Bool(_) | Func(_, _, _) => {
       debug!("stepping on a value {:?}", state.expr);
       panic!("stepping on a value");
     },
@@ -154,9 +153,9 @@ pub fn step(state: &mut State) -> &mut State {
     Bop(Seq, ref v1, ref e2) if v1.is_value() => {
       *e2.clone()
     },
-    Bop(Assign, ref v1, ref v2) if v1.is_addr() && v2.is_value() => {
-      let addr = v1.to_addr();
-      state.assign(addr.clone(), *v2.clone());
+    Bop(Assign, ref v1, ref v2) if v1.is_var() && v2.is_value() => {
+      let x = v1.to_var();
+      state.assign(x, *v2.clone());
       debug!("done assigning {:?}", state.mem);
       *v2.clone()
     },
@@ -169,14 +168,13 @@ pub fn step(state: &mut State) -> &mut State {
     Decl(DConst, ref x, ref v1, ref e2) if v1.is_value() => {
       subst(state, *e2.clone(), *x.clone(), *v1.clone())
     },
-    Decl(DVar, ref x, ref v1, ref e2) if v1.is_value() => {
+    Decl(DVar, ref x, ref v1, ref e2) if x.is_var() && v1.is_value() => {
       debug!("allocing {:?}", v1);
-      let addr = state.alloc(*v1.clone());
-      let scope = Scope(Box::new(*e2.clone()), addr);
-      subst(state, scope, *x.clone(), Expr::Addr(addr))
+      state.alloc(x.to_var(), *v1.clone());
+      Scope(Box::new(*e2.clone()), x.to_var())
     },
-    Scope(ref v1, addr) if v1.is_value() => {
-      state.free(addr);
+    Scope(ref v1, ref x) if v1.is_value() => {
+      state.free(x.clone());
       *v1.clone()
     },
     // lambda lift so we can use iter() in guard
@@ -210,7 +208,7 @@ pub fn step(state: &mut State) -> &mut State {
         Box::new(st_step(state, e2))
       )
     },
-    Bop(Assign, ref v1, ref e2) if v1.is_addr() => {
+    Bop(Assign, ref v1, ref e2) if v1.is_var() => {
       Bop(
         Assign,
         Box::new(*v1.clone()),

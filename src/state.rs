@@ -9,7 +9,7 @@ pub struct Substitution {
 
 pub struct State {
   addr: usize,
-  pub mem: HashMap<usize, Expr>,
+  pub mem: HashMap<String, Expr>,
   pub expr: Expr,
   pub substitutions: Vec<Substitution>,
 }
@@ -29,30 +29,24 @@ impl State {
     return self;
   }
 
-  pub fn alloc(&mut self, v1: Expr) -> usize {
-    let mut addr = self.addr;
-    addr += 1;
-    self.addr = addr;
-
-    self.mem.insert(addr, v1);
-
-    return self.addr;
+  pub fn alloc(&mut self, x: String, v1: Expr) {
+    self.mem.insert(x, v1);
   }
 
-  pub fn free(&mut self, addr: usize) {
-    self.mem.remove(&addr);
+  pub fn free(&mut self, x: String) {
+    self.mem.remove(&x);
   }
 
-  pub fn assign(&mut self, addr: usize, v1: Expr) {
-    self.mem.insert(addr, v1);
+  pub fn assign(&mut self, x: String, v1: Expr) {
+    self.mem.insert(x, v1);
   }
 
-  pub fn get(&mut self, addr: usize) -> Expr {
-    match self.mem.get(&addr) {
+  pub fn get(&mut self, x: String) -> Expr {
+    match self.mem.get(&x) {
       Some(v) => v.clone(),
       _ => {
-        debug!("cannot get addr {:?}", addr);
-        panic!("cannot get addr");
+        debug!("cannot get x {:?}", x);
+        panic!("cannot get x");
       },
     }
   }
