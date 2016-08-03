@@ -8,7 +8,6 @@ pub struct Substitution {
 }
 
 pub struct State {
-  addr: usize,
   pub mem: HashMap<String, Expr>,
   pub expr: Expr,
   pub substitutions: Vec<Substitution>,
@@ -17,7 +16,6 @@ pub struct State {
 impl State {
   pub fn from(e: Expr) -> State {
     return State {
-      addr: 0,
       mem: HashMap::new(),
       expr: e,
       substitutions: Vec::new(),

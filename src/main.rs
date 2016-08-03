@@ -1,6 +1,5 @@
 extern crate boxx;
 
-use boxx::expr::{boxx};
 use boxx::repl::{Repl};
 
 use std::io::{Write, stdout, stdin};

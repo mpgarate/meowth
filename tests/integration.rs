@@ -11,6 +11,7 @@ mod tests {
 
   #[test]
   pub fn test_repl_state() {
+    /*
     let _ = env_logger::init();
 
     let mut repl = Repl::new();
@@ -35,6 +36,7 @@ mod tests {
     // create undefined value
     //
     // no more substituting values or addresses, always lookup name in mem + maintain scopes
+    // */
   }
 
   #[test]

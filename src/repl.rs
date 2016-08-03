@@ -1,5 +1,5 @@
 use ast::*;
-use expr::{step, subst_all};
+use expr::{step};
 use parser::{parse};
 use state::{State};
 
@@ -17,7 +17,7 @@ impl Repl {
 
   pub fn eval(&mut self, input: &str) -> Expr {
     self.state.with(parse(input));
-    subst_all(&mut self.state);
+    //subst_all(&mut self.state);
 
     loop {
       if self.state.expr.is_value() {

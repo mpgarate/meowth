@@ -6,27 +6,8 @@ use ast::Dec::*;
 use ast::*;
 use state::*;
 
-pub fn subst_all(state: &mut State) {
-  for s in state.substitutions.clone() {
-    let e = state.expr.clone();
-    let esub = substitute(e, s.x, s.v);
-    debug!("esub: {:?}", esub);
-    state.with(esub);
-  }
-
-  debug!("subst_all did this:");
-  debug!("subs: {:?}", state.substitutions);
-  debug!("expr: {:?}", state.expr);
-}
-
-fn subst(s: &mut State, e: Expr, x: Expr, v: Expr) -> Expr {
-  s.push_sub(x.clone(), v.clone());
-  debug!("inserted subst: {:?}", s.substitutions);
-  substitute(e, x, v)
-}
-
-fn substitute(e: Expr, x: Expr, v: Expr) -> Expr {
-  let sub = |e1: Expr| substitute(e1.clone(), x.clone(), v.clone());
+fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
+  let sub = |e1: Expr| subst(e1.clone(), x.clone(), v.clone());
 
   match (e.clone(), x.clone()) {
     (Var(ref s1), Var(ref s2)) if s1 == s2 => v.clone(),
@@ -166,7 +147,7 @@ pub fn step(state: &mut State) -> &mut State {
       }
     },
     Decl(DConst, ref x, ref v1, ref e2) if v1.is_value() => {
-      subst(state, *e2.clone(), *x.clone(), *v1.clone())
+      subst(*e2.clone(), *x.clone(), *v1.clone())
     },
     Decl(DVar, ref x, ref v1, ref e2) if x.is_var() && v1.is_value() => {
       debug!("allocing {:?}", v1);
@@ -184,12 +165,12 @@ pub fn step(state: &mut State) -> &mut State {
         Func(ref name, ref e1, ref xs) => {
           // sub the params
           let exp = xs.iter().zip(es.iter())
-            .fold(*e1.clone(), |exp, (xn, en)| subst(state, exp, xn.clone(), en.clone()));
+            .fold(*e1.clone(), |exp, (xn, en)| subst(exp, xn.clone(), en.clone()));
 
           // sub the fn body for named functions
           match *name {
             None => exp,
-            Some(ref s) => subst(state, exp, *s.clone(), *v1.clone())
+            Some(ref s) => subst(exp, *s.clone(), *v1.clone())
           }
         },
         _ => {
