@@ -2,14 +2,8 @@ use ast::*;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)] 
-pub struct Substitution {
-  pub x: Expr,
-  pub v: Expr,
-}
-
-#[derive(Clone, Debug)] 
 pub struct State {
-  pub mem: HashMap<String, Expr>,
+  pub mem: HashMap<String, Vec<Expr>>,
   pub expr: Expr,
 }
 
@@ -29,23 +23,42 @@ impl State {
   }
 
   pub fn alloc(&mut self, x: String, v1: Expr) {
-    self.mem.insert(x, v1);
+    let vec = &mut self.mem.entry(x).or_insert(Vec::new());
+
+    vec.push(v1);
+
+    debug!("made vec {:?}", vec);
   }
 
   pub fn free(&mut self, x: String) {
-    self.mem.remove(&x);
+    match self.mem.get_mut(&x) {
+      Some(vec) => {
+        vec.pop().unwrap();
+      },
+      None => {
+        panic!("cannot free, DNE");
+      },
+    }
   }
 
   pub fn assign(&mut self, x: String, v1: Expr) {
-    self.mem.insert(x, v1);
+    match self.mem.get_mut(&x) {
+      Some(vec) => {
+        vec.pop();
+        vec.push(v1)
+      },
+      None => panic!(),
+    };
   }
 
   pub fn get(&mut self, x: String) -> Expr {
     match self.mem.get(&x) {
-      Some(v) => v.clone(),
-      _ => {
+      Some(ref vec) => {
+        vec.last().unwrap().clone()
+      },
+      None => {
         debug!("cannot get x {:?}", x);
-        panic!("cannot get x");
+        panic!("cannot get x")
       },
     }
   }

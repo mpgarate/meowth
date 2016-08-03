@@ -71,10 +71,16 @@ mod tests {
       ")
     );
 
-    /*
     assert_eq!(
       Expr::Int(15),
       boxx("var x = 4; fn foo(z) { var x = 7; x + z }; foo(x) + x")
+    );
+
+    /*
+     * TODO: should be able to reassign inside fn
+    assert_eq!(
+      Expr::Int(23),
+      boxx("var x = 4; fn foo(z) { var x = 7; z = x; x = 12; x + z }; foo(x) + x")
     );
     */
 

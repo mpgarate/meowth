@@ -244,6 +244,9 @@ pub fn boxx(input: &str) -> Expr {
   let mut num_iterations = 0;
 
   loop {
+    debug!("-----------------");
+    debug!("--- iterating on e {:?} ", state.expr);
+    debug!("--- iterating on m {:?} ", state.mem);
     num_iterations += 1;
     if state.expr.is_value() {
       debug!("--- iterations: {}", num_iterations);
