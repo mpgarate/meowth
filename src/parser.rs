@@ -123,6 +123,24 @@ impl Parser {
     }
   }
 
+  fn parse_while(&mut self) -> Expr {
+    self.eat(Token::While);
+    self.eat(Token::LParen);
+    let e1 = self.binop_expr();
+    self.eat(Token::RParen);
+    let e2 = self.factor();
+    self.eat(Token::Seq);
+    let e3 = self.block();
+
+    return Expr::While(
+      to_box(e1.clone()),
+      to_box(e1),
+      to_box(e2.clone()),
+      to_box(e2),
+      to_box(e3)
+    );
+  }
+
   fn parse_if(&mut self) -> Expr {
     self.eat(Token::If);
     let e1 = self.binop_expr();
@@ -184,6 +202,9 @@ impl Parser {
       Token::Else => {
         self.eat(Token::Else);
         return self.statement();
+      },
+      Token::While => {
+        return self.parse_while();
       },
       Token::LParen => {
         self.eat(Token::LParen);
@@ -256,7 +277,6 @@ impl Parser {
         Token::And => self.binop(BinOp::And, node, right_node),
         Token::Or => self.binop(BinOp::Or, node, right_node),
         Token::Mod => self.binop(BinOp::Mod, node, right_node),
-        Token::Assign => self.binop(BinOp::Assign, node, right_node),
         _ => panic!(),
       };
 
@@ -280,6 +300,10 @@ impl Parser {
           let e3 = self.statement();
           self.ternary(node, e2, e3)
         },
+        Token::Assign => {
+          let e2 = self.statement();
+          self.binop(BinOp::Assign, node, e2)
+        }
         _ => panic!()
       };
 

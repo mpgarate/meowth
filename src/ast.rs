@@ -39,6 +39,7 @@ pub enum Expr {
   Bop(BinOp, Box<Expr>, Box<Expr>),
   Uop(UnOp, Box<Expr>),
   Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
+  While(Box<Expr>, Box<Expr>, Box<Expr>, Box<Expr>, Box<Expr>),
   Decl(Dec, Box<Expr>, Box<Expr>, Box<Expr>),
   Func(Option<Box<Expr>>, Box<Expr>, Vec<Expr>),
   FnCall(Box<Expr>, Vec<Expr>),

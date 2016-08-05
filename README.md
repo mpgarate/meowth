@@ -16,7 +16,6 @@ RUST_LOG=boxx=debug cargo watch "test test_mut_var"
 * go through and think about statement vs block vs binop_expr, adjust usage and naming
 
 ### Pokemon
-* [hard] at runtime, var name should be accessible (not purely substituted)
 * [hard] REPL should maintain state
 * [easy] print statement
 * [hard] while loop

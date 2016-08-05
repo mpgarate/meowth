@@ -30,6 +30,7 @@ pub enum Token {
   RBracket,
   Comma,
   If,
+  While,
   EOF,
 }
 
@@ -56,7 +57,6 @@ impl Token {
       Token::And => true,
       Token::Or => true,
       Token::Mod => true,
-      Token::Assign => true,
       _ => false,
     }
   }
@@ -64,6 +64,7 @@ impl Token {
   pub fn is_statement_op(&self) -> bool {
     match *self {
       Token::Ternary => true,
+      Token::Assign => true,
       _ => false,
     }
   }
@@ -124,6 +125,7 @@ impl Lexer {
       "var" => Token::VarDecl,
       "if" => Token::If,
       "else" => Token::Else,
+      "while" => Token::While,
       s if s.len() > 0 => Token::Var(s.to_string()),
       _ => panic!()
     }

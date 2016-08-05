@@ -9,6 +9,26 @@ mod tests {
   extern crate env_logger;
 
   #[test]
+  pub fn test_while_loop() {
+    let _ = env_logger::init();
+    assert_eq!(Expr::Int(11), boxx("var i = 1; while (i < 11) { i = i + 1; i }; i"));
+    assert_eq!(Expr::Int(10), boxx("var i = 1; var x = 4; while (i % 2 != 0) { i = i + x; x = x + 1; x }; i"));
+    // TODO assignment should return a value, so this while body could be empty and we assign in
+    // the while condition
+    assert_eq!(
+      Expr::Int(96),
+      boxx("
+        fn foo(x) { x * 2 };
+        var x = 3;
+        while (foo(x) < 100) {
+          x = foo(x)
+        };
+        x
+      ")
+    );
+  }
+
+  #[test]
   pub fn test_mut_var() {
     let _ = env_logger::init();
 
@@ -52,6 +72,8 @@ mod tests {
       boxx("var x = 4; fn foo(z) { var x = 7; z = x; x = 12; x + z }; foo(x) + x")
     );
     */
+
+    assert_eq!(Expr::Int(2), boxx("var i = 1; i = i + 1; i"));
 
     assert_eq!(
       Expr::Int(13),

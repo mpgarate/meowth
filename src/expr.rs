@@ -35,6 +35,15 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
         Box::new(sub(*e3))
       )
     },
+    (While(e1, e1o, e2, e2o, e3), _) => {
+      While(
+        Box::new(sub(*e1)),
+        Box::new(sub(*e1o)),
+        Box::new(sub(*e2)),
+        Box::new(sub(*e2o)),
+        Box::new(sub(*e3))
+      )
+    },
     (Decl(d, y, e1, e2), _) => {
       let e2s = if *y == x {
         *e2
@@ -211,6 +220,18 @@ pub fn step(mut state: State) -> State {
     Ternary(e1, e2, e3) => {
       Ternary(Box::new(st_step(&mut state, &*e1)), e2, e3)
     },
+    While(ref v1, ref e1o, _, ref e2o, ref e3) if v1.is_value() => {
+      match v1.to_bool() {
+        true => While(Box::new(*e1o.clone()), e1o.clone(), e2o.clone(), e2o.clone(), e3.clone()),
+        false => *e3.clone(),
+      }
+    },
+    While(ref e1, ref e1o, ref v2, ref e2o, ref e3) if v2.is_value() => {
+      While(Box::new(st_step(&mut state, &*e1)), e1o.clone(), v2.clone(), e2o.clone(), e3.clone())
+    },
+    While(e1, e1o, e2, e2o, e3) => {
+      While(e1, e1o, Box::new(st_step(&mut state, &*e2)), e2o, e3)
+    },
     Decl(dt, addr, e1, e2) => {
       Decl(dt, Box::new(*addr.clone()), Box::new(st_step(&mut state, &*e1)), e2)
     },
@@ -244,6 +265,10 @@ pub fn boxx(input: &str) -> Expr {
   let mut num_iterations = 0;
 
   loop {
+    if num_iterations > 500 {
+      panic!("too many step iterations");
+    }
+
     debug!("-----------------");
     debug!("--- iterating on e {:?} ", state.expr);
     debug!("--- iterating on m {:?} ", state.mem);
