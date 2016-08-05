@@ -126,7 +126,7 @@ impl Parser {
   fn parse_while(&mut self) -> Expr {
     self.eat(Token::While);
     self.eat(Token::LParen);
-    let e1 = self.binop_expr();
+    let e1 = self.statement();
     self.eat(Token::RParen);
     let e2 = self.factor();
     self.eat(Token::Seq);

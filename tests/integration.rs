@@ -26,6 +26,16 @@ mod tests {
         x
       ")
     );
+
+    assert_eq!(
+      Expr::Int(96),
+      boxx("
+        fn foo(x) { x * 2 };
+        var x = 3;
+        while ((x = foo(x)) < 96) { 0 };
+        x
+      ")
+    );
   }
 
   #[test]

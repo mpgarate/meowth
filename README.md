@@ -7,6 +7,9 @@ RUST_LOG=boxx=debug cargo watch
 # for individual tests
 RUST_LOG=boxx=debug cargo watch "test test_mut_var"
 
+# with backtrace
+RUST_LOG=boxx=debug RUST_BACKTRACE=1 cargo watch "test test_while_loop"
+
 ```
 ### Small notes
 * create undefined value
