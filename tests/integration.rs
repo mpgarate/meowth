@@ -36,6 +36,20 @@ mod tests {
         x
       ")
     );
+
+    assert_eq!(
+      Expr::Int(16),
+      boxx("
+        fn foo(x) { x + 1 };
+        var x = 1;
+        while (x < 10) {
+          x = foo(x);
+          x = 2 * foo(x);
+          x + 1
+        };
+        x
+      ")
+    );
   }
 
   #[test]
