@@ -1,34 +1,61 @@
 # boxx
 
-While developing use this to see debug statements in tests
-```sh
-RUST_LOG=boxx=debug cargo watch
+Small-step interpreted programming language, written in rust. 
 
-# for individual tests
-RUST_LOG=boxx=debug cargo watch "test test_mut_var"
+Statements followed by a `;` expect another statement. All others evaluate to a value. 
 
-# with backtrace
-RUST_LOG=boxx=debug RUST_BACKTRACE=1 cargo watch "test test_while_loop"
+### Variable binding
+```
+var x = 1;
+x = 2;
+x // => 2
+```
+
+### Immutable reference binding
+```
+let x = 1;
+x = 2; // => err, invalid assignment
+x
+```
+
+### Recursive functions
 
 ```
-### Small notes
-* create undefined value
-* don't substitute anything, handle everything in mem states
-* create more helpers in parser
-* go through and try to clean up clones() and derefs that aren't needed
-* go through and think about statement vs block vs binop_expr, adjust usage and naming
+fn fib(n) {
+  n == 0 ? 0 : (n == 1 ? 1 : fib(n - 1) + fib(n - 2))
+};
 
-### Pokemon
-* [hard] REPL should maintain state
-* [easy] print statement
-* [hard] while loop
-* [medium] ability to run standalone program files through interpreter
-* [breaking] type coercion for bool to number
-* [breaking] bike / mutable stack-like var binding
-* [breaking] rename a bunch of files and crates
+fib(8) // => 21
+```
 
-### A few TODOs (post-pokemon)
-* [medium] Number type(s) beyond integer
-* [hard] Human-readable errors
-* [easy] language-level exit command
-* [medium] exponents **
+Since functions inherit bindings from the outer scope, we can also write:
+
+```
+var fib = fn(n) {
+   n == 0 ? 0 : (n == 1 ? 1 : fib(n - 1) + fib(n - 2))
+};
+
+fib(8) // => 21
+```
+
+### Control flow
+```
+var i = 0;
+
+while (i < 10) {
+   if (i % 2 == 0) {
+      i = i + 1
+   } else {
+      i = i + 3
+   }
+};
+i // => 12
+
+```
+
+### Features in progress
+ - Human-readable errors for parsing and evaluation
+ - Blocks that end with (`;`) return an undefined value
+ - Adjust memory model to be more stack-frame-like, support a REPL interface
+ - Inline comments
+ - Handle floating point numbers
