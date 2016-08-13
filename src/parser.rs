@@ -93,8 +93,9 @@ impl Parser {
     self.eat(Token::LParen);
     let params = self.parse_fn_decl_params();
     self.eat(Token::RParen);
+
     self.eat(Token::LBracket);
-    let body = self.statement();
+    let body = self.block();
     self.eat(Token::RBracket);
 
     match var {
@@ -226,6 +227,10 @@ impl Parser {
         self.eat(Token::Minus);
         return Expr::Uop(UnOp::Neg, to_box(self.factor()));
       },
+      Token::EOF => {
+        self.eat(Token::EOF);
+        return Expr::Undefined
+      },
       _ => {
         debug!("invalid factor: {:?}", self.current_token);
         panic!();
@@ -319,10 +324,16 @@ impl Parser {
 
     while op.is_block_op() {
       self.eat(op.clone());
-      let e2 = self.statement();
 
       node = match op {
-        Token::Seq => self.binop(BinOp::Seq, node, e2),
+        Token::Seq => {
+          let e2 = match self.current_token.clone() {
+            Token::RBracket => Expr::Undefined,
+            _ => self.statement(),
+          };
+
+          self.binop(BinOp::Seq, node, e2)
+        }
         _ => panic!()
       };
 

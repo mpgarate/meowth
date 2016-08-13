@@ -11,10 +11,25 @@ mod tests {
   #[test]
   pub fn test_while_loop() {
     let _ = env_logger::init();
+
+    assert_eq!(
+      Expr::Int(12),
+      boxx("
+        var i = 0;
+
+        while (i < 10) {
+         if (i % 2 == 0) {
+           i = i + 1
+         } else {
+           i = i + 3
+         }
+        };
+        i
+      ")
+    );
+
     assert_eq!(Expr::Int(11), boxx("var i = 1; while (i < 11) { i = i + 1; i }; i"));
     assert_eq!(Expr::Int(10), boxx("var i = 1; var x = 4; while (i % 2 != 0) { i = i + x; x = x + 1; x }; i"));
-    // TODO assignment should return a value, so this while body could be empty and we assign in
-    // the while condition
     assert_eq!(
       Expr::Int(96),
       boxx("
@@ -53,11 +68,44 @@ mod tests {
   }
 
   #[test]
-  pub fn test_mut_var() {
+  pub fn test_undefined() {
     let _ = env_logger::init();
 
-    // TODO: handle EOF as valid
-    // assert_eq!(Expr::Int(2), boxx("var x = 2;"));
+    assert_eq!(Expr::Undefined, boxx("var x = 2;"));
+
+    assert_eq!(
+      Expr::Int(8),
+      boxx("
+        var x = 4;
+        var foo = fn(z) {
+          x = z + 2;
+        };
+        foo(x);
+        foo(x);
+        x
+      ")
+    );
+
+    // TODO: this should work as a named fn
+    /*
+    assert_eq!(
+      Expr::Int(8),
+      boxx("
+        var x = 4;
+        fn foo(z) {
+          x = z + 2;
+        };
+        foo(x);
+        foo(x);
+        x
+      ")
+    );
+    */
+  }
+
+  #[test]
+  pub fn test_mut_var() {
+    let _ = env_logger::init();
 
     assert_eq!(Expr::Int(555), boxx("var x = 55; var y = 500; x + y"));
 
@@ -167,6 +215,17 @@ mod tests {
       Expr::Int(21),
       boxx("
         fn fib(n) {
+          n == 0 ? 0 : (n == 1 ? 1 : fib(n - 1) + fib(n - 2))
+        };
+
+        fib(8)
+      ")
+    );
+
+    assert_eq!(
+      Expr::Int(21),
+      boxx("
+        var fib = fn(n) {
           n == 0 ? 0 : (n == 1 ? 1 : fib(n - 1) + fib(n - 2))
         };
 

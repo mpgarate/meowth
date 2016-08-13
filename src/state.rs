@@ -57,8 +57,8 @@ impl State {
         vec.last().unwrap().clone()
       },
       None => {
-        debug!("cannot get x {:?}", x);
-        panic!("cannot get x")
+        debug!("cannot get variable {:?}", x);
+        panic!("cannot get variable")
       },
     }
   }

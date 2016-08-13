@@ -36,6 +36,7 @@ pub enum Expr {
   Int(isize),
   Bool(bool),
   Var(String),
+  Undefined,
   Bop(BinOp, Box<Expr>, Box<Expr>),
   Uop(UnOp, Box<Expr>),
   Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
@@ -77,7 +78,7 @@ impl Expr {
 
   pub fn is_value(&self) -> bool {
     match *self {
-      Int(_) | Bool(_) | Func(_, _, _) => true,
+      Int(_) | Bool(_) | Func(_, _, _) | Undefined => true,
       _ => false,
     }
   }

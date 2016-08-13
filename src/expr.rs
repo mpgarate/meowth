@@ -19,6 +19,7 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
     (Var(_), _) => e,
     (Int(_), _) => e,
     (Bool(_), _) => e,
+    (Undefined, _) => e,
     (Scope(e1, a), _) => Scope(Box::new(sub(*e1)), a),
     (Bop(op, e1, e2), _) => { 
       Bop(
@@ -84,7 +85,7 @@ pub fn step(mut state: State) -> State {
     /**
      * Values are ineligible for step
      */
-    Int(_) | Bool(_) | Func(_, _, _) => {
+    Int(_) | Bool(_) | Func(_, _, _) | Undefined => {
       debug!("stepping on a value {:?}", state.expr);
       panic!("stepping on a value");
     },
