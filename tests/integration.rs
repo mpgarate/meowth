@@ -290,11 +290,7 @@ mod tests {
     assert_eq!(Expr::Int(4), boxx("let foo = fn() { 1 + 3 }(); foo"));
     
     // TODO: have better failure message when ending a fn block with a semicolon
-    // assert_eq!(Expr::Int(12), boxx("fn foo(a) { 1 + a; }; foo(4) + 7"));
-    
-    // TODO: there should be a fast failure case for this invalid syntax
-    // missing fn keyword
-    // assert_eq!(Expr::Int(12), boxx("b() { 5 + 5 }; let a = b; a() + 2"));
+    //assert_eq!(Expr::Int(12), boxx("fn foo(a) { 1 + a; }; foo(4) + 7"));
   }
 
   #[test]
