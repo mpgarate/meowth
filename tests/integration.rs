@@ -85,22 +85,6 @@ mod tests {
         x
       ")
     );
-
-    // TODO: this should work as a named fn
-    /*
-    assert_eq!(
-      Expr::Int(8),
-      boxx("
-        var x = 4;
-        fn foo(z) {
-          x = z + 2;
-        };
-        foo(x);
-        foo(x);
-        x
-      ")
-    );
-    */
   }
 
   #[test]
@@ -191,6 +175,19 @@ mod tests {
   #[test]
   pub fn test_func() {
     let _ = env_logger::init();
+
+    assert_eq!(
+      Expr::Int(8),
+      boxx("
+        var x = 4;
+        fn foo(z) {
+          x = z + 2;
+        };
+        foo(x);
+        foo(x);
+        x
+      ")
+    );
 
     assert_eq!(Expr::Int(2), boxx("let x = 4; fn foo() { let x = 1; x + 1 }; foo()"));
     assert_eq!(Expr::Int(6), boxx("let x = 5; fn foo() { x + 1 }; foo()"));

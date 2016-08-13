@@ -101,7 +101,7 @@ impl Parser {
     match var {
       Some(v) => {
         self.eat(Token::Seq);
-        let e3 = self.statement();
+        let e3 = self.block();
 
         let func = Expr::Func(Some(to_box(v.clone())), to_box(body.clone()), params);
 
