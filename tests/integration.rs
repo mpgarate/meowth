@@ -9,6 +9,34 @@ mod tests {
   extern crate env_logger;
 
   #[test]
+  pub fn test_comments() {
+    let _ = env_logger::init();
+
+    assert_eq!(
+      Expr::Int(3),
+      boxx("
+        var i = 0;
+        i = i + 2; // adding two
+        i = i + 1; // adding one
+        i
+      ")
+    );
+
+    /*
+     * TODO: block comments
+    assert_eq!(
+      Expr::Int(2),
+      boxx("
+        var i = 0;
+        i = i + 2; 
+        /* not doing this i = i + 1; */
+        i
+      ")
+    );
+    */
+  }
+
+  #[test]
   pub fn test_while_loop() {
     let _ = env_logger::init();
 

@@ -140,6 +140,19 @@ impl Lexer {
     self.advance(spaces_str.len());
   }
 
+  fn skip_inline_comment(&mut self) {
+    let comment_str: String = self.text
+      .chars()
+      .take_while(|c| !(c == &'\n'))
+      .collect();
+
+    self.advance(comment_str.len());
+  }
+
+  fn skip_block_comment(&mut self) {
+    // TODO: remove everything through the next '*/'
+  }
+
   fn peek_next(&mut self) -> Option<char> {
     self.text.chars().next()
   }
@@ -149,6 +162,16 @@ impl Lexer {
       debug!("get_next_token: {}", self.text);
 
       match self.peek_next() {
+        Some('/') if self.text.starts_with("//") => {
+          self.advance(2);
+          self.skip_inline_comment();
+          continue;
+        },
+        Some('/') if self.text.starts_with("/*") => {
+          self.advance(2);
+          self.skip_block_comment();
+          continue;
+        },
         Some('+') => {
           self.advance(1);
           return Token::Plus
