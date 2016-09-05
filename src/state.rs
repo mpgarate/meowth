@@ -4,21 +4,12 @@ use std::collections::HashMap;
 #[derive(Clone, Debug)] 
 pub struct State {
   pub mem: HashMap<String, Vec<Expr>>,
-  pub expr: Expr,
 }
 
 impl State {
-  pub fn from(e: Expr) -> State {
+  pub fn new() -> State {
     return State {
       mem: HashMap::new(),
-      expr: e,
-    }
-  }
-
-  pub fn with(&mut self, e1: Expr) -> State {
-    return State {
-      mem: self.mem.clone(),
-      expr: e1,
     }
   }
 
@@ -60,12 +51,6 @@ impl State {
         debug!("cannot get variable {:?}", x);
         panic!("cannot get variable")
       },
-    }
-  }
-
-  pub fn merge_mem(&mut self, other: State) {
-    for (k,v) in other.mem {
-      self.mem.insert(k, v);
     }
   }
 }

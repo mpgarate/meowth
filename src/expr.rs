@@ -74,20 +74,14 @@ pub struct Repl {
 }
 
 impl Repl {
-  pub fn new(e: Expr) -> Repl {
+  pub fn new() -> Repl {
     Repl {
-      state: State::from(e),
+      state: State::new(),
     }
   }
 
-  fn st_step(&mut self, e1: &Expr) -> Expr {
-    let s2 = self.step(e1.clone());
-    self.state.merge_mem(s2.clone());
-    s2.expr.clone()
-  }
-
-  pub fn step(&mut self, e: Expr) -> State {
-    debug!("step(e) : {:?}", self.state.expr);
+  pub fn step(&mut self, e: Expr) -> Expr {
+    debug!("step(e) : {:?}", e);
     debug!("step(self.state) : {:?}", self.state.mem);
 
     let e1 = match e.clone() {
@@ -98,7 +92,7 @@ impl Repl {
        * Values are ineligible for step
        */
       Int(_) | Bool(_) | Func(_, _, _) | Undefined => {
-        debug!("stepping on a value {:?}", self.state.expr);
+        debug!("stepping on a value {:?}", e);
         panic!("stepping on a value");
       },
       /**
@@ -211,27 +205,27 @@ impl Repl {
         Bop(
           op.clone(),
           Box::new(*v1.clone()),
-          Box::new(self.st_step(e2))
-          )
+          Box::new(self.step(*e2.clone()))
+        )
       },
       Bop(Assign, ref v1, ref e2) if v1.is_var() => {
         Bop(
           Assign,
           Box::new(*v1.clone()),
-          Box::new(self.st_step(e2))
-          )
+          Box::new(self.step(*e2.clone()))
+        )
       },
       Bop(op, e1, e2) => {
-        Bop(op, Box::new(self.st_step(&*e1)), e2)
+        Bop(op, Box::new(self.step(*e1)), e2)
       },
       Scope(e1, addr) => {
-        Scope(Box::new(self.st_step(&*e1)), addr)
+        Scope(Box::new(self.step(*e1)), addr)
       },
       Uop(op, e1) => {
-        Uop(op, Box::new(self.st_step(&*e1)))
+        Uop(op, Box::new(self.step(*e1)))
       },
       Ternary(e1, e2, e3) => {
-        Ternary(Box::new(self.st_step(&*e1)), e2, e3)
+        Ternary(Box::new(self.step(*e1)), e2, e3)
       },
       While(ref v1, ref e1o, _, ref e2o, ref e3) if v1.is_value() => {
         match v1.to_bool() {
@@ -240,13 +234,13 @@ impl Repl {
         }
       },
       While(ref e1, ref e1o, ref v2, ref e2o, ref e3) if v2.is_value() => {
-        While(Box::new(self.st_step(&*e1)), e1o.clone(), v2.clone(), e2o.clone(), e3.clone())
+        While(Box::new(self.step(*e1.clone())), e1o.clone(), v2.clone(), e2o.clone(), e3.clone())
       },
       While(e1, e1o, e2, e2o, e3) => {
-        While(e1, e1o, Box::new(self.st_step(&*e2)), e2o, e3)
+        While(e1, e1o, Box::new(self.step(*e2)), e2o, e3)
       },
       Decl(dt, addr, e1, e2) => {
-        Decl(dt, Box::new(*addr.clone()), Box::new(self.st_step(&*e1)), e2)
+        Decl(dt, Box::new(*addr.clone()), Box::new(self.step(*e1)), e2)
       },
       FnCall(ref v1, ref args) if v1.is_value() => {
         let mut found_nonvalue = false;
@@ -254,7 +248,7 @@ impl Repl {
         let args2 = args.iter().map(|e| {
           if !found_nonvalue && !e.is_value() {
             found_nonvalue = true;
-            self.st_step(e)
+            self.step(e.clone())
           } else {
             e.clone()
           }
@@ -263,16 +257,16 @@ impl Repl {
         FnCall(v1.clone(), args2)
       },
       FnCall(e1, args) => {
-        FnCall(Box::new(self.st_step(&*e1)), args)
+        FnCall(Box::new(self.step(*e1)), args)
       },
     };
 
     debug!("returning with mem {:?}" , self.state.mem);
     debug!("returning with e {:?}" , e1);
-    self.state.with(e1)
+    e1
   }
 
-  pub fn eval(&mut self) -> Expr {
+  pub fn eval(&mut self, mut e: Expr) -> Expr {
     let mut num_iterations = 0;
 
     loop {
@@ -281,21 +275,20 @@ impl Repl {
       }
 
       debug!("-----------------");
-      debug!("--- iterating on e {:?} ", self.state.expr);
+      debug!("--- iterating on e {:?} ", e);
       debug!("--- iterating on m {:?} ", self.state.mem);
       num_iterations += 1;
-      if self.state.expr.is_value() {
+      if e.is_value() {
         debug!("--- iterations: {}", num_iterations);
-        return self.state.expr.clone()
+        return e.clone();
       } else {
-        let e = self.state.expr.clone();
-        self.state = self.step(e);
+        e = self.step(e);
       }
     }
   }
 }
 
 pub fn boxx(input: &str) -> Expr {
-  let mut repl = Repl::new(parse(input));
-  repl.eval()
+  let mut repl = Repl::new();
+  repl.eval(parse(input))
 }
