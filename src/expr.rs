@@ -20,7 +20,6 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
     (Int(_), _) => e,
     (Bool(_), _) => e,
     (Undefined, _) => e,
-    (Scope(e1, a), _) => Scope(Box::new(sub(*e1)), a),
     (Bop(op, e1, e2), _) => { 
       Bop(
         op,
@@ -29,6 +28,7 @@ fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
       )
     },
     (Uop(op, e1), _) => Uop(op, Box::new(sub(*e1))),
+    (Scope(e1), _) => Scope(Box::new(sub(*e1))),
     (Ternary(e1, e2, e3), _) => {
       Ternary(
         Box::new(sub(*e1)),
@@ -170,12 +170,7 @@ impl Repl {
       Decl(DVar, ref x, ref v1, ref e2) if x.is_var() && v1.is_value() => {
         debug!("allocing {:?}", v1);
         self.state.alloc(x.to_var(), *v1.clone());
-        Scope(Box::new(*e2.clone()), x.to_var())
-      },
-      Scope(ref v1, ref x) if v1.is_value() => {
-        debug!("freeing {:?}", x);
-        self.state.free(x.clone());
-        *v1.clone()
+        *e2.clone()
       },
       // lambda lift so we can use iter() in guard
       // https://github.com/rust-lang/rfcs/issues/1006
@@ -187,16 +182,23 @@ impl Repl {
               .fold(*e1.clone(), |exp, (xn, en)| subst(exp, xn.clone(), en.clone()));
 
             // sub the fn body for named functions
-            match *name {
+            let body = match *name {
               None => exp,
-              Some(ref s) => subst(exp, *s.clone(), *v1.clone())
-            }
+              Some(ref s) => subst(exp, *s.clone(), *v1.clone()),
+            };
+
+            self.state.begin_scope();
+            Scope(Box::new(body))
           },
           _ => {
             debug!("expected a Func, got {:?}", v1);
             panic!()
           },
         }
+      },
+      Scope(ref v1) if v1.is_value() => {
+        self.state.end_scope();
+        *v1.clone()
       },
       /**
        * Search Cases
@@ -217,9 +219,6 @@ impl Repl {
       },
       Bop(op, e1, e2) => {
         Bop(op, Box::new(self.step(*e1)), e2)
-      },
-      Scope(e1, addr) => {
-        Scope(Box::new(self.step(*e1)), addr)
       },
       Uop(op, e1) => {
         Uop(op, Box::new(self.step(*e1)))
@@ -259,6 +258,9 @@ impl Repl {
       FnCall(e1, args) => {
         FnCall(Box::new(self.step(*e1)), args)
       },
+      Scope(e1) => {
+        Scope(Box::new(self.step(*e1)))
+      },
     };
 
     debug!("returning with mem {:?}" , self.state.mem);
@@ -270,7 +272,7 @@ impl Repl {
     let mut num_iterations = 0;
 
     loop {
-      if num_iterations > 500 {
+      if num_iterations > 1000 {
         panic!("too many step iterations");
       }
 

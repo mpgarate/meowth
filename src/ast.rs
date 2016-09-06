@@ -44,7 +44,7 @@ pub enum Expr {
   Decl(Dec, Box<Expr>, Box<Expr>, Box<Expr>),
   Func(Option<Box<Expr>>, Box<Expr>, Vec<Expr>),
   FnCall(Box<Expr>, Vec<Expr>),
-  Scope(Box<Expr>, String),
+  Scope(Box<Expr>),
 }
 
 impl Expr {
