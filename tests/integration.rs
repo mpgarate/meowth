@@ -4,9 +4,43 @@ extern crate boxx;
 mod tests {
   extern crate boxx;
   use boxx::expr::boxx;
+  use boxx::expr::Repl;
   use boxx::ast::Expr;
 
   extern crate env_logger;
+
+  #[test]
+  pub fn test_repl() {
+    let _ = env_logger::init();
+
+    let mut repl = Repl::new();
+
+    assert_eq!(
+      Expr::Int(2),
+      repl.eval("1 + 1")
+    );
+
+    assert_eq!(
+      Expr::Undefined,
+      repl.eval("var x = 3;")
+    );
+
+    assert_eq!(
+      Expr::Int(3),
+      repl.eval("x")
+    );
+
+
+    assert_eq!(
+      Expr::Undefined,
+      repl.eval("fn double(x) { x + x };")
+    );
+
+    assert_eq!(
+      Expr::Int(24),
+      repl.eval("double(24)")
+    );
+  }
 
   #[test]
   pub fn test_comments() {

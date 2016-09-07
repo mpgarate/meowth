@@ -165,7 +165,8 @@ impl Repl {
         }
       },
       Decl(DConst, ref x, ref v1, ref e2) if v1.is_value() => {
-        subst(*e2.clone(), *x.clone(), *v1.clone())
+        self.state.alloc_const(x.to_var(), *v1.clone());
+        *e2.clone()
       },
       Decl(DVar, ref x, ref v1, ref e2) if x.is_var() && v1.is_value() => {
         debug!("allocing {:?}", v1);
@@ -268,7 +269,9 @@ impl Repl {
     e1
   }
 
-  pub fn eval(&mut self, mut e: Expr) -> Expr {
+  pub fn eval(&mut self, input: &str) -> Expr {
+    let mut e = parse(input);
+
     let mut num_iterations = 0;
 
     loop {
@@ -292,5 +295,5 @@ impl Repl {
 
 pub fn boxx(input: &str) -> Expr {
   let mut repl = Repl::new();
-  repl.eval(parse(input))
+  repl.eval(input)
 }
