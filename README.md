@@ -4,6 +4,7 @@ Small-step interpreted programming language, written in rust.
 
 ### Running
 Access the REPL with `cargo run`
+
 Run integration tests `cargo test`
 
 ### Variable binding
