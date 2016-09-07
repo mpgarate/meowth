@@ -37,7 +37,7 @@ mod tests {
     );
 
     assert_eq!(
-      Expr::Int(24),
+      Expr::Int(48),
       repl.eval("double(24)")
     );
   }

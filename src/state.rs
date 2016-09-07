@@ -40,9 +40,9 @@ impl State {
 
     let binding = map.get_mut(&x).unwrap().clone();
 
-    match binding.clone() {
-      Binding::Var(e) => map.insert(x, Binding::Var(Box::new(v1))),
-      Binding::Const(e) => panic!("cannot assign to const"),
+    match binding {
+      Binding::Var(_) => map.insert(x, Binding::Var(Box::new(v1))),
+      Binding::Const(_) => panic!("cannot assign to const"),
     };
   }
 

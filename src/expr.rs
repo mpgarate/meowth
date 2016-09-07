@@ -6,69 +6,6 @@ use ast::Dec::*;
 use ast::*;
 use state::*;
 
-fn subst(e: Expr, x: Expr, v: Expr) -> Expr {
-  let sub = |e1: Expr| subst(e1.clone(), x.clone(), v.clone());
-
-  match (e.clone(), x.clone()) {
-    (Var(ref s1), Var(ref s2)) if s1 == s2 => v.clone(),
-    (FnCall(v1, xs), _) => {
-      let xs2 = xs.iter().map(|xn| sub(xn.clone())).collect();
-
-      FnCall(Box::new(sub(*v1)), xs2)
-    },
-    (Var(_), _) => e,
-    (Int(_), _) => e,
-    (Bool(_), _) => e,
-    (Undefined, _) => e,
-    (Bop(op, e1, e2), _) => { 
-      Bop(
-        op,
-        Box::new(sub(*e1)),
-        Box::new(sub(*e2))
-      )
-    },
-    (Uop(op, e1), _) => Uop(op, Box::new(sub(*e1))),
-    (Scope(e1), _) => Scope(Box::new(sub(*e1))),
-    (Ternary(e1, e2, e3), _) => {
-      Ternary(
-        Box::new(sub(*e1)),
-        Box::new(sub(*e2)),
-        Box::new(sub(*e3))
-      )
-    },
-    (While(e1, e1o, e2, e2o, e3), _) => {
-      While(
-        Box::new(sub(*e1)),
-        Box::new(sub(*e1o)),
-        Box::new(sub(*e2)),
-        Box::new(sub(*e2o)),
-        Box::new(sub(*e3))
-      )
-    },
-    (Decl(d, y, e1, e2), _) => {
-      let e2s = if *y == x {
-        *e2
-      } else {
-        sub(*e2)
-      };
-
-      Decl(
-        d,
-        Box::new(*y),
-        Box::new(sub(*e1)),
-        Box::new(e2s)
-      )
-    },
-    (Func(name, e1, xs), _) => {
-      match xs.iter().find(|y| **y == x) {
-        Some(_) => e,
-        None if name == Some(Box::new(x.clone())) => e,
-        None => Func(name, Box::new(sub(*e1)), xs)
-      }
-    }
-  }
-}
-
 pub struct Repl {
   pub state: State,
 }
@@ -178,17 +115,22 @@ impl Repl {
       FnCall(ref v1, ref es) if v1.is_func() && (|| es.iter().all(|v| v.is_value()))() => {
         match **v1 {
           Func(ref name, ref e1, ref xs) => {
+            self.state.begin_scope();
             // sub the params
             let exp = xs.iter().zip(es.iter())
-              .fold(*e1.clone(), |exp, (xn, en)| subst(exp, xn.clone(), en.clone()));
+              .fold(*e1.clone(), |exp, (xn, en)| {
+                self.state.alloc(xn.to_var(), en.clone());
+                exp
+              });
 
             // sub the fn body for named functions
             let body = match *name {
               None => exp,
-              Some(ref s) => subst(exp, *s.clone(), *v1.clone()),
+              Some(ref s) => {
+                self.state.alloc(s.to_var(), *v1.clone());
+                exp
+              }
             };
-
-            self.state.begin_scope();
             Scope(Box::new(body))
           },
           _ => {

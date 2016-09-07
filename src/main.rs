@@ -1,7 +1,6 @@
 extern crate boxx;
 
-/*
-use boxx::repl::{Repl};
+use boxx::expr::Repl;
 
 use std::io::{Write, stdout, stdin};
 
@@ -24,8 +23,4 @@ fn main() {
     }
     let _ = stdout().flush();
   }
-}
-*/
-
-fn main() {
 }
