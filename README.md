@@ -2,7 +2,9 @@
 
 Small-step interpreted programming language, written in rust. 
 
-Statements followed by a `;` expect another statement. All others evaluate to a value. 
+### Running
+Access the REPL with `cargo run`
+Run integration tests `cargo test`
 
 ### Variable binding
 ```
@@ -55,7 +57,4 @@ i // => 12
 
 ### Features in progress
  - Human-readable errors for parsing and evaluation
- - Blocks that end with (`;`) return an undefined value
- - Adjust memory model to be more stack-frame-like, support a REPL interface
- - Inline comments
  - Handle floating point numbers
