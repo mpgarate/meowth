@@ -3,9 +3,15 @@
 Small-step interpreted programming language, written in rust. 
 
 ### Running
-Access the REPL with `cargo run`
+Access the REPL
+```sh
+cargo run
+```
 
-Run integration tests `cargo test`
+Run integration tests
+```sh
+cargo test
+```
 
 ### Variable binding
 ```
