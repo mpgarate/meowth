@@ -1,3 +1,5 @@
+use lexer_error::LexerError;
+
 #[derive(Clone, Debug, PartialEq)] 
 pub enum Token {
   Plus,
@@ -94,22 +96,19 @@ impl Lexer {
     self.text = t.to_string();
   }
 
-  fn lex_integer(&mut self) -> Token {
+  fn lex_integer(&mut self) -> Result<Token, LexerError> {
     let int_str: String = self.text
       .chars()
       .take_while(|c| c.is_digit(10))
       .collect();
 
-    match int_str.parse::<isize>() {
-      Ok(n) => {
-        self.advance(int_str.len());
-        return Token::Int(n);
-      }
-      Err(_) => panic!()
-    }
+    let n = try!(int_str.parse::<isize>());
+
+    self.advance(int_str.len());
+    Ok(Token::Int(n))
   }
 
-  fn lex_keyword(&mut self) -> Token {
+  fn lex_keyword(&mut self) -> Result<Token, LexerError> {
     let keyword: String = self.text
       .chars()
       .take_while(|c| c.is_alphabetic() || *c == '_')
@@ -117,7 +116,7 @@ impl Lexer {
 
     self.advance(keyword.len());
 
-    match keyword.as_ref()  {
+    let token = match keyword.as_ref() {
       "true" => Token::Bool(true),
       "false" => Token::Bool(false),
       "fn" => Token::FnDecl,
@@ -127,8 +126,10 @@ impl Lexer {
       "else" => Token::Else,
       "while" => Token::While,
       s if s.len() > 0 => Token::Var(s.to_string()),
-      _ => panic!()
-    }
+      s => return Err(LexerError::InvalidKeyword(format!("invalid keyword {:?}", s)))
+    };
+
+    Ok(token)
   }
 
   fn skip_whitespace(&mut self) {
@@ -157,11 +158,11 @@ impl Lexer {
     self.text.chars().next()
   }
 
-  pub fn get_next_token(&mut self) -> Token {
+  pub fn get_next_token(&mut self) -> Result<Token, LexerError> {
     while self.peek_next() != None {
       debug!("get_next_token: {}", self.text);
 
-      match self.peek_next() {
+      let token = match self.peek_next() {
         Some('/') if self.text.starts_with("//") => {
           self.advance(2);
           self.skip_inline_comment();
@@ -174,95 +175,95 @@ impl Lexer {
         },
         Some('+') => {
           self.advance(1);
-          return Token::Plus
+          Token::Plus
         },
         Some('-') => {
           self.advance(1);
-          return Token::Minus
+          Token::Minus
         },
         Some('*') => {
           self.advance(1);
-          return Token::Times
+          Token::Times
         },
         Some('/') => {
           self.advance(1);
-          return Token::Div
+          Token::Div
         },
         Some('%') => {
           self.advance(1);
-          return Token::Mod
+          Token::Mod
         },
         Some('(') => {
           self.advance(1);
-          return Token::LParen
+          Token::LParen
         },
         Some(')') => {
           self.advance(1);
-          return Token::RParen
+          Token::RParen
         },
         Some('&') if self.text.starts_with("&&") => {
           self.advance(2);
-          return Token::And
+          Token::And
         },
         Some('|') if self.text.starts_with("||") => {
           self.advance(2);
-          return Token::Or
+          Token::Or
         },
         Some('=') if self.text.starts_with("==") => {
           self.advance(2);
-          return Token::Eq
+          Token::Eq
         },
         Some('=') => {
           self.advance(1);
-          return Token::Assign
+          Token::Assign
         },
         Some('!') if self.text.starts_with("!=") => {
           self.advance(2);
-          return Token::Ne
+          Token::Ne
         },
         Some('!') => {
           self.advance(1);
-          return Token::Not
+          Token::Not
         },
         Some('>') if self.text.starts_with(">=") => {
           self.advance(2);
-          return Token::Geq
+          Token::Geq
         },
         Some('>') => {
           self.advance(1);
-          return Token::Gt
+          Token::Gt
         },
         Some('<') if self.text.starts_with("<=") => {
           self.advance(2);
-          return Token::Leq
+          Token::Leq
         },
         Some('<') => {
           self.advance(1);
-          return Token::Lt
+          Token::Lt
         },
         Some(';') => {
           self.advance(1);
-          return Token::Seq
+          Token::Seq
         },
         Some('?') => {
           self.advance(1);
-          return Token::Ternary
+          Token::Ternary
         },
         Some(':') => {
           self.advance(1);
-          return Token::Else
+          Token::Else
         },
         Some('{') => {
           self.advance(1);
-          return Token::LBracket
+          Token::LBracket
         },
         Some('}') => {
           self.advance(1);
-          return Token::RBracket
+          Token::RBracket
         },
         Some(',') => {
           self.advance(1);
-          return Token::Comma
+          Token::Comma
         },
         Some(c) if c.is_alphabetic() => return self.lex_keyword(),
         Some(c) if c.is_digit(10) => return self.lex_integer(),
@@ -270,13 +271,12 @@ impl Lexer {
           self.skip_whitespace();
           continue;
         },
-        c => {
-          debug!("unexpected char {:?}", c);
-          panic!()
-        }
-      }
+        c => return Err(LexerError::UnexpectedCharacter(format!("unexpected char {:?}", c))),
+      };
+
+      return Ok(token)
     }
 
-    Token::EOF
+    Ok(Token::EOF)
   }
 }

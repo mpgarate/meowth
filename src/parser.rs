@@ -10,7 +10,7 @@ impl Parser {
   pub fn new(text: String) -> Parser {
     let mut lexer = Lexer::new(text);
 
-    let token = lexer.get_next_token();
+    let token = lexer.get_next_token().expect("Lexer error");;
 
     Parser {
       lexer: lexer,
@@ -25,7 +25,7 @@ impl Parser {
       panic!("expected token: {:?} actual: {:?}", expected, actual)
     }
 
-    self.current_token = self.lexer.get_next_token();
+    self.current_token = self.lexer.get_next_token().expect("Lexer error");;
     debug!("new current token: {:?}", self.current_token);
   }
 
