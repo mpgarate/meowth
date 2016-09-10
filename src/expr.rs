@@ -1,4 +1,4 @@
-use parser::{parse};
+use parser::parser::{parse};
 use ast::Expr::*;
 use ast::UnOp::*;
 use ast::BinOp::*;

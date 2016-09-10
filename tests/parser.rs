@@ -2,7 +2,7 @@ extern crate boxx;
 
 #[cfg(test)]
 mod test {
-  use boxx::parser::{parse};
+  use boxx::parser::parser::{parse};
   use boxx::ast::{Expr, BinOp};
   extern crate env_logger;
 

@@ -1,4 +1,4 @@
-use lexer_error::LexerError;
+use parser::lexer_error::LexerError;
 
 #[derive(Clone, Debug, PartialEq)] 
 pub enum Token {

@@ -1,5 +1,5 @@
 use ast::{Expr, BinOp, UnOp, Dec};
-use lexer::{Lexer, Token};
+use parser::lexer::{Lexer, Token};
 
 struct Parser {
   lexer: Lexer,
