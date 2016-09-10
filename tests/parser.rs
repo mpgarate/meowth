@@ -14,7 +14,7 @@ mod test {
         Box::new(Expr::Int(3)),
         Box::new(Expr::Int(4)),
       ),
-      parse("3*4")
+      parse("3*4").unwrap()
     );
 
     assert_eq!(
@@ -23,7 +23,7 @@ mod test {
         Box::new(Expr::Int(3)),
         Box::new(Expr::Int(4)),
       ),
-      parse("3/4")
+      parse("3/4").unwrap()
     );
   }
 
@@ -35,7 +35,7 @@ mod test {
         Box::new(Expr::Int(3)),
         Box::new(Expr::Int(4)),
       ),
-      parse("3+4")
+      parse("3+4").unwrap()
     );
 
     assert_eq!(
@@ -50,7 +50,7 @@ mod test {
         ),
         Box::new(Expr::Int(5)),
       ),
-      parse("3+4+5")
+      parse("3+4+5").unwrap()
     );
 
     assert_eq!(
@@ -64,7 +64,7 @@ mod test {
           ),
         ),
       ),
-      parse("3+(4+5)")
+      parse("3+(4+5)").unwrap()
     );
 
     assert_eq!(
@@ -73,7 +73,7 @@ mod test {
         Box::new(Expr::Int(3)),
         Box::new(Expr::Int(4)),
       ),
-      parse("3-4")
+      parse("3-4").unwrap()
     );
 
     assert_eq!(
@@ -88,7 +88,7 @@ mod test {
         ),
         Box::new(Expr::Int(5)),
       ),
-      parse("3-4-5")
+      parse("3-4-5").unwrap()
     );
 
     assert_eq!(
@@ -103,7 +103,7 @@ mod test {
           ),
         ),
       ),
-      parse("3-(4-5)")
+      parse("3-(4-5)").unwrap()
     );
 
     assert_eq!(
@@ -118,7 +118,7 @@ mod test {
         ),
         Box::new(Expr::Int(3)),
       ),
-      parse("(4+7)-3")
+      parse("(4+7)-3").unwrap()
     );
   }
 }

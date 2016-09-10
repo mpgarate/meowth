@@ -212,7 +212,7 @@ impl Repl {
   }
 
   pub fn eval(&mut self, input: &str) -> Expr {
-    let mut e = parse(input);
+    let mut e = parse(input).expect("parser error");
 
     let mut num_iterations = 0;
 
