@@ -27,9 +27,7 @@ impl Parser {
     let actual = self.current_token.clone();
 
     if expected != actual {
-      return Err(ParserError::UnexpectedToken(
-        format!("expected token: {:?} actual: {:?}", expected, actual)
-      ))
+      return Err(ParserError::UnexpectedToken(expected, actual))
     }
 
     self.current_token = self.lexer.get_next_token().expect("Lexer error");
@@ -77,7 +75,7 @@ impl Parser {
           params.push(Expr::Var(s));
         },
         Token::Comma => try!(self.eat(Token::Comma)),
-        _ => panic!()
+        _ => return Err(ParserError::InvalidToken(token, String::from("parsing fn decl params")))
       }
 
       token = self.current_token.clone();
