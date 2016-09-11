@@ -12,8 +12,7 @@ RUST_LOG=boxx=debug RUST_BACKTRACE=1 cargo watch "test test_while_loop"
 
 ```
 ### Small notes
-* create undefined value
-* don't substitute anything, handle everything in mem states
+* adjust Decl to not require a seq
 * create more helpers in parser
 * go through and try to clean up clones() and derefs that aren't needed
 * go through and think about statement vs block vs binop_expr, adjust usage and naming

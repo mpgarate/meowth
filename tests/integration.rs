@@ -208,6 +208,11 @@ mod tests {
     let _ = env_logger::init();
 
     assert_eq!(
+      Expr::Int(999),
+      boxx("var b = 1; if (true) { b = 999; }; b ")
+    );
+
+    assert_eq!(
       Expr::Int(34),
       boxx("if (true && false) { 32 } else if (!true && true) { 33 } else { 34 }")
     );

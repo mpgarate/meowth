@@ -151,7 +151,7 @@ impl Parser {
   fn parse_if(&mut self) -> Result<Expr> {
     try!(self.eat(Token::If));
     let e1 = try!(self.binop_expr());
-    let e2 = try!(self.statement());
+    let e2 = try!(self.block());
     let e3 = try!(self.statement());
 
     return Ok(self.ternary(e1, e2, e3));
