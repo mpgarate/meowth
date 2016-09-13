@@ -10,6 +10,14 @@ mod tests {
   extern crate env_logger;
 
   #[test]
+  pub fn test_parser_error() {
+    let _ = env_logger::init();
+
+    // TODO: consider expecting an error for this
+    // assert_eq!(Expr::Int(2), boxx("1 +"));
+  }
+
+  #[test]
   pub fn test_repl() {
     let _ = env_logger::init();
 

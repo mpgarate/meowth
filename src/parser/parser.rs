@@ -262,7 +262,7 @@ impl Parser {
       node = match op {
         Token::Times => self.binop(BinOp::Times, node, right_node),
         Token::Div => self.binop(BinOp::Div, node, right_node),
-        _ => panic!(),
+        _ => return Err(ParserError::InvalidToken(op, String::from("parsing term")))
       };
 
       op = self.current_token();
@@ -294,7 +294,7 @@ impl Parser {
         Token::And => self.binop(BinOp::And, node, right_node),
         Token::Or => self.binop(BinOp::Or, node, right_node),
         Token::Mod => self.binop(BinOp::Mod, node, right_node),
-        _ => panic!(),
+        _ => return Err(ParserError::InvalidToken(op, String::from("parsing binop expression")))
       };
 
       op = self.current_token();
@@ -320,8 +320,8 @@ impl Parser {
         Token::Assign => {
           let e2 = try!(self.statement());
           self.binop(BinOp::Assign, node, e2)
-        }
-        _ => panic!()
+        },
+        _ => return Err(ParserError::InvalidToken(op, String::from("parsing statement")))
       };
 
       op = self.current_token();
@@ -345,8 +345,8 @@ impl Parser {
           };
 
           self.binop(BinOp::Seq, node, e2)
-        }
-        _ => panic!()
+        },
+        _ => return Err(ParserError::InvalidToken(op, String::from("parsing block")))
       };
 
       op = self.current_token();
