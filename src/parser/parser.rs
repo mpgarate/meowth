@@ -23,8 +23,12 @@ impl Parser {
     }
   }
 
+  fn current_token(&self) -> Token {
+    self.current_token.clone()
+  }
+
   fn eat(&mut self, expected: Token) -> Result<()> {
-    let actual = self.current_token.clone();
+    let actual = self.current_token();
 
     if expected != actual {
       return Err(ParserError::UnexpectedToken(expected, actual))
@@ -45,7 +49,7 @@ impl Parser {
 
   fn parse_fn_params(&mut self) -> Result<Vec<Expr>> {
     let mut params = Vec::new();
-    let mut token = self.current_token.clone();
+    let mut token = self.current_token();
 
     while token != Token::RParen {
       debug!("getting fn params");
@@ -57,7 +61,7 @@ impl Parser {
         try!(self.eat(Token::Comma));
       }
 
-      token = self.current_token.clone();
+      token = self.current_token();
     }
 
     Ok(params)
@@ -65,7 +69,7 @@ impl Parser {
 
   fn parse_fn_decl_params(&mut self) -> Result<Vec<Expr>> {
     let mut params = Vec::new();
-    let mut token = self.current_token.clone();
+    let mut token = self.current_token();
 
     while token != Token::RParen {
       debug!("getting fn decl params");
@@ -78,7 +82,7 @@ impl Parser {
         _ => return Err(ParserError::InvalidToken(token, String::from("parsing fn decl params")))
       }
 
-      token = self.current_token.clone();
+      token = self.current_token();
     }
 
     Ok(params)
@@ -88,7 +92,7 @@ impl Parser {
     debug!("parsing named fn...");
     try!(self.eat(Token::FnDecl));
 
-    let var = match self.current_token.clone() {
+    let var = match self.current_token() {
       Token::Var(s) => {
         try!(self.eat(Token::Var(s.clone())));
         Some(Expr::Var(s))
@@ -158,7 +162,7 @@ impl Parser {
   }
 
   fn factor(&mut self) -> Result<Expr> {
-    let e = match self.current_token.clone() {
+    let e = match self.current_token() {
       Token::Int(n) => {
         try!(self.eat(Token::Int(n.clone())));
         Expr::Int(n)
@@ -239,7 +243,7 @@ impl Parser {
         Expr::Undefined
       },
       _ => {
-        return Err(ParserError::InvalidFactor(format!("invalid factor: {:?}", self.current_token)))
+        return Err(ParserError::InvalidToken(self.current_token(), String::from("parsing factor")))
       }
     };
 
@@ -249,7 +253,7 @@ impl Parser {
   pub fn term(&mut self) -> Result<Expr> {
     let mut node = try!(self.factor());
 
-    let mut op = self.current_token.clone();
+    let mut op = self.current_token();
 
     while op.is_term_op() {
       try!(self.eat(op.clone()));
@@ -261,7 +265,7 @@ impl Parser {
         _ => panic!(),
       };
 
-      op = self.current_token.clone();
+      op = self.current_token();
     }
 
     Ok(node)
@@ -270,7 +274,7 @@ impl Parser {
   pub fn binop_expr(&mut self) -> Result<Expr> {
     let mut node = try!(self.term());
 
-    let mut op = self.current_token.clone();
+    let mut op = self.current_token();
 
     while op.is_expr_op() {
       debug!("expr looping on op {:?}", op);
@@ -293,7 +297,7 @@ impl Parser {
         _ => panic!(),
       };
 
-      op = self.current_token.clone();
+      op = self.current_token();
     }
     
     Ok(node)
@@ -301,7 +305,7 @@ impl Parser {
 
   pub fn statement(&mut self) -> Result<Expr> {
     let mut node = try!(self.binop_expr());
-    let mut op = self.current_token.clone();
+    let mut op = self.current_token();
 
     while op.is_statement_op() {
       try!(self.eat(op.clone()));
@@ -320,7 +324,7 @@ impl Parser {
         _ => panic!()
       };
 
-      op = self.current_token.clone();
+      op = self.current_token();
     }
 
     Ok(node)
@@ -328,14 +332,14 @@ impl Parser {
 
   pub fn block(&mut self) -> Result<Expr> {
     let mut node = try!(self.statement());
-    let mut op = self.current_token.clone();
+    let mut op = self.current_token();
 
     while op.is_block_op() {
       try!(self.eat(op.clone()));
 
       node = match op {
         Token::Seq => {
-          let e2 = match self.current_token.clone() {
+          let e2 = match self.current_token() {
             Token::RBracket => Expr::Undefined,
             _ => try!(self.statement()),
           };
@@ -345,7 +349,7 @@ impl Parser {
         _ => panic!()
       };
 
-      op = self.current_token.clone();
+      op = self.current_token();
     }
 
     Ok(node)
