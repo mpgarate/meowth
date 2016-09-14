@@ -34,7 +34,7 @@ impl Parser {
       return Err(ParserError::UnexpectedToken(expected, actual))
     }
 
-    self.current_token = self.lexer.get_next_token().expect("Lexer error");
+    self.current_token = try!(self.lexer.get_next_token());
     debug!("new current token: {:?}", self.current_token);
     Ok(())
   }
