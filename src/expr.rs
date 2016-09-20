@@ -143,6 +143,7 @@ impl Repl {
           },
           _ => {
             debug!("expected a Func, got {:?}", v1);
+            // TODO: return an error value here
             panic!()
           },
         }
@@ -198,6 +199,7 @@ impl Repl {
         let args2 = args.iter().map(|e| {
           if !found_nonvalue && !e.is_value() {
             found_nonvalue = true;
+            // TODO: handle error here
             self.step(e.clone()).unwrap()
           } else {
             e.clone()
@@ -226,6 +228,7 @@ impl Repl {
 
     loop {
       if num_iterations > 1000 {
+        // TODO: return an error value here
         panic!("too many step iterations");
       }
 
@@ -237,6 +240,7 @@ impl Repl {
         debug!("--- iterations: {}", num_iterations);
         return e.clone();
       } else {
+        // TODO: consider handling error here
         e = self.step(e).unwrap();
       }
     }
