@@ -5,6 +5,14 @@ use ast::BinOp::*;
 use ast::Dec::*;
 use ast::*;
 use state::*;
+use interpreter_error::InterpreterError;
+use std::result;
+
+pub type Result<T> = result::Result<T, InterpreterError>;
+
+macro_rules! step {
+  ($s:expr, $e:expr) => (try!($s.step($e)));
+}
 
 pub struct Repl {
   pub state: State,
@@ -17,7 +25,7 @@ impl Repl {
     }
   }
 
-  pub fn step(&mut self, e: Expr) -> Expr {
+  pub fn step(&mut self, e: Expr) -> Result<Expr> {
     debug!("step(e) : {:?}", e);
     debug!("step(self.state) : {:?}", self.state.mem);
 
@@ -30,7 +38,7 @@ impl Repl {
        */
       Int(_) | Bool(_) | Func(_, _, _) | Undefined => {
         debug!("stepping on a value {:?}", e);
-        panic!("stepping on a value");
+        return Err(InterpreterError::SteppingOnValue(e));
       },
       /**
        * Base cases
@@ -150,24 +158,24 @@ impl Repl {
         Bop(
           op.clone(),
           Box::new(*v1.clone()),
-          Box::new(self.step(*e2.clone()))
+          Box::new(step!(self, *e2.clone()))
         )
       },
       Bop(Assign, ref v1, ref e2) if v1.is_var() => {
         Bop(
           Assign,
           Box::new(*v1.clone()),
-          Box::new(self.step(*e2.clone()))
+          Box::new(step!(self, *e2.clone()))
         )
       },
       Bop(op, e1, e2) => {
-        Bop(op, Box::new(self.step(*e1)), e2)
+        Bop(op, Box::new(step!(self, *e1)), e2)
       },
       Uop(op, e1) => {
-        Uop(op, Box::new(self.step(*e1)))
+        Uop(op, Box::new(step!(self, *e1)))
       },
       Ternary(e1, e2, e3) => {
-        Ternary(Box::new(self.step(*e1)), e2, e3)
+        Ternary(Box::new(step!(self, *e1)), e2, e3)
       },
       While(ref v1, ref e1o, _, ref e2o, ref e3) if v1.is_value() => {
         match v1.to_bool() {
@@ -176,13 +184,13 @@ impl Repl {
         }
       },
       While(ref e1, ref e1o, ref v2, ref e2o, ref e3) if v2.is_value() => {
-        While(Box::new(self.step(*e1.clone())), e1o.clone(), v2.clone(), e2o.clone(), e3.clone())
+        While(Box::new(step!(self, *e1.clone())), e1o.clone(), v2.clone(), e2o.clone(), e3.clone())
       },
       While(e1, e1o, e2, e2o, e3) => {
-        While(e1, e1o, Box::new(self.step(*e2)), e2o, e3)
+        While(e1, e1o, Box::new(step!(self, *e2)), e2o, e3)
       },
       Decl(dt, addr, e1, e2) => {
-        Decl(dt, Box::new(*addr.clone()), Box::new(self.step(*e1)), e2)
+        Decl(dt, Box::new(*addr.clone()), Box::new(step!(self, *e1)), e2)
       },
       FnCall(ref v1, ref args) if v1.is_value() => {
         let mut found_nonvalue = false;
@@ -190,7 +198,7 @@ impl Repl {
         let args2 = args.iter().map(|e| {
           if !found_nonvalue && !e.is_value() {
             found_nonvalue = true;
-            self.step(e.clone())
+            self.step(e.clone()).unwrap()
           } else {
             e.clone()
           }
@@ -199,16 +207,16 @@ impl Repl {
         FnCall(v1.clone(), args2)
       },
       FnCall(e1, args) => {
-        FnCall(Box::new(self.step(*e1)), args)
+        FnCall(Box::new(step!(self, *e1)), args)
       },
       Scope(e1) => {
-        Scope(Box::new(self.step(*e1)))
+        Scope(Box::new(step!(self, *e1)))
       },
     };
 
     debug!("returning with mem {:?}" , self.state.mem);
     debug!("returning with e {:?}" , e1);
-    e1
+    Ok(e1)
   }
 
   pub fn eval(&mut self, input: &str) -> Expr {
@@ -229,7 +237,7 @@ impl Repl {
         debug!("--- iterations: {}", num_iterations);
         return e.clone();
       } else {
-        e = self.step(e);
+        e = self.step(e).unwrap();
       }
     }
   }
