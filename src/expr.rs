@@ -5,10 +5,10 @@ use ast::BinOp::*;
 use ast::Dec::*;
 use ast::*;
 use state::*;
-use interpreter_error::InterpreterError;
+use runtime_error::RuntimeError;
 use std::result;
 
-pub type Result<T> = result::Result<T, InterpreterError>;
+pub type Result<T> = result::Result<T, RuntimeError>;
 
 macro_rules! step {
   ($s:expr, $e:expr) => (try!($s.step($e)));
@@ -33,7 +33,7 @@ impl Repl {
       Var(x) => {
         match self.state.get(x.clone()) {
           Some(e) => e,
-          None => return Err(InterpreterError::VariableNotFound(x)),
+          None => return Err(RuntimeError::VariableNotFound(x)),
         }
       },
       /**
@@ -41,7 +41,7 @@ impl Repl {
        */
       Int(_) | Bool(_) | Func(_, _, _) | Undefined => {
         debug!("stepping on a value {:?}", e);
-        return Err(InterpreterError::SteppingOnValue(e));
+        return Err(RuntimeError::SteppingOnValue(e));
       },
       /**
        * Base cases
@@ -144,7 +144,7 @@ impl Repl {
             };
             Scope(Box::new(body))
           },
-          _ => return Err(InterpreterError::UnexpectedExpr("expected Func".to_string(), *v1.clone()))
+          _ => return Err(RuntimeError::UnexpectedExpr("expected Func".to_string(), *v1.clone()))
         }
       },
       Scope(ref v1) if v1.is_value() => {
