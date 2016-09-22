@@ -141,11 +141,7 @@ impl Repl {
             };
             Scope(Box::new(body))
           },
-          _ => {
-            debug!("expected a Func, got {:?}", v1);
-            // TODO: return an error value here
-            panic!()
-          },
+          _ => return Err(InterpreterError::UnexpectedExpr("expected Func".to_string(), *v1.clone()))
         }
       },
       Scope(ref v1) if v1.is_value() => {
