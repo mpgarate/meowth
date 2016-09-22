@@ -196,17 +196,19 @@ impl Repl {
       FnCall(ref v1, ref args) if v1.is_value() => {
         let mut found_nonvalue = false;
 
-        let args2 = args.iter().map(|e| {
+        let stepped_args: Result<Vec<Expr>> = args.iter().map(|e| {
           if !found_nonvalue && !e.is_value() {
             found_nonvalue = true;
-            // TODO: handle error here
-            self.step(e.clone()).unwrap()
+            self.step(e.clone())
           } else {
-            e.clone()
+            Ok(e.clone())
           }
         }).collect();
 
-        FnCall(v1.clone(), args2)
+        match stepped_args {
+          Ok(args2) => FnCall(v1.clone(), args2),
+          Err(e) => return Err(e)
+        }
       },
       FnCall(e1, args) => {
         FnCall(Box::new(step!(self, *e1)), args)
