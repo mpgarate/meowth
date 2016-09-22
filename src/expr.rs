@@ -241,8 +241,15 @@ impl Repl {
         debug!("--- iterations: {}", num_iterations);
         return e.clone();
       } else {
-        // TODO: consider handling error here
-        e = self.step(e).unwrap();
+        let expr_result = self.step(e.clone());
+
+        match expr_result {
+          Ok(exp) => e = exp,
+          Err(err) => {
+            println!("{}", err);
+            return Expr::Undefined
+          }
+        }
       }
     }
   }

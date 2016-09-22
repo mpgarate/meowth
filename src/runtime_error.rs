@@ -12,9 +12,9 @@ pub enum RuntimeError {
 impl fmt::Display for RuntimeError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
-      RuntimeError::SteppingOnValue(ref e) => write!(f, "{:?}", e),
-      RuntimeError::UnexpectedExpr(ref s, ref e) => write!(f, "{}, got {:?}", s, e),
-      RuntimeError::VariableNotFound(ref e) => write!(f, "{:?}", e),
+      RuntimeError::SteppingOnValue(ref e) => write!(f, "Stepping on a value {:?}", e),
+      RuntimeError::UnexpectedExpr(ref s, ref e) => write!(f, "Expected {} and found {:?}", s, e),
+      RuntimeError::VariableNotFound(ref e) => write!(f, "Variable {:?} does not exist in memory", e),
     }
   }
 }
