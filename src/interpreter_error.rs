@@ -6,6 +6,7 @@ use ast::Expr;
 pub enum InterpreterError {
   SteppingOnValue(Expr),
   UnexpectedExpr(String, Expr),
+  VariableNotFound(String),
 }
 
 impl fmt::Display for InterpreterError {
@@ -13,6 +14,7 @@ impl fmt::Display for InterpreterError {
     match *self {
       InterpreterError::SteppingOnValue(ref e) => write!(f, "{:?}", e),
       InterpreterError::UnexpectedExpr(ref s, ref e) => write!(f, "{}, got {:?}", s, e),
+      InterpreterError::VariableNotFound(ref e) => write!(f, "{:?}", e),
     }
   }
 }
@@ -22,6 +24,7 @@ impl error::Error for InterpreterError {
     match *self {
       InterpreterError::SteppingOnValue(_) => "Stepping on a value",
       InterpreterError::UnexpectedExpr(_, _) => "Unexpected expression",
+      InterpreterError::VariableNotFound(_) => "Variable does not exist in memory",
     }
   }
 
@@ -29,6 +32,7 @@ impl error::Error for InterpreterError {
     match *self {
       InterpreterError::SteppingOnValue(_) => None,
       InterpreterError::UnexpectedExpr(_, _) => None,
+      InterpreterError::VariableNotFound(_) => None,
     }
   }
 }

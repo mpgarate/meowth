@@ -31,7 +31,10 @@ impl Repl {
 
     let e1 = match e.clone() {
       Var(x) => {
-        self.state.get(x)
+        match self.state.get(x.clone()) {
+          Some(e) => e,
+          None => return Err(InterpreterError::VariableNotFound(x)),
+        }
       },
       /**
        * Values are ineligible for step

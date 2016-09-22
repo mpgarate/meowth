@@ -46,12 +46,13 @@ impl State {
     };
   }
 
-  pub fn get(&mut self, x: String) -> Expr {
-    let binding = self.first_map_for(x.clone()).unwrap().get(&x).unwrap().clone();
-
-    match binding.clone() {
-      Binding::Var(e) => *e,
-      Binding::Const(e) => *e,
+  pub fn get(&mut self, x: String) -> Option<Expr> {
+    match self.first_map_for(x.clone()) {
+      Some(map) => match map.get(&x).unwrap().clone() {
+        Binding::Var(e) => Some(*e),
+        Binding::Const(e) => Some(*e),
+      },
+      None => None,
     }
   }
 
