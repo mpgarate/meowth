@@ -8,6 +8,7 @@ pub enum RuntimeError {
   SteppingOnValue(Expr),
   UnexpectedExpr(String, Expr),
   VariableNotFound(String),
+  InvalidConstAssignment(Expr, String),
   ParserError(ParserError),
 }
 
@@ -17,6 +18,7 @@ impl fmt::Display for RuntimeError {
       RuntimeError::SteppingOnValue(ref e) => write!(f, "Stepping on a value {:?}", e),
       RuntimeError::UnexpectedExpr(ref s, ref e) => write!(f, "Expected {} and found {:?}", s, e),
       RuntimeError::VariableNotFound(ref e) => write!(f, "Variable {:?} does not exist in memory", e),
+      RuntimeError::InvalidConstAssignment(ref e, ref s) => write!(f, "Cannot assign {:?} to const {}", e, s),
       RuntimeError::ParserError(ref err) => write!(f, "Parser error: {}", err),
     }
   }
@@ -28,6 +30,7 @@ impl error::Error for RuntimeError {
       RuntimeError::SteppingOnValue(_) => "Stepping on a value",
       RuntimeError::UnexpectedExpr(_, _) => "Unexpected expression",
       RuntimeError::VariableNotFound(_) => "Variable does not exist in memory",
+      RuntimeError::InvalidConstAssignment(_, _) => "Cannot assign to const",
       RuntimeError::ParserError(ref err) => err.description(),
     }
   }
@@ -37,6 +40,7 @@ impl error::Error for RuntimeError {
       RuntimeError::SteppingOnValue(_) => None,
       RuntimeError::UnexpectedExpr(_, _) => None,
       RuntimeError::VariableNotFound(_) => None,
+      RuntimeError::InvalidConstAssignment(_, _) => None,
       RuntimeError::ParserError(ref err) => Some(err),
     }
   }

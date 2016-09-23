@@ -102,7 +102,7 @@ impl Repl {
       },
       Bop(Assign, ref v1, ref v2) if v1.is_var() && v2.is_value() => {
         let x = v1.to_var();
-        self.state.assign(x, *v2.clone());
+        try!(self.state.assign(x, *v2.clone()));
         debug!("done assigning {:?}", self.state.mem);
         *v2.clone()
       },

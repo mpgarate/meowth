@@ -1,5 +1,6 @@
 use ast::*;
 use std::collections::HashMap;
+use runtime_error::RuntimeError;
 
 #[derive(Clone, Debug)] 
 pub struct State {
@@ -34,7 +35,7 @@ impl State {
     self.mem.last_mut().unwrap().insert(x, binding);
   }
 
-  pub fn assign(&mut self, x: String, v1: Expr) {
+  pub fn assign(&mut self, x: String, v1: Expr) -> Result<(), RuntimeError> {
     let mut map_option = self.first_map_for(x.clone());
     let map = map_option.as_mut().unwrap();
 
@@ -42,8 +43,9 @@ impl State {
 
     match binding {
       Binding::Var(_) => map.insert(x, Binding::Var(Box::new(v1))),
-      Binding::Const(_) => panic!("cannot assign to const"),
+      Binding::Const(_) => return Err(RuntimeError::InvalidConstAssignment(v1, x)),
     };
+    Ok(())
   }
 
   pub fn get(&mut self, x: String) -> Option<Expr> {
