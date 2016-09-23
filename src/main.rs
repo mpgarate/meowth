@@ -17,7 +17,13 @@ fn main() {
         if input == "exit\n".to_string() { 
           break;
         }
-        println!("{:?}", repl.eval(&input))
+
+        let expr_result = repl.eval(&input);
+        
+        match expr_result {
+          Ok(exp) => println!("{:?}", exp), 
+          Err(err) => println!("{}", err),
+        }
       },
       Err(e) => print!("error: {}", e)
     }

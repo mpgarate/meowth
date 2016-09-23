@@ -12,11 +12,7 @@ struct Parser {
 }
 
 impl Parser {
-  pub fn new(text: String) -> Parser {
-    let mut lexer = Lexer::new(text);
-
-    let token = lexer.get_next_token().expect("Lexer error");
-
+  pub fn new(lexer: Lexer, token: Token) -> Parser {
     Parser {
       lexer: lexer,
       current_token: token,
@@ -365,7 +361,11 @@ fn to_box(e: Expr) -> Box<Expr> {
 }
 
 pub fn parse(input: &str) -> Result<Expr> {
-  let mut parser = Parser::new(input.to_string());
+  let mut lexer = Lexer::new(input.to_string());
+
+  let token = try!(lexer.get_next_token());
+  
+  let mut parser = Parser::new(lexer, token);
   let expr = parser.program();
 
   debug!("parsed expr: {:#?}", expr);

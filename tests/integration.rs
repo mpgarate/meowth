@@ -25,28 +25,28 @@ mod tests {
 
     assert_eq!(
       Expr::Int(2),
-      repl.eval("1 + 1")
+      repl.eval("1 + 1").unwrap()
     );
 
     assert_eq!(
       Expr::Undefined,
-      repl.eval("var x = 3;")
+      repl.eval("var x = 3;").unwrap()
     );
 
     assert_eq!(
       Expr::Int(3),
-      repl.eval("x")
+      repl.eval("x").unwrap()
     );
 
 
     assert_eq!(
       Expr::Undefined,
-      repl.eval("fn double(x) { x + x };")
+      repl.eval("fn double(x) { x + x };").unwrap()
     );
 
     assert_eq!(
       Expr::Int(48),
-      repl.eval("double(24)")
+      repl.eval("double(24)").unwrap()
     );
   }
 

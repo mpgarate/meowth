@@ -222,8 +222,8 @@ impl Repl {
     Ok(e1)
   }
 
-  pub fn eval(&mut self, input: &str) -> Expr {
-    let mut e = parse(input).expect("parser error");
+  pub fn eval(&mut self, input: &str) -> Result<Expr> {
+    let mut e = try!(parse(input));
 
     let mut num_iterations = 0;
 
@@ -239,17 +239,9 @@ impl Repl {
       num_iterations += 1;
       if e.is_value() {
         debug!("--- iterations: {}", num_iterations);
-        return e.clone();
+        return Ok(e.clone());
       } else {
-        let expr_result = self.step(e.clone());
-
-        match expr_result {
-          Ok(exp) => e = exp,
-          Err(err) => {
-            println!("{}", err);
-            return Expr::Undefined
-          }
-        }
+        e = try!(self.step(e.clone()));
       }
     }
   }
@@ -257,5 +249,5 @@ impl Repl {
 
 pub fn boxx(input: &str) -> Expr {
   let mut repl = Repl::new();
-  repl.eval(input)
+  repl.eval(input).unwrap()
 }
