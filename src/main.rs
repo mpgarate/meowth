@@ -22,7 +22,7 @@ fn main() {
         
         match expr_result {
           Ok(exp) => println!("{:?}", exp), 
-          Err(err) => println!("{}", err),
+          Err(err) => println!("Error: {}", err),
         }
       },
       Err(e) => print!("error: {}", e)

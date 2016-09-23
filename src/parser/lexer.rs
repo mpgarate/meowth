@@ -193,7 +193,8 @@ impl Lexer {
           self.skip_whitespace();
           continue;
         },
-        c => return Err(LexerError::UnexpectedCharacter(format!("unexpected char {:?}", c))),
+        Some(c) => return Err(LexerError::UnexpectedCharacter(format!("unexpected char {:?}", c))),
+        None => Token::EOF
       };
 
       return Ok(token)

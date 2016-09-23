@@ -17,7 +17,7 @@ impl fmt::Display for RuntimeError {
       RuntimeError::SteppingOnValue(ref e) => write!(f, "Stepping on a value {:?}", e),
       RuntimeError::UnexpectedExpr(ref s, ref e) => write!(f, "Expected {} and found {:?}", s, e),
       RuntimeError::VariableNotFound(ref e) => write!(f, "Variable {:?} does not exist in memory", e),
-      RuntimeError::ParserError(ref err) => write!(f, "Parser error {}", err),
+      RuntimeError::ParserError(ref err) => write!(f, "Parser error: {}", err),
     }
   }
 }
