@@ -9,6 +9,7 @@ pub enum RuntimeError {
   UnexpectedExpr(String, Expr),
   VariableNotFound(String),
   InvalidConstAssignment(Expr, String),
+  InvalidTypeConversion(String, Expr),
   ParserError(ParserError),
 }
 
@@ -19,6 +20,7 @@ impl fmt::Display for RuntimeError {
       RuntimeError::UnexpectedExpr(ref s, ref e) => write!(f, "Expected {} and found {:?}", s, e),
       RuntimeError::VariableNotFound(ref e) => write!(f, "Variable {:?} does not exist in memory", e),
       RuntimeError::InvalidConstAssignment(ref e, ref s) => write!(f, "Cannot assign {:?} to const {}", e, s),
+      RuntimeError::InvalidTypeConversion(ref s, ref e) => write!(f, "Expected {} and found {:?}", s, e),
       RuntimeError::ParserError(ref err) => write!(f, "Parser error: {}", err),
     }
   }
@@ -31,6 +33,7 @@ impl error::Error for RuntimeError {
       RuntimeError::UnexpectedExpr(_, _) => "Unexpected expression",
       RuntimeError::VariableNotFound(_) => "Variable does not exist in memory",
       RuntimeError::InvalidConstAssignment(_, _) => "Cannot assign to const",
+      RuntimeError::InvalidTypeConversion(_, _) => "Invalid type conversion",
       RuntimeError::ParserError(ref err) => err.description(),
     }
   }
@@ -41,6 +44,7 @@ impl error::Error for RuntimeError {
       RuntimeError::UnexpectedExpr(_, _) => None,
       RuntimeError::VariableNotFound(_) => None,
       RuntimeError::InvalidConstAssignment(_, _) => None,
+      RuntimeError::InvalidTypeConversion(_, _) => None,
       RuntimeError::ParserError(ref err) => Some(err),
     }
   }

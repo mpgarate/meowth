@@ -14,6 +14,18 @@ macro_rules! step {
   ($s:expr, $e:expr) => (try!($s.step($e)));
 }
 
+macro_rules! to_int {
+  ($e:expr) => (try!($e.to_int()));
+}
+
+macro_rules! to_var {
+  ($e:expr) => (try!($e.to_var()));
+}
+
+macro_rules! to_bool {
+  ($e:expr) => (try!($e.to_bool()));
+}
+
 pub struct Repl {
   pub state: State,
 }
@@ -47,16 +59,16 @@ impl Repl {
        * Base cases
        */
       Uop(Not, ref e1) if e1.is_bool() => {
-        Bool(!e1.to_bool())
+        Bool(!to_bool!(e1))
       },
       Uop(Neg, ref e1) if e1.is_int() => {
-        Int(-1 * e1.to_int())
+        Int(-1 * to_int!(e1))
       },
       Bop(And, ref e1, ref e2) if e1.is_bool() && e2.is_bool() => {
-        Bool(e1.to_bool() && e2.to_bool())
+        Bool(to_bool!(e1) && to_bool!(e2))
       },
       Bop(Or, ref e1, ref e2) if e1.is_bool() && e2.is_bool() => {
-        Bool(e1.to_bool() || e2.to_bool())
+        Bool(to_bool!(e1) || to_bool!(e2))
       },
       Bop(Eq, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Bool(*e1 == *e2)
@@ -65,8 +77,8 @@ impl Repl {
         Bool(*e1 != *e2)
       },
       Bop(Mod, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-        let n1 = e1.to_int();
-        let n2 = e2.to_int();
+        let n1 = to_int!(e1);
+        let n2 = to_int!(e2);
 
         // rust % gives the remainder, not modulus
         let result = ((n1 % n2) + n2) % n2;
@@ -74,51 +86,51 @@ impl Repl {
         Int(result)
       },
       Bop(Lt, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-        Bool(e1.to_int() < e2.to_int())
+        Bool(to_int!(e1) < to_int!(e2))
       },
       Bop(Gt, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-        Bool(e1.to_int() > e2.to_int())
+        Bool(to_int!(e1) > to_int!(e2))
       },
       Bop(Leq, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-        Bool(e1.to_int() <= e2.to_int())
+        Bool(to_int!(e1) <= to_int!(e2))
       },
       Bop(Geq, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-        Bool(e1.to_int() >= e2.to_int())
+        Bool(to_int!(e1) >= to_int!(e2))
       },
       Bop(Plus, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-        Int(e1.to_int() + e2.to_int())
+        Int(to_int!(e1) + to_int!(e2))
       },
       Bop(Minus, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-        Int(e1.to_int() - e2.to_int())
+        Int(to_int!(e1) - to_int!(e2))
       },
       Bop(Times, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-        Int(e1.to_int() * e2.to_int())
+        Int(to_int!(e1) * to_int!(e2))
       },
       Bop(Div, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
-        Int(e1.to_int() / e2.to_int())
+        Int(to_int!(e1) / to_int!(e2))
       },
       Bop(Seq, ref v1, ref e2) if v1.is_value() => {
         *e2.clone()
       },
       Bop(Assign, ref v1, ref v2) if v1.is_var() && v2.is_value() => {
-        let x = v1.to_var();
+        let x = to_var!(v1);
         try!(self.state.assign(x, *v2.clone()));
         debug!("done assigning {:?}", self.state.mem);
         *v2.clone()
       },
       Ternary(ref v1, ref e2, ref e3) if v1.is_value() => {
-        match v1.to_bool() {
+        match to_bool!(v1) {
           true => *e2.clone(),
           false => *e3.clone(),
         }
       },
       Decl(DConst, ref x, ref v1, ref e2) if v1.is_value() => {
-        self.state.alloc_const(x.to_var(), *v1.clone());
+        self.state.alloc_const(to_var!(x), *v1.clone());
         *e2.clone()
       },
       Decl(DVar, ref x, ref v1, ref e2) if x.is_var() && v1.is_value() => {
         debug!("allocing {:?}", v1);
-        self.state.alloc(x.to_var(), *v1.clone());
+        self.state.alloc(to_var!(x), *v1.clone());
         *e2.clone()
       },
       // lambda lift so we can use iter() in guard
@@ -128,17 +140,19 @@ impl Repl {
           Func(ref name, ref e1, ref xs) => {
             self.state.begin_scope();
             // sub the params
-            let exp = xs.iter().zip(es.iter())
-              .fold(*e1.clone(), |exp, (xn, en)| {
-                self.state.alloc(xn.to_var(), en.clone());
+            let exp_result: Result<Expr> = xs.iter().zip(es.iter())
+              .fold(Ok(*e1.clone()), |exp, (xn, en)| {
+                self.state.alloc(to_var!(xn), en.clone());
                 exp
               });
+
+            let exp = try!(exp_result);
 
             // sub the fn body for named functions
             let body = match *name {
               None => exp,
               Some(ref s) => {
-                self.state.alloc(s.to_var(), *v1.clone());
+                self.state.alloc(to_var!(s), *v1.clone());
                 exp
               }
             };
@@ -178,7 +192,7 @@ impl Repl {
         Ternary(Box::new(step!(self, *e1)), e2, e3)
       },
       While(ref v1, ref e1o, _, ref e2o, ref e3) if v1.is_value() => {
-        match v1.to_bool() {
+        match to_bool!(v1) {
           true => While(Box::new(*e1o.clone()), e1o.clone(), e2o.clone(), e2o.clone(), e3.clone()),
           false => *e3.clone(),
         }

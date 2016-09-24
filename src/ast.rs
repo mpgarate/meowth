@@ -1,4 +1,5 @@
 use ast::Expr::*;
+use runtime_error::RuntimeError;
 
 #[derive(Clone, Debug, PartialEq)] 
 pub enum UnOp {
@@ -83,33 +84,24 @@ impl Expr {
     }
   }
 
-  pub fn to_int(&self) -> isize {
+  pub fn to_int(&self) -> Result<isize, RuntimeError> {
     match *self {
-      Int(n) => n,
-      _ => {
-        debug!("cant turn into int: {:?}", self);
-        panic!()
-      }
+      Int(n) => Ok(n),
+      _ => Err(RuntimeError::InvalidTypeConversion("int".to_string(), self.clone())),
     }
   }
 
-  pub fn to_var(&self) -> String {
+  pub fn to_var(&self) -> Result<String, RuntimeError> {
     match *self {
-      Var(ref x) => x.clone(),
-      _ => {
-        debug!("cant turn into int: {:?}", self);
-        panic!()
-      }
+      Var(ref x) => Ok(x.clone()),
+      _ => Err(RuntimeError::InvalidTypeConversion("var".to_string(), self.clone())),
     }
   }
 
-  pub fn to_bool(&self) -> bool {
+  pub fn to_bool(&self) -> Result<bool, RuntimeError> {
     match *self {
-      Bool(b) => b,
-      _ => {
-        debug!("cant turn into bool: {:?}", self);
-        panic!()
-      }
+      Bool(b) => Ok(b),
+      _ => Err(RuntimeError::InvalidTypeConversion("bool".to_string(), self.clone())),
     }
   }
 }
