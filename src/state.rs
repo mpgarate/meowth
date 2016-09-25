@@ -24,15 +24,26 @@ impl State {
     self.mem.iter_mut().rev().find(|map| map.contains_key(&x))
   }
 
-  pub fn alloc(&mut self, x: String, v1: Expr) {
+  pub fn alloc(&mut self, x: String, v1: Expr) -> Result<(), RuntimeError> {
     let binding = Binding::Var(Box::new(v1));
-    self.mem.last_mut().unwrap().insert(x, binding);
+
+    match self.mem.last_mut() {
+      Some(map) => { map.insert(x, binding); () },
+      None => return Err(RuntimeError::InvalidMemoryState("no memory frame for var allocation".to_string())),
+    }
+
+    Ok(())
   }
 
-  pub fn alloc_const(&mut self, x: String, v1: Expr) {
+  pub fn alloc_const(&mut self, x: String, v1: Expr) ->Result<(), RuntimeError> {
     let binding = Binding::Const(Box::new(v1));
 
-    self.mem.last_mut().unwrap().insert(x, binding);
+    match self.mem.last_mut() {
+      Some(map) => { map.insert(x, binding); () },
+      None => return Err(RuntimeError::InvalidMemoryState("no memory frame for const allocation".to_string())),
+    }
+
+    Ok(())
   }
 
   pub fn assign(&mut self, x: String, v1: Expr) -> Result<(), RuntimeError> {

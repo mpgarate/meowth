@@ -125,12 +125,12 @@ impl Repl {
         }
       },
       Decl(DConst, ref x, ref v1, ref e2) if v1.is_value() => {
-        self.state.alloc_const(to_var!(x), *v1.clone());
+        try!(self.state.alloc_const(to_var!(x), *v1.clone()));
         *e2.clone()
       },
       Decl(DVar, ref x, ref v1, ref e2) if x.is_var() && v1.is_value() => {
         debug!("allocing {:?}", v1);
-        self.state.alloc(to_var!(x), *v1.clone());
+        try!(self.state.alloc(to_var!(x), *v1.clone()));
         *e2.clone()
       },
       // lambda lift so we can use iter() in guard
@@ -142,7 +142,7 @@ impl Repl {
             // sub the params
             let exp_result: Result<Expr> = xs.iter().zip(es.iter())
               .fold(Ok(*e1.clone()), |exp, (xn, en)| {
-                self.state.alloc(to_var!(xn), en.clone());
+                try!(self.state.alloc(to_var!(xn), en.clone()));
                 exp
               });
 
@@ -152,7 +152,7 @@ impl Repl {
             let body = match *name {
               None => exp,
               Some(ref s) => {
-                self.state.alloc(to_var!(s), *v1.clone());
+                try!(self.state.alloc(to_var!(s), *v1.clone()));
                 exp
               }
             };
