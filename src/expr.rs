@@ -243,8 +243,7 @@ impl Repl {
 
     loop {
       if num_iterations > 1000 {
-        // TODO: return an error value here
-        panic!("too many step iterations");
+        return Err(RuntimeError::TooManyIterations(num_iterations))
       }
 
       debug!("-----------------");

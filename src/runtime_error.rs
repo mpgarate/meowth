@@ -12,6 +12,7 @@ pub enum RuntimeError {
   InvalidTypeConversion(String, Expr),
   InvalidMemoryState(String),
   ParserError(ParserError),
+  TooManyIterations(usize),
 }
 
 impl fmt::Display for RuntimeError {
@@ -23,6 +24,7 @@ impl fmt::Display for RuntimeError {
       RuntimeError::InvalidConstAssignment(ref e, ref s) => write!(f, "Cannot assign {:?} to const {}", e, s),
       RuntimeError::InvalidTypeConversion(ref s, ref e) => write!(f, "Expected {} and found {:?}", s, e),
       RuntimeError::InvalidMemoryState(ref s) => write!(f, "Unexpected internal memory state: {}", s),
+      RuntimeError::TooManyIterations(ref n) => write!(f, "Too many iterations while evaluating expression: {}", n),
       RuntimeError::ParserError(ref err) => write!(f, "Parser error: {}", err),
     }
   }
@@ -37,6 +39,7 @@ impl error::Error for RuntimeError {
       RuntimeError::InvalidConstAssignment(_, _) => "Cannot assign to const",
       RuntimeError::InvalidTypeConversion(_, _) => "Invalid type conversion",
       RuntimeError::InvalidMemoryState(_) => "Unexpected internal memory state",
+      RuntimeError::TooManyIterations(_) => "Too many iterations: {}",
       RuntimeError::ParserError(ref err) => err.description(),
     }
   }
@@ -49,6 +52,7 @@ impl error::Error for RuntimeError {
       RuntimeError::InvalidConstAssignment(_, _) => None,
       RuntimeError::InvalidTypeConversion(_, _) => None,
       RuntimeError::InvalidMemoryState(_) => None,
+      RuntimeError::TooManyIterations(_) => None,
       RuntimeError::ParserError(ref err) => Some(err),
     }
   }
