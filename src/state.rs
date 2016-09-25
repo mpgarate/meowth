@@ -28,22 +28,24 @@ impl State {
     let binding = Binding::Var(Box::new(v1));
 
     match self.mem.last_mut() {
-      Some(map) => { map.insert(x, binding); () },
-      None => return Err(RuntimeError::InvalidMemoryState("no memory frame for var allocation".to_string())),
+      Some(map) => {
+        map.insert(x, binding);
+        Ok(())
+      },
+      None => Err(RuntimeError::InvalidMemoryState("no memory frame for var allocation".to_string())),
     }
-
-    Ok(())
   }
 
   pub fn alloc_const(&mut self, x: String, v1: Expr) ->Result<(), RuntimeError> {
     let binding = Binding::Const(Box::new(v1));
 
     match self.mem.last_mut() {
-      Some(map) => { map.insert(x, binding); () },
+      Some(map) => {
+        map.insert(x, binding);
+        Ok(())
+      },
       None => return Err(RuntimeError::InvalidMemoryState("no memory frame for const allocation".to_string())),
     }
-
-    Ok(())
   }
 
   pub fn assign(&mut self, x: String, v1: Expr) -> Result<(), RuntimeError> {
@@ -61,9 +63,10 @@ impl State {
 
   pub fn get(&mut self, x: String) -> Option<Expr> {
     match self.first_map_for(x.clone()) {
-      Some(map) => match map.get(&x).unwrap().clone() {
-        Binding::Var(e) => Some(*e),
-        Binding::Const(e) => Some(*e),
+      Some(map) => match map.get(&x).clone() {
+        Some(&Binding::Var(ref e)) => Some(*e.clone()),
+        Some(&Binding::Const(ref e)) => Some(*e.clone()),
+        _ => None,
       },
       None => None,
     }
