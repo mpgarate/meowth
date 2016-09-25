@@ -50,9 +50,16 @@ impl State {
 
   pub fn assign(&mut self, x: String, v1: Expr) -> Result<(), RuntimeError> {
     let mut map_option = self.first_map_for(x.clone());
-    let map = map_option.as_mut().unwrap();
 
-    let binding = map.get_mut(&x).unwrap().clone();
+    let map = match map_option.as_mut() {
+      Some(m) => m,
+      None => return Err(RuntimeError::InvalidConstAssignment(v1, x)),
+    };
+
+    let binding = match map.get_mut(&x) {
+      Some(b) => b.clone(),
+      None => return Err(RuntimeError::InvalidConstAssignment(v1, x)),
+    };
 
     match binding {
       Binding::Var(_) => map.insert(x, Binding::Var(Box::new(v1))),
