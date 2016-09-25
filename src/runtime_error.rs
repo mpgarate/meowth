@@ -3,7 +3,7 @@ use std::fmt;
 use ast::Expr;
 use parser::parser_error::ParserError;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum RuntimeError {
   SteppingOnValue(Expr),
   UnexpectedExpr(String, Expr),

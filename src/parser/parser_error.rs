@@ -3,7 +3,7 @@ use std::fmt;
 use parser::token::Token;
 use parser::lexer_error::LexerError;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)] 
 pub enum ParserError {
   UnexpectedToken(Token, Token), // expected, actual
   InvalidToken(Token, String),

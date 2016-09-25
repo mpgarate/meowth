@@ -2,7 +2,7 @@ use std::num;
 use std::error;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)] 
 pub enum LexerError {
   UnexpectedCharacter(String),
   InvalidKeyword(String),

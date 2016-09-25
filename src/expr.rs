@@ -260,7 +260,7 @@ impl Repl {
   }
 }
 
-pub fn boxx(input: &str) -> Expr {
+pub fn boxx(input: &str) -> Result<Expr> {
   let mut repl = Repl::new();
-  repl.eval(input).unwrap()
+  repl.eval(input)
 }
