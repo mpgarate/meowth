@@ -58,16 +58,16 @@ impl Repl {
       /**
        * Base cases
        */
-      Uop(Not, ref e1) if e1.is_bool() => {
+      Uop(Not, ref e1) if e1.is_value() => {
         Bool(!to_bool!(e1))
       },
-      Uop(Neg, ref e1) if e1.is_int() => {
+      Uop(Neg, ref e1) if e1.is_value() => {
         Int(-1 * to_int!(e1))
       },
-      Bop(And, ref e1, ref e2) if e1.is_bool() && e2.is_bool() => {
+      Bop(And, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Bool(to_bool!(e1) && to_bool!(e2))
       },
-      Bop(Or, ref e1, ref e2) if e1.is_bool() && e2.is_bool() => {
+      Bop(Or, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Bool(to_bool!(e1) || to_bool!(e2))
       },
       Bop(Eq, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
@@ -76,7 +76,7 @@ impl Repl {
       Bop(Ne, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Bool(*e1 != *e2)
       },
-      Bop(Mod, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
+      Bop(Mod, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         let n1 = to_int!(e1);
         let n2 = to_int!(e2);
 
@@ -85,28 +85,28 @@ impl Repl {
 
         Int(result)
       },
-      Bop(Lt, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
+      Bop(Lt, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Bool(to_int!(e1) < to_int!(e2))
       },
-      Bop(Gt, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
+      Bop(Gt, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Bool(to_int!(e1) > to_int!(e2))
       },
-      Bop(Leq, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
+      Bop(Leq, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Bool(to_int!(e1) <= to_int!(e2))
       },
-      Bop(Geq, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
+      Bop(Geq, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Bool(to_int!(e1) >= to_int!(e2))
       },
-      Bop(Plus, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
+      Bop(Plus, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Int(to_int!(e1) + to_int!(e2))
       },
-      Bop(Minus, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
+      Bop(Minus, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Int(to_int!(e1) - to_int!(e2))
       },
-      Bop(Times, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
+      Bop(Times, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Int(to_int!(e1) * to_int!(e2))
       },
-      Bop(Div, ref e1, ref e2) if e1.is_int() && e2.is_int() => {
+      Bop(Div, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Int(to_int!(e1) / to_int!(e2))
       },
       Bop(Seq, ref v1, ref e2) if v1.is_value() => {

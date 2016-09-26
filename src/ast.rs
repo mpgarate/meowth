@@ -49,20 +49,6 @@ pub enum Expr {
 }
 
 impl Expr {
-  pub fn is_int(&self) -> bool {
-    match *self {
-      Int(_) => true,
-      _ => false,
-    }
-  }
-
-  pub fn is_bool(&self) -> bool {
-    match *self {
-      Bool(_) => true,
-      _ => false,
-    }
-  }
-
   pub fn is_func(&self) -> bool {
     match *self {
       Func(_, _, _) => true,

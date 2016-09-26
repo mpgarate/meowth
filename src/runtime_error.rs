@@ -19,10 +19,10 @@ impl fmt::Display for RuntimeError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
       RuntimeError::SteppingOnValue(ref e) => write!(f, "Stepping on a value {:?}", e),
-      RuntimeError::UnexpectedExpr(ref s, ref e) => write!(f, "Expected {} and found {:?}", s, e),
+      RuntimeError::UnexpectedExpr(ref s, ref e) => write!(f, "Unexpected expression. Expected {} and found {:?}", s, e),
       RuntimeError::VariableNotFound(ref e) => write!(f, "Variable {:?} does not exist in memory", e),
       RuntimeError::InvalidConstAssignment(ref e, ref s) => write!(f, "Cannot assign {:?} to const {}", e, s),
-      RuntimeError::InvalidTypeConversion(ref s, ref e) => write!(f, "Expected {} and found {:?}", s, e),
+      RuntimeError::InvalidTypeConversion(ref s, ref e) => write!(f, "Invalid type conversion. Expected {} and found {:?}", s, e),
       RuntimeError::InvalidMemoryState(ref s) => write!(f, "Unexpected internal memory state: {}", s),
       RuntimeError::TooManyIterations(ref n) => write!(f, "Too many iterations while evaluating expression: {}", n),
       RuntimeError::ParserError(ref err) => write!(f, "Parser error: {}", err),
