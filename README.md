@@ -15,15 +15,15 @@ cargo test
 
 ### Variable binding
 ```
-var x = 1;
-x = 2;
+var x = 1; // => Undefined
+x = 2; // => Undefined
 x // => 2
 ```
 
 ### Immutable reference binding
 ```
-let x = 1;
-x = 2; // => err, invalid assignment
+let x = 1; // => Undefined
+x = 2; // => Error: Cannot assign Int(2) to const x
 x
 ```
 
