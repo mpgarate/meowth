@@ -63,5 +63,5 @@ i // => 12
 ```
 
 ### Features in progress
- - Human-readable errors for parsing and evaluation
+ - Human-readable errors for parsing and evaluation. Most cases are covered, but the copy could be cleaned up. 
  - Handle floating point numbers
