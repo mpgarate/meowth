@@ -72,7 +72,7 @@ i // => 12
 
 fn foo(x) { x + 1 }; // => Undefined
 foo + 4 // => Error: Invalid type conversion. Expected int and found Func(Some(Var("foo")), Bop(Plus, Var("x"), Int(1)), [Var("x")])
-bar(1) + 4 // => Int(6)
+foo(1) + 4 // => Int(6)
 
 ```
 
