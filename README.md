@@ -87,6 +87,6 @@ boxx liberally uses Rust's [Box module](https://doc.rust-lang.org/std/boxed/) fo
 
 ### Features in progress
  - Human-readable errors for parsing and evaluation. Most cases are covered, but the copy could be cleaned up. 
- ..- TODO: error handling for division by zero
+   - TODO: error handling for division by zero
  - Handle floating point numbers
  - Data Types and runtime type checking
