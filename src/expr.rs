@@ -242,7 +242,7 @@ impl Repl {
     let mut num_iterations = 0;
 
     loop {
-      if num_iterations > 1000 {
+      if num_iterations > 100000 {
         return Err(RuntimeError::TooManyIterations(num_iterations))
       }
 
