@@ -10,22 +10,6 @@ use std::result;
 
 pub type Result<T> = result::Result<T, RuntimeError>;
 
-macro_rules! step {
-  ($s:expr, $e:expr) => (try!($s.step($e)));
-}
-
-macro_rules! to_int {
-  ($e:expr) => (try!($e.to_int()));
-}
-
-macro_rules! to_var {
-  ($e:expr) => (try!($e.to_var()));
-}
-
-macro_rules! to_bool {
-  ($e:expr) => (try!($e.to_bool()));
-}
-
 pub struct Repl {
   pub state: State,
 }
@@ -59,16 +43,16 @@ impl Repl {
        * Base cases
        */
       Uop(Not, ref e1) if e1.is_value() => {
-        Bool(!to_bool!(e1))
+        Bool(!e1.to_bool()?)
       },
       Uop(Neg, ref e1) if e1.is_value() => {
-        Int(-1 * to_int!(e1))
+        Int(-1 * e1.to_int()?)
       },
       Bop(And, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
-        Bool(to_bool!(e1) && to_bool!(e2))
+        Bool(e1.to_bool()? && e2.to_bool()?)
       },
       Bop(Or, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
-        Bool(to_bool!(e1) || to_bool!(e2))
+        Bool(e1.to_bool()? || e2.to_bool()?)
       },
       Bop(Eq, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
         Bool(*e1 == *e2)
@@ -77,8 +61,8 @@ impl Repl {
         Bool(*e1 != *e2)
       },
       Bop(Mod, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
-        let n1 = to_int!(e1);
-        let n2 = to_int!(e2);
+        let n1 = e1.to_int()?;
+        let n2 = e2.to_int()?;
 
         // rust % gives the remainder, not modulus
         let result = ((n1 % n2) + n2) % n2;
@@ -86,51 +70,51 @@ impl Repl {
         Int(result)
       },
       Bop(Lt, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
-        Bool(to_int!(e1) < to_int!(e2))
+        Bool(e1.to_int()? < e2.to_int()?)
       },
       Bop(Gt, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
-        Bool(to_int!(e1) > to_int!(e2))
+        Bool(e1.to_int()? > e2.to_int()?)
       },
       Bop(Leq, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
-        Bool(to_int!(e1) <= to_int!(e2))
+        Bool(e1.to_int()? <= e2.to_int()?)
       },
       Bop(Geq, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
-        Bool(to_int!(e1) >= to_int!(e2))
+        Bool(e1.to_int()? >= e2.to_int()?)
       },
       Bop(Plus, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
-        Int(to_int!(e1) + to_int!(e2))
+        Int(e1.to_int()? + e2.to_int()?)
       },
       Bop(Minus, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
-        Int(to_int!(e1) - to_int!(e2))
+        Int(e1.to_int()? - e2.to_int()?)
       },
       Bop(Times, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
-        Int(to_int!(e1) * to_int!(e2))
+        Int(e1.to_int()? * e2.to_int()?)
       },
       Bop(Div, ref e1, ref e2) if e1.is_value() && e2.is_value() => {
-        Int(to_int!(e1) / to_int!(e2))
+        Int(e1.to_int()? / e2.to_int()?)
       },
       Bop(Seq, ref v1, ref e2) if v1.is_value() => {
         *e2.clone()
       },
       Bop(Assign, ref v1, ref v2) if v1.is_var() && v2.is_value() => {
-        let x = to_var!(v1);
-        try!(self.state.assign(x, *v2.clone()));
+        let x = v1.to_var()?;
+        self.state.assign(x, *v2.clone())?;
         debug!("done assigning {:?}", self.state.mem);
         *v2.clone()
       },
       Ternary(ref v1, ref e2, ref e3) if v1.is_value() => {
-        match to_bool!(v1) {
+        match v1.to_bool()? {
           true => *e2.clone(),
           false => *e3.clone(),
         }
       },
       Decl(DConst, ref x, ref v1, ref e2) if v1.is_value() => {
-        try!(self.state.alloc_const(to_var!(x), *v1.clone()));
+        self.state.alloc_const(x.to_var()?, *v1.clone())?;
         *e2.clone()
       },
       Decl(DVar, ref x, ref v1, ref e2) if x.is_var() && v1.is_value() => {
         debug!("allocing {:?}", v1);
-        try!(self.state.alloc(to_var!(x), *v1.clone()));
+        self.state.alloc(x.to_var()?, *v1.clone())?;
         *e2.clone()
       },
       // lambda lift so we can use iter() in guard
@@ -142,17 +126,17 @@ impl Repl {
             // sub the params
             let exp_result: Result<Expr> = xs.iter().zip(es.iter())
               .fold(Ok(*e1.clone()), |exp, (xn, en)| {
-                try!(self.state.alloc(to_var!(xn), en.clone()));
+                self.state.alloc(xn.to_var()?, en.clone())?;
                 exp
               });
 
-            let exp = try!(exp_result);
+            let exp = exp_result?;
 
             // sub the fn body for named functions
             let body = match *name {
               None => exp,
               Some(ref s) => {
-                try!(self.state.alloc(to_var!(s), *v1.clone()));
+                self.state.alloc(s.to_var()?, *v1.clone())?;
                 exp
               }
             };
@@ -172,39 +156,39 @@ impl Repl {
         Bop(
           op.clone(),
           Box::new(*v1.clone()),
-          Box::new(step!(self, *e2.clone()))
+          Box::new(self.step(*e2.clone())?)
         )
       },
       Bop(Assign, ref v1, ref e2) if v1.is_var() => {
         Bop(
           Assign,
           Box::new(*v1.clone()),
-          Box::new(step!(self, *e2.clone()))
+          Box::new(self.step(*e2.clone())?)
         )
       },
       Bop(op, e1, e2) => {
-        Bop(op, Box::new(step!(self, *e1)), e2)
+        Bop(op, Box::new(self.step(*e1)?), e2)
       },
       Uop(op, e1) => {
-        Uop(op, Box::new(step!(self, *e1)))
+        Uop(op, Box::new(self.step(*e1)?))
       },
       Ternary(e1, e2, e3) => {
-        Ternary(Box::new(step!(self, *e1)), e2, e3)
+        Ternary(Box::new(self.step(*e1)?), e2, e3)
       },
       While(ref v1, ref e1o, _, ref e2o, ref e3) if v1.is_value() => {
-        match to_bool!(v1) {
+        match v1.to_bool()? {
           true => While(Box::new(*e1o.clone()), e1o.clone(), e2o.clone(), e2o.clone(), e3.clone()),
           false => *e3.clone(),
         }
       },
       While(ref e1, ref e1o, ref v2, ref e2o, ref e3) if v2.is_value() => {
-        While(Box::new(step!(self, *e1.clone())), e1o.clone(), v2.clone(), e2o.clone(), e3.clone())
+        While(Box::new(self.step(*e1.clone())?), e1o.clone(), v2.clone(), e2o.clone(), e3.clone())
       },
       While(e1, e1o, e2, e2o, e3) => {
-        While(e1, e1o, Box::new(step!(self, *e2)), e2o, e3)
+        While(e1, e1o, Box::new(self.step(*e2)?), e2o, e3)
       },
       Decl(dt, addr, e1, e2) => {
-        Decl(dt, Box::new(*addr.clone()), Box::new(step!(self, *e1)), e2)
+        Decl(dt, Box::new(*addr.clone()), Box::new(self.step(*e1)?), e2)
       },
       FnCall(ref v1, ref args) if v1.is_value() => {
         let mut found_nonvalue = false;
@@ -224,10 +208,10 @@ impl Repl {
         }
       },
       FnCall(e1, args) => {
-        FnCall(Box::new(step!(self, *e1)), args)
+        FnCall(Box::new(self.step(*e1)?), args)
       },
       Scope(e1) => {
-        Scope(Box::new(step!(self, *e1)))
+        Scope(Box::new(self.step(*e1)?))
       },
     };
 
@@ -237,7 +221,7 @@ impl Repl {
   }
 
   pub fn eval(&mut self, input: &str) -> Result<Expr> {
-    let mut e = try!(parse(input));
+    let mut e = parse(input)?;
 
     let mut num_iterations = 0;
 
@@ -254,7 +238,7 @@ impl Repl {
         debug!("--- iterations: {}", num_iterations);
         return Ok(e.clone());
       } else {
-        e = try!(self.step(e.clone()));
+        e = self.step(e.clone())?;
       }
     }
   }
