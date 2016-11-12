@@ -24,7 +24,7 @@ impl Lexer {
       .take_while(|c| c.is_digit(10))
       .collect();
 
-    let n = try!(int_str.parse::<isize>());
+    let n = int_str.parse::<isize>()?;
 
     self.advance(int_str.len());
     Ok(Token::Int(n))
