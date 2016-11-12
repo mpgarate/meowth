@@ -84,6 +84,13 @@ impl Parser {
     Ok(params)
   }
 
+  fn parse_print(&mut self) -> Result<Expr> {
+    debug!("parsing print...");
+    self.eat(Token::Print)?;
+    let term = self.binop_expr()?;
+    Ok(Expr::Print(Box::new(term)))
+  }
+
   fn parse_fn(&mut self) -> Result<Expr> {
     debug!("parsing named fn...");
     self.eat(Token::FnDecl)?;
@@ -180,6 +187,9 @@ impl Parser {
         } else {
           Expr::Var(s)
         }
+      },
+      Token::Print => {
+        self.parse_print()?
       },
       Token::FnDecl => {
         self.parse_fn()?

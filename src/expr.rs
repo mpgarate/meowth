@@ -149,6 +149,10 @@ impl Repl {
         self.state.end_scope();
         *v1.clone()
       },
+      Print(ref v1) if v1.is_value() => {
+        println!("{}", v1);
+        Expr::Undefined
+      },
       /**
        * Search Cases
        */
@@ -212,6 +216,9 @@ impl Repl {
       },
       Scope(e1) => {
         Scope(Box::new(self.step(*e1)?))
+      },
+      Print(e1) => {
+        Print(Box::new(self.step(*e1)?))
       },
     };
 

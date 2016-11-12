@@ -51,6 +51,20 @@ mod tests {
   }
 
   #[test]
+  pub fn test_print() {
+    let _ = env_logger::init();
+
+    // TODO: it would be nice to test the stdout for this
+    assert_eq!(
+      Ok(Expr::Undefined),
+      boxx("
+        var x = 555;
+        print(x);
+      ")
+    );
+  }
+
+  #[test]
   pub fn test_comments() {
     let _ = env_logger::init();
 

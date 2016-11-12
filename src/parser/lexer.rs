@@ -47,6 +47,7 @@ impl Lexer {
       "if" => Token::If,
       "else" => Token::Else,
       "while" => Token::While,
+      "print" => Token::Print,
       s if s.len() > 0 => Token::Var(s.to_string()),
       s => return Err(LexerError::InvalidKeyword(format!("invalid keyword {:?}", s)))
     };

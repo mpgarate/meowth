@@ -1,5 +1,6 @@
 use ast::Expr::*;
 use runtime_error::RuntimeError;
+use std::fmt;
 
 #[derive(Clone, Debug, PartialEq)] 
 pub enum UnOp {
@@ -46,6 +47,7 @@ pub enum Expr {
   Func(Option<Box<Expr>>, Box<Expr>, Vec<Expr>),
   FnCall(Box<Expr>, Vec<Expr>),
   Scope(Box<Expr>),
+  Print(Box<Expr>),
 }
 
 impl Expr {
@@ -92,3 +94,12 @@ impl Expr {
   }
 }
 
+impl fmt::Display for Expr {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match *self {
+      Int(n) => write!(f, "{}", n),
+      Bool(b) => write!(f, "{}", b),
+      _ => write!(f, "cannot print this thing")
+    }
+  }
+}

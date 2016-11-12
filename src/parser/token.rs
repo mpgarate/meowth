@@ -32,6 +32,7 @@ pub enum Token {
   If,
   While,
   EOF,
+  Print,
 }
 
 impl Token {
