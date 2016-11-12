@@ -18,9 +18,7 @@ RUST_LOG=boxx=debug RUST_BACKTRACE=1 cargo watch "test test_while_loop"
 * go through and think about statement vs block vs binop_expr, adjust usage and naming
 
 ### Pokemon
-* [hard] REPL should maintain state
 * [easy] print statement
-* [hard] while loop
 * [medium] ability to run standalone program files through interpreter
 * [breaking] type coercion for bool to number
 * [breaking] bike / mutable stack-like var binding
@@ -28,6 +26,5 @@ RUST_LOG=boxx=debug RUST_BACKTRACE=1 cargo watch "test test_while_loop"
 
 ### A few TODOs (post-pokemon)
 * [medium] Number type(s) beyond integer
-* [hard] Human-readable errors
 * [easy] language-level exit command
 * [medium] exponents **
