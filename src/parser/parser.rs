@@ -36,11 +36,11 @@ impl Parser {
   }
 
   fn ternary(&mut self, e1: Expr, e2: Expr, e3: Expr) -> Expr {
-    Expr::Ternary(to_box(e1), to_box(e2), to_box(e3))
+    Expr::Ternary(Box::new(e1), Box::new(e2), Box::new(e3))
   }
 
   fn binop(&mut self, bop: BinOp, e1: Expr, e2: Expr) -> Expr {
-    Expr::Bop(bop, to_box(e1), to_box(e2))
+    Expr::Bop(bop, Box::new(e1), Box::new(e2))
   }
 
   fn parse_fn_params(&mut self) -> Result<Vec<Expr>> {
@@ -109,12 +109,12 @@ impl Parser {
         self.eat(Token::Seq)?;
         let e3 = self.block()?;
 
-        let func = Expr::Func(Some(to_box(v.clone())), to_box(body.clone()), params);
+        let func = Expr::Func(Some(Box::new(v.clone())), Box::new(body.clone()), params);
 
-        Ok(Expr::Decl(Dec::DConst, to_box(v), to_box(func), to_box(e3)))
+        Ok(Expr::Decl(Dec::DConst, Box::new(v), Box::new(func), Box::new(e3)))
       },
       None => {
-        let func = Expr::Func(None, to_box(body.clone()), params);
+        let func = Expr::Func(None, Box::new(body.clone()), params);
 
         // fn call rule
         if self.current_token == Token::LParen {
@@ -122,7 +122,7 @@ impl Parser {
           let params = self.parse_fn_params()?;
           self.eat(Token::RParen)?;
 
-          Ok(Expr::FnCall(to_box(func), params))
+          Ok(Expr::FnCall(Box::new(func), params))
         } else {
           Ok(func)
         }
@@ -140,11 +140,11 @@ impl Parser {
     let e3 = self.block()?;
 
     return Ok(Expr::While(
-      to_box(e1.clone()),
-      to_box(e1),
-      to_box(e2.clone()),
-      to_box(e2),
-      to_box(e3)
+      Box::new(e1.clone()),
+      Box::new(e1),
+      Box::new(e2.clone()),
+      Box::new(e2),
+      Box::new(e3)
     ));
   }
 
@@ -176,7 +176,7 @@ impl Parser {
           let params = self.parse_fn_params()?;
           self.eat(Token::RParen)?;
 
-          Expr::FnCall(to_box(Expr::Var(s)), params)
+          Expr::FnCall(Box::new(Expr::Var(s)), params)
         } else {
           Expr::Var(s)
         }
@@ -192,7 +192,7 @@ impl Parser {
         self.eat(Token::Seq)?;
         let e3 = self.block()?;
 
-        Expr::Decl(Dec::DVar, to_box(var), to_box(e2), to_box(e3))
+        Expr::Decl(Dec::DVar, Box::new(var), Box::new(e2), Box::new(e3))
       },
       Token::Let => {
         self.eat(Token::Let)?;
@@ -202,7 +202,7 @@ impl Parser {
         self.eat(Token::Seq)?;
         let e3 = self.block()?;
 
-        Expr::Decl(Dec::DConst, to_box(var), to_box(e2), to_box(e3))
+        Expr::Decl(Dec::DConst, Box::new(var), Box::new(e2), Box::new(e3))
       },
       Token::If => {
         self.parse_if()?
@@ -228,11 +228,11 @@ impl Parser {
       },
       Token::Not => {
         self.eat(Token::Not)?;
-        Expr::Uop(UnOp::Not, to_box(self.factor()?))
+        Expr::Uop(UnOp::Not, Box::new(self.factor()?))
       },
       Token::Minus => {
         self.eat(Token::Minus)?;
-        Expr::Uop(UnOp::Neg, to_box(self.factor()?))
+        Expr::Uop(UnOp::Neg, Box::new(self.factor()?))
       },
       Token::EOF => {
         self.eat(Token::EOF)?;
@@ -354,10 +354,6 @@ impl Parser {
   pub fn program(&mut self) -> Result<Expr> {
     self.block()
   }
-}
-
-fn to_box(e: Expr) -> Box<Expr> {
-  Box::new(e)
 }
 
 pub fn parse(input: &str) -> Result<Expr> {
