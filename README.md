@@ -90,3 +90,4 @@ boxx liberally uses Rust's [Box module](https://doc.rust-lang.org/std/boxed/) fo
    - TODO: error handling for division by zero
  - Handle floating point numbers
  - Data Types and runtime type checking
+ - Ability to read in code files. For now, the language only works as a repl. 

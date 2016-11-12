@@ -19,7 +19,6 @@ RUST_LOG=boxx=debug RUST_BACKTRACE=1 cargo watch "test test_while_loop"
 
 ### Pokemon
 * [easy] print statement
-* [medium] ability to run standalone program files through interpreter
 * [breaking] type coercion for bool to number
 * [breaking] bike / mutable stack-like var binding
 * [breaking] rename a bunch of files and crates
