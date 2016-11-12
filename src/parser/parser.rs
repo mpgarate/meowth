@@ -30,7 +30,7 @@ impl Parser {
       return Err(ParserError::UnexpectedToken(expected, actual))
     }
 
-    self.current_token = try!(self.lexer.get_next_token());
+    self.current_token = self.lexer.get_next_token()?;
     debug!("new current token: {:?}", self.current_token);
     Ok(())
   }
@@ -49,12 +49,12 @@ impl Parser {
 
     while token != Token::RParen {
       debug!("getting fn params");
-      let term = try!(self.binop_expr());
+      let term = self.binop_expr()?;
 
       params.push(term);
 
       if self.current_token == Token::Comma {
-        try!(self.eat(Token::Comma));
+        self.eat(Token::Comma)?;
       }
 
       token = self.current_token();
@@ -71,10 +71,10 @@ impl Parser {
       debug!("getting fn decl params");
       match token.clone() {
         Token::Var(s) => {
-          try!(self.eat(Token::Var(s.clone())));
+          self.eat(Token::Var(s.clone()))?;
           params.push(Expr::Var(s));
         },
-        Token::Comma => try!(self.eat(Token::Comma)),
+        Token::Comma => self.eat(Token::Comma)?,
         _ => return Err(ParserError::InvalidToken(token, String::from("parsing fn decl params")))
       }
 
@@ -86,28 +86,28 @@ impl Parser {
 
   fn parse_fn(&mut self) -> Result<Expr> {
     debug!("parsing named fn...");
-    try!(self.eat(Token::FnDecl));
+    self.eat(Token::FnDecl)?;
 
     let var = match self.current_token() {
       Token::Var(s) => {
-        try!(self.eat(Token::Var(s.clone())));
+        self.eat(Token::Var(s.clone()))?;
         Some(Expr::Var(s))
       },
       _ => None,
     };
 
-    try!(self.eat(Token::LParen));
-    let params = try!(self.parse_fn_decl_params());
-    try!(self.eat(Token::RParen));
+    self.eat(Token::LParen)?;
+    let params = self.parse_fn_decl_params()?;
+    self.eat(Token::RParen)?;
 
-    try!(self.eat(Token::LBracket));
-    let body = try!(self.block());
-    try!(self.eat(Token::RBracket));
+    self.eat(Token::LBracket)?;
+    let body = self.block()?;
+    self.eat(Token::RBracket)?;
 
     match var {
       Some(v) => {
-        try!(self.eat(Token::Seq));
-        let e3 = try!(self.block());
+        self.eat(Token::Seq)?;
+        let e3 = self.block()?;
 
         let func = Expr::Func(Some(to_box(v.clone())), to_box(body.clone()), params);
 
@@ -118,9 +118,9 @@ impl Parser {
 
         // fn call rule
         if self.current_token == Token::LParen {
-          try!(self.eat(Token::LParen));
-          let params = try!(self.parse_fn_params());
-          try!(self.eat(Token::RParen));
+          self.eat(Token::LParen)?;
+          let params = self.parse_fn_params()?;
+          self.eat(Token::RParen)?;
 
           Ok(Expr::FnCall(to_box(func), params))
         } else {
@@ -131,13 +131,13 @@ impl Parser {
   }
 
   fn parse_while(&mut self) -> Result<Expr> {
-    try!(self.eat(Token::While));
-    try!(self.eat(Token::LParen));
-    let e1 = try!(self.statement());
-    try!(self.eat(Token::RParen));
-    let e2 = try!(self.factor());
-    try!(self.eat(Token::Seq));
-    let e3 = try!(self.block());
+    self.eat(Token::While)?;
+    self.eat(Token::LParen)?;
+    let e1 = self.statement()?;
+    self.eat(Token::RParen)?;
+    let e2 = self.factor()?;
+    self.eat(Token::Seq)?;
+    let e3 = self.block()?;
 
     return Ok(Expr::While(
       to_box(e1.clone()),
@@ -149,10 +149,10 @@ impl Parser {
   }
 
   fn parse_if(&mut self) -> Result<Expr> {
-    try!(self.eat(Token::If));
-    let e1 = try!(self.binop_expr());
-    let e2 = try!(self.block());
-    let e3 = try!(self.statement());
+    self.eat(Token::If)?;
+    let e1 = self.binop_expr()?;
+    let e2 = self.block()?;
+    let e3 = self.statement()?;
 
     return Ok(self.ternary(e1, e2, e3));
   }
@@ -160,21 +160,21 @@ impl Parser {
   fn factor(&mut self) -> Result<Expr> {
     let e = match self.current_token() {
       Token::Int(n) => {
-        try!(self.eat(Token::Int(n.clone())));
+        self.eat(Token::Int(n.clone()))?;
         Expr::Int(n)
       },
       Token::Bool(b) => {
-        try!(self.eat(Token::Bool(b.clone())));
+        self.eat(Token::Bool(b.clone()))?;
         Expr::Bool(b)
       },
       Token::Var(s) => {
-        try!(self.eat(Token::Var(s.clone())));
+        self.eat(Token::Var(s.clone()))?;
 
         // fn call rule
         if self.current_token == Token::LParen {
-          try!(self.eat(Token::LParen));
-          let params = try!(self.parse_fn_params());
-          try!(self.eat(Token::RParen));
+          self.eat(Token::LParen)?;
+          let params = self.parse_fn_params()?;
+          self.eat(Token::RParen)?;
 
           Expr::FnCall(to_box(Expr::Var(s)), params)
         } else {
@@ -182,60 +182,60 @@ impl Parser {
         }
       },
       Token::FnDecl => {
-        try!(self.parse_fn())
+        self.parse_fn()?
       },
       Token::VarDecl => {
-        try!(self.eat(Token::VarDecl));
-        let var = try!(self.term());
-        try!(self.eat(Token::Assign));
-        let e2 = try!(self.statement());
-        try!(self.eat(Token::Seq));
-        let e3 = try!(self.block());
+        self.eat(Token::VarDecl)?;
+        let var = self.term()?;
+        self.eat(Token::Assign)?;
+        let e2 = self.statement()?;
+        self.eat(Token::Seq)?;
+        let e3 = self.block()?;
 
         Expr::Decl(Dec::DVar, to_box(var), to_box(e2), to_box(e3))
       },
       Token::Let => {
-        try!(self.eat(Token::Let));
-        let var = try!(self.term());
-        try!(self.eat(Token::Assign));
-        let e2 = try!(self.statement());
-        try!(self.eat(Token::Seq));
-        let e3 = try!(self.block());
+        self.eat(Token::Let)?;
+        let var = self.term()?;
+        self.eat(Token::Assign)?;
+        let e2 = self.statement()?;
+        self.eat(Token::Seq)?;
+        let e3 = self.block()?;
 
         Expr::Decl(Dec::DConst, to_box(var), to_box(e2), to_box(e3))
       },
       Token::If => {
-        try!(self.parse_if())
+        self.parse_if()?
       },
       Token::Else => {
-        try!(self.eat(Token::Else));
-        try!(self.statement())
+        self.eat(Token::Else)?;
+        self.statement()?
       },
       Token::While => {
-        try!(self.parse_while())
+        self.parse_while()?
       },
       Token::LParen => {
-        try!(self.eat(Token::LParen));
-        let node = try!(self.statement());
-        try!(self.eat(Token::RParen));
+        self.eat(Token::LParen)?;
+        let node = self.statement()?;
+        self.eat(Token::RParen)?;
         node
       },
       Token::LBracket => {
-        try!(self.eat(Token::LBracket));
-        let node = try!(self.block());
-        try!(self.eat(Token::RBracket));
+        self.eat(Token::LBracket)?;
+        let node = self.block()?;
+        self.eat(Token::RBracket)?;
         node
       },
       Token::Not => {
-        try!(self.eat(Token::Not));
-        Expr::Uop(UnOp::Not, to_box(try!(self.factor())))
+        self.eat(Token::Not)?;
+        Expr::Uop(UnOp::Not, to_box(self.factor()?))
       },
       Token::Minus => {
-        try!(self.eat(Token::Minus));
-        Expr::Uop(UnOp::Neg, to_box(try!(self.factor())))
+        self.eat(Token::Minus)?;
+        Expr::Uop(UnOp::Neg, to_box(self.factor()?))
       },
       Token::EOF => {
-        try!(self.eat(Token::EOF));
+        self.eat(Token::EOF)?;
         Expr::Undefined
       },
       _ => {
@@ -247,13 +247,13 @@ impl Parser {
   }
 
   pub fn term(&mut self) -> Result<Expr> {
-    let mut node = try!(self.factor());
+    let mut node = self.factor()?;
 
     let mut op = self.current_token();
 
     while op.is_term_op() {
-      try!(self.eat(op.clone()));
-      let right_node = try!(self.term());
+      self.eat(op.clone())?;
+      let right_node = self.term()?;
 
       node = match op {
         Token::Times => self.binop(BinOp::Times, node, right_node),
@@ -268,15 +268,15 @@ impl Parser {
   }
 
   pub fn binop_expr(&mut self) -> Result<Expr> {
-    let mut node = try!(self.term());
+    let mut node = self.term()?;
 
     let mut op = self.current_token();
 
     while op.is_expr_op() {
       debug!("expr looping on op {:?}", op);
-      try!(self.eat(op.clone()));
+      self.eat(op.clone())?;
 
-      let right_node = try!(self.term());
+      let right_node = self.term()?;
 
       node = match op {
         Token::Plus => self.binop(BinOp::Plus, node, right_node),
@@ -300,21 +300,21 @@ impl Parser {
   }
 
   pub fn statement(&mut self) -> Result<Expr> {
-    let mut node = try!(self.binop_expr());
+    let mut node = self.binop_expr()?;
     let mut op = self.current_token();
 
     while op.is_statement_op() {
-      try!(self.eat(op.clone()));
+      self.eat(op.clone())?;
 
       node = match op {
         Token::Ternary => {
-          let e2 = try!(self.block());
-          try!(self.eat(Token::Else));
-          let e3 = try!(self.statement());
+          let e2 = self.block()?;
+          self.eat(Token::Else)?;
+          let e3 = self.statement()?;
           self.ternary(node, e2, e3)
         },
         Token::Assign => {
-          let e2 = try!(self.statement());
+          let e2 = self.statement()?;
           self.binop(BinOp::Assign, node, e2)
         },
         _ => return Err(ParserError::InvalidToken(op, String::from("parsing statement")))
@@ -327,17 +327,17 @@ impl Parser {
   }
 
   pub fn block(&mut self) -> Result<Expr> {
-    let mut node = try!(self.statement());
+    let mut node = self.statement()?;
     let mut op = self.current_token();
 
     while op.is_block_op() {
-      try!(self.eat(op.clone()));
+      self.eat(op.clone())?;
 
       node = match op {
         Token::Seq => {
           let e2 = match self.current_token() {
             Token::RBracket => Expr::Undefined,
-            _ => try!(self.statement()),
+            _ => self.statement()?,
           };
 
           self.binop(BinOp::Seq, node, e2)
@@ -363,7 +363,7 @@ fn to_box(e: Expr) -> Box<Expr> {
 pub fn parse(input: &str) -> Result<Expr> {
   let mut lexer = Lexer::new(input.to_string());
 
-  let token = try!(lexer.get_next_token());
+  let token = lexer.get_next_token()?;
   
   let mut parser = Parser::new(lexer, token);
   let expr = parser.program();
