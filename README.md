@@ -79,7 +79,7 @@ foo(1) + 4 // => Int(6)
 For more examples and planned features, see the [integration tests](https://github.com/mpgarate/boxx/blob/master/tests/integration.rs). 
 
 ### Implementation
-Expressions are evaluated using a [small step interpreter](https://github.com/mpgarate/boxx/blob/master/src/expr.rs).
+Expressions are evaluated using a [small step interpreter](https://github.com/mpgarate/boxx/blob/master/src/interpreter.rs).
 
 boxx uses a hand-rolled [recursive descent parser](https://github.com/mpgarate/boxx/blob/master/src/parser/parser.rs) rather than a parser generator in order to have more control of the implementation and avoid dependencies. This is probably the messiest part of the code and source of the trickiest bugs. 
 

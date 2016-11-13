@@ -1,11 +1,11 @@
 extern crate boxx;
 
-use boxx::expr::Repl;
+use boxx::interpreter::Interpreter;
 
 use std::io::{Write, stdout, stdin};
 
 fn main() {
-  let mut repl = Repl::new();
+  let mut interpreter = Interpreter::new();
 
   loop {
     print!("boxx> ");
@@ -18,7 +18,7 @@ fn main() {
           break;
         }
 
-        let expr_result = repl.eval(&input);
+        let expr_result = interpreter.eval(&input);
         
         match expr_result {
           Ok(exp) => println!("{:?}", exp), 

@@ -3,11 +3,16 @@ extern crate boxx;
 #[cfg(test)]
 mod tests {
   extern crate boxx;
-  use boxx::expr::boxx;
-  use boxx::expr::Repl;
+  use boxx::interpreter::Interpreter;
   use boxx::ast::Expr;
+  use boxx::runtime_error::RuntimeError;
 
   extern crate env_logger;
+
+  fn boxx(input: &str) -> Result<Expr, RuntimeError> {
+    let mut interpreter = Interpreter::new();
+    interpreter.eval(input)
+  }
 
   #[test]
   pub fn test_parser_error() {
@@ -18,35 +23,35 @@ mod tests {
   }
 
   #[test]
-  pub fn test_repl() {
+  pub fn test_interpreter() {
     let _ = env_logger::init();
 
-    let mut repl = Repl::new();
+    let mut interpreter = Interpreter::new();
 
     assert_eq!(
       Expr::Int(2),
-      repl.eval("1 + 1").unwrap()
+      interpreter.eval("1 + 1").unwrap()
     );
 
     assert_eq!(
       Expr::Undefined,
-      repl.eval("var x = 3;").unwrap()
+      interpreter.eval("var x = 3;").unwrap()
     );
 
     assert_eq!(
       Expr::Int(3),
-      repl.eval("x").unwrap()
+      interpreter.eval("x").unwrap()
     );
 
 
     assert_eq!(
       Expr::Undefined,
-      repl.eval("fn double(x) { x + x };").unwrap()
+      interpreter.eval("fn double(x) { x + x };").unwrap()
     );
 
     assert_eq!(
       Expr::Int(48),
-      repl.eval("double(24)").unwrap()
+      interpreter.eval("double(24)").unwrap()
     );
   }
 

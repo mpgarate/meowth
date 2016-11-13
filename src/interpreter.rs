@@ -10,13 +10,13 @@ use std::result;
 
 pub type Result<T> = result::Result<T, RuntimeError>;
 
-pub struct Repl {
+pub struct Interpreter {
   pub state: State,
 }
 
-impl Repl {
-  pub fn new() -> Repl {
-    Repl {
+impl Interpreter {
+  pub fn new() -> Interpreter {
+    Interpreter {
       state: State::new(),
     }
   }
@@ -241,9 +241,4 @@ impl Repl {
       }
     }
   }
-}
-
-pub fn boxx(input: &str) -> Result<Expr> {
-  let mut repl = Repl::new();
-  repl.eval(input)
 }
