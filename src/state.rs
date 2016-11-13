@@ -1,4 +1,4 @@
-use expr::*;
+use expr::Expr;
 use std::collections::HashMap;
 use runtime_error::RuntimeError;
 
