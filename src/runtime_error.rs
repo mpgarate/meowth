@@ -1,6 +1,6 @@
 use std::error;
 use std::fmt;
-use ast::Expr;
+use expr::Expr;
 use parser::parser_error::ParserError;
 
 #[derive(Debug, PartialEq)]

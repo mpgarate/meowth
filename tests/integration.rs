@@ -4,7 +4,7 @@ extern crate boxx;
 mod tests {
   extern crate boxx;
   use boxx::interpreter::Interpreter;
-  use boxx::ast::Expr;
+  use boxx::expr::Expr;
   use boxx::runtime_error::RuntimeError;
 
   extern crate env_logger;

@@ -1,4 +1,4 @@
-use ast::{Expr, BinOp, UnOp, Dec};
+use expr::{Expr, BinOp, UnOp, Dec};
 use parser::lexer::Lexer;
 use parser::token::Token;
 use parser::parser_error::ParserError;

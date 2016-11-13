@@ -1,10 +1,10 @@
 use parser::parser::{parse};
-use ast::Expr::*;
-use ast::UnOp::*;
-use ast::BinOp::*;
-use ast::Dec::*;
-use ast::*;
-use state::*;
+use expr::Expr;
+use expr::Expr::*;
+use expr::UnOp::*;
+use expr::BinOp::*;
+use expr::Dec::*;
+use state::State;
 use runtime_error::RuntimeError;
 use std::result;
 
