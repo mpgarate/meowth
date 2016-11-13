@@ -144,6 +144,12 @@ impl Repl {
         self.state.end_scope();
         *v1.clone()
       },
+      While(ref v1, ref e1o, _, ref e2o, ref e3) if v1.is_value() => {
+        match v1.to_bool()? {
+          true => While(Box::new(*e1o.clone()), e1o.clone(), e2o.clone(), e2o.clone(), e3.clone()),
+          false => *e3.clone(),
+        }
+      },
       Print(ref v1) if v1.is_value() => {
         println!("{}", v1);
         Expr::Undefined
@@ -173,12 +179,6 @@ impl Repl {
       },
       Ternary(e1, e2, e3) => {
         Ternary(Box::new(self.step(*e1)?), e2, e3)
-      },
-      While(ref v1, ref e1o, _, ref e2o, ref e3) if v1.is_value() => {
-        match v1.to_bool()? {
-          true => While(Box::new(*e1o.clone()), e1o.clone(), e2o.clone(), e2o.clone(), e3.clone()),
-          false => *e3.clone(),
-        }
       },
       While(ref e1, ref e1o, ref v2, ref e2o, ref e3) if v2.is_value() => {
         While(Box::new(self.step(*e1.clone())?), e1o.clone(), v2.clone(), e2o.clone(), e3.clone())
@@ -225,7 +225,7 @@ impl Repl {
     let mut num_iterations = 0;
 
     loop {
-      if num_iterations > 100000 {
+      if num_iterations > 1000000000 {
         return Err(RuntimeError::TooManyIterations(num_iterations))
       }
 
