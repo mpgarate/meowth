@@ -123,24 +123,19 @@ impl Repl {
         match **v1 {
           Func(ref name, ref e1, ref xs) => {
             self.state.begin_scope();
-            // sub the params
-            let exp_result: Result<Expr> = xs.iter().zip(es.iter())
-              .fold(Ok(*e1.clone()), |exp, (xn, en)| {
-                self.state.alloc(xn.to_var()?, en.clone())?;
-                exp
-              });
 
-            let exp = exp_result?;
+            // alloc the params
+            for (xn, en) in xs.iter().zip(es.iter()) {
+              self.state.alloc(xn.to_var()?, en.clone())?;
+            }
 
-            // sub the fn body for named functions
-            let body = match *name {
-              None => exp,
-              Some(ref s) => {
-                self.state.alloc(s.to_var()?, *v1.clone())?;
-                exp
-              }
+            // alloc the fn body for named functions
+            match *name {
+              Some(ref s) => self.state.alloc(s.to_var()?, *v1.clone())?,
+              _ => {},
             };
-            Scope(Box::new(body))
+
+            Scope(Box::new(*e1.clone()))
           },
           _ => return Err(RuntimeError::UnexpectedExpr("expected Func".to_string(), *v1.clone()))
         }
