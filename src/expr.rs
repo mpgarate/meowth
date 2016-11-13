@@ -194,7 +194,7 @@ impl Repl {
       Decl(dt, addr, e1, e2) => {
         Decl(dt, Box::new(*addr.clone()), Box::new(self.step(*e1)?), e2)
       },
-      FnCall(ref v1, ref args) if v1.is_value() => {
+      FnCall(ref v1, ref args) if v1.is_func() => {
         let mut found_nonvalue = false;
 
         let stepped_args: Result<Vec<Expr>> = args.iter().map(|e| {
@@ -206,10 +206,7 @@ impl Repl {
           }
         }).collect();
 
-        match stepped_args {
-          Ok(args2) => FnCall(v1.clone(), args2),
-          Err(e) => return Err(e)
-        }
+        FnCall(v1.clone(), stepped_args?)
       },
       FnCall(e1, args) => {
         FnCall(Box::new(self.step(*e1)?), args)
