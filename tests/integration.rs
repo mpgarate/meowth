@@ -46,7 +46,7 @@ mod tests {
 
     assert_eq!(
       Expr::Undefined,
-      interpreter.eval("fn double(x) { x + x };").unwrap()
+      interpreter.eval("attack double(x) { x + x };").unwrap()
     );
 
     assert_eq!(
@@ -122,7 +122,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Int(96)),
       boxx("
-        fn foo(x) { x * 2 };
+        attack foo(x) { x * 2 };
         var x = 3;
         while (foo(x) < 100) {
           x = foo(x)
@@ -134,7 +134,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Int(96)),
       boxx("
-        fn foo(x) { x * 2 };
+        attack foo(x) { x * 2 };
         var x = 3;
         while ((x = foo(x)) < 96) { 0 };
         x
@@ -144,7 +144,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Int(16)),
       boxx("
-        fn foo(x) { x + 1 };
+        attack foo(x) { x + 1 };
         var x = 1;
         while (x < 10) {
           x = foo(x);
@@ -166,7 +166,7 @@ mod tests {
       Ok(Expr::Int(8)),
       boxx("
         var x = 4;
-        var foo = fn(z) {
+        var foo = attack(z) {
           x = z + 2;
         };
         foo(x);
@@ -198,7 +198,7 @@ mod tests {
       Ok(Expr::Int(20)),
       boxx("
         var x = 4;
-        fn foo(z) {
+        attack foo(z) {
           x * z 
         };
         foo(x) + x
@@ -207,14 +207,14 @@ mod tests {
 
     assert_eq!(
       Ok(Expr::Int(15)),
-      boxx("var x = 4; fn foo(z) { var x = 7; x + z }; foo(x) + x")
+      boxx("var x = 4; attack foo(z) { var x = 7; x + z }; foo(x) + x")
     );
 
     /*
-       TODO: allow var bindings so that fn params can be reassigned
+       TODO: allow var bindings so that attack params can be reassigned
     assert_eq!(
       Ok(Expr::Int(23)),
-      boxx("var x = 4; fn foo(z) { var x = 7; z = x; x = 12; x + z }; foo(x) + x")
+      boxx("var x = 4; attack foo(z) { var x = 7; z = x; x = 12; x + z }; foo(x) + x")
     );
     */
 
@@ -222,11 +222,11 @@ mod tests {
 
     assert_eq!(
       Ok(Expr::Int(13)),
-      boxx("var x = 10; var foo = fn(x) { var foo = fn (y) { var x = 3; y + x }; foo(x) }; foo(x) ")
+      boxx("var x = 10; var foo = attack(x) { var foo = attack (y) { var x = 3; y + x }; foo(x) }; foo(x) ")
     );
 
-    assert_eq!(Ok(Expr::Int(5)), boxx("var x = 3; x = fn() { 4 + 1 }; x()"));
-    assert_eq!(Ok(Expr::Int(3)), boxx("var x = fn() { 4 + 1 }; x = 3; x"));
+    assert_eq!(Ok(Expr::Int(5)), boxx("var x = 3; x = attack() { 4 + 1 }; x()"));
+    assert_eq!(Ok(Expr::Int(3)), boxx("var x = attack() { 4 + 1 }; x = 3; x"));
   }
 
 
@@ -274,7 +274,7 @@ mod tests {
       Ok(Expr::Int(8)),
       boxx("
         var x = 4;
-        fn foo(z) {
+        attack foo(z) {
           x = z + 2;
         };
         foo(x);
@@ -283,18 +283,18 @@ mod tests {
       ")
     );
 
-    assert_eq!(Ok(Expr::Int(2)), boxx("let x = 4; fn foo() { let x = 1; x + 1 }; foo()"));
-    assert_eq!(Ok(Expr::Int(6)), boxx("let x = 5; fn foo() { x + 1 }; foo()"));
-    assert_eq!(Ok(Expr::Int(60)), boxx("fn foo() { 5 }; fn bar() { fn foo() { 6 }; foo() * 10 }; bar()"));
-    assert_eq!(Ok(Expr::Int(50)), boxx("fn foo() { 5 }; fn bar() { foo() * 10 }; bar()"));
+    assert_eq!(Ok(Expr::Int(2)), boxx("let x = 4; attack foo() { let x = 1; x + 1 }; foo()"));
+    assert_eq!(Ok(Expr::Int(6)), boxx("let x = 5; attack foo() { x + 1 }; foo()"));
+    assert_eq!(Ok(Expr::Int(60)), boxx("attack foo() { 5 }; attack bar() { attack foo() { 6 }; foo() * 10 }; bar()"));
+    assert_eq!(Ok(Expr::Int(50)), boxx("attack foo() { 5 }; attack bar() { foo() * 10 }; bar()"));
 
-    assert_eq!(Ok(Expr::Int(12)), boxx("fn sum(a, b) { a + b }; sum(sum(3, 4), 5)"));
-    assert_eq!(Ok(Expr::Int(12)), boxx("fn tx_two(a) { 2 * a }; tx_two(tx_two(3))"));
+    assert_eq!(Ok(Expr::Int(12)), boxx("attack sum(a, b) { a + b }; sum(sum(3, 4), 5)"));
+    assert_eq!(Ok(Expr::Int(12)), boxx("attack tx_two(a) { 2 * a }; tx_two(tx_two(3))"));
 
     assert_eq!(
       Ok(Expr::Int(41)),
       boxx("
-        fn foo(a) {
+        attack foo(a) {
           a < 40 ? foo(a + 3) : a
         };
 
@@ -305,7 +305,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Int(21)),
       boxx("
-        fn fib(n) {
+        attack fib(n) {
           n == 0 ? 0 : (n == 1 ? 1 : fib(n - 1) + fib(n - 2))
         };
 
@@ -316,7 +316,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Int(21)),
       boxx("
-        var fib = fn(n) {
+        var fib = attack(n) {
           n == 0 ? 0 : (n == 1 ? 1 : fib(n - 1) + fib(n - 2))
         };
 
@@ -327,11 +327,11 @@ mod tests {
     assert_eq!(
       Ok(Expr::Int(28)),
       boxx("
-        fn foo(a) {
+        attack foo(a) {
           1 + a
         };
 
-        fn bar(b) {
+        attack bar(b) {
           5 * b
         };
         
@@ -339,21 +339,21 @@ mod tests {
       ")
     );
 
-    assert_eq!(Ok(Expr::Int(12)), boxx("fn b() { 5 + 5 }; let a = b; a() + 2"));
-    assert_eq!(Ok(Expr::Int(12)), boxx("let b = fn() { 5 + 5 }; let a = b; a() + 2"));
-    assert_eq!(Ok(Expr::Int(12)), boxx("fn foo(a) { 1 + a }; foo(4) + 7"));
-    assert_eq!(Ok(Expr::Int(12)), boxx("let foo = fn(a) { 1 + a }; foo(4) + 7"));
+    assert_eq!(Ok(Expr::Int(12)), boxx("attack b() { 5 + 5 }; let a = b; a() + 2"));
+    assert_eq!(Ok(Expr::Int(12)), boxx("let b = attack() { 5 + 5 }; let a = b; a() + 2"));
+    assert_eq!(Ok(Expr::Int(12)), boxx("attack foo(a) { 1 + a }; foo(4) + 7"));
+    assert_eq!(Ok(Expr::Int(12)), boxx("let foo = attack(a) { 1 + a }; foo(4) + 7"));
 
-    assert_eq!(Ok(Expr::Int(2)), boxx("fn foo() { 1 + 1 }; foo()"));
-    assert_eq!(Ok(Expr::Int(7)), boxx("fn foo() { 1 + 3 }; foo() + 3"));
-    assert_eq!(Ok(Expr::Int(9)), boxx("fn foo() { 1 + 3 }; fn bar() { foo() + 1}; 4 + bar()"));
+    assert_eq!(Ok(Expr::Int(2)), boxx("attack foo() { 1 + 1 }; foo()"));
+    assert_eq!(Ok(Expr::Int(7)), boxx("attack foo() { 1 + 3 }; foo() + 3"));
+    assert_eq!(Ok(Expr::Int(9)), boxx("attack foo() { 1 + 3 }; attack bar() { foo() + 1}; 4 + bar()"));
 
-    assert_eq!(Ok(Expr::Int(2)), boxx("let foo = fn() { 1 + 1 }; foo()"));
-    assert_eq!(Ok(Expr::Int(7)), boxx("let foo = fn() { 1 + 3 }; foo() + 3"));
-    assert_eq!(Ok(Expr::Int(9)), boxx("let foo = fn() { 1 + 3 }; let bar = fn() { foo() + 1}; 4 + bar()"));
+    assert_eq!(Ok(Expr::Int(2)), boxx("let foo = attack() { 1 + 1 }; foo()"));
+    assert_eq!(Ok(Expr::Int(7)), boxx("let foo = attack() { 1 + 3 }; foo() + 3"));
+    assert_eq!(Ok(Expr::Int(9)), boxx("let foo = attack() { 1 + 3 }; let bar = attack() { foo() + 1}; 4 + bar()"));
 
-    assert_eq!(Ok(Expr::Int(4)), boxx("fn() { 1 + 3 }()"));
-    assert_eq!(Ok(Expr::Int(4)), boxx("let foo = fn() { 1 + 3 }(); foo"));
+    assert_eq!(Ok(Expr::Int(4)), boxx("attack() { 1 + 3 }()"));
+    assert_eq!(Ok(Expr::Int(4)), boxx("let foo = attack() { 1 + 3 }(); foo"));
   }
 
   #[test]

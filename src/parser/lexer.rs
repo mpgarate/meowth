@@ -41,7 +41,7 @@ impl Lexer {
     let token = match keyword.as_ref() {
       "win" => Token::Bool(true),
       "lose" => Token::Bool(false),
-      "fn" => Token::FnDecl,
+      "attack" => Token::FnDecl,
       "let" => Token::Let,
       "var" => Token::VarDecl,
       "if" => Token::If,
