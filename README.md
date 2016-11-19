@@ -1,4 +1,4 @@
-# Meowth Pokemon Language Interpreter
+# Meowth: Pokemon Language Interpreter
 
 ## Primitive Types
 
