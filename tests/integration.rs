@@ -236,23 +236,23 @@ mod tests {
 
     assert_eq!(
       Ok(Expr::Int(999)),
-      boxx("var b = 1; if (true) { b = 999; }; b ")
+      boxx("var b = 1; if (win) { b = 999; }; b ")
     );
 
     assert_eq!(
       Ok(Expr::Int(34)),
-      boxx("if (true && false) { 32 } else if (!true && true) { 33 } else { 34 }")
+      boxx("if (win && false) { 32 } else if (!win && win ) { 33 } else { 34 }")
     );
 
     
     assert_eq!(
       Ok(Expr::Int(32)),
-      boxx("if (true || false) { 32 } else if (!true && true) { 33 } else { 34 }")
+      boxx("if (win || false) { 32 } else if (!win && win ) { 33 } else { 34 }")
     );
 
     assert_eq!(
       Ok(Expr::Int(30)),
-      boxx("if (true && false) { 32 } else { 30 }")
+      boxx("if (win && false) { 32 } else { 30 }")
     );
 
     assert_eq!(
@@ -262,7 +262,7 @@ mod tests {
 
     assert_eq!(
       Ok(Expr::Int(22)),
-      boxx("if (true) { 11 } else { 0 }; 22")
+      boxx("if (win) { 11 } else { 0 }; 22")
     );
   }
 
@@ -374,30 +374,30 @@ mod tests {
   #[test]
   pub fn test_ternary() {
     let _ = env_logger::init();
-    assert_eq!(Ok(Expr::Int(1)), boxx("true ? 1 : 0"));
+    assert_eq!(Ok(Expr::Int(1)), boxx("win ? 1 : 0"));
     assert_eq!(Ok(Expr::Int(0)), boxx("false ? 1 : 0"));
     assert_eq!(Ok(Expr::Int(3)), boxx("(false ? 1 : 0); 1 + 2"));
     assert_eq!(Ok(Expr::Int(3)), boxx("false ? 1 : 0; 1 + 2"));
     assert_eq!(Ok(Expr::Int(0)), boxx("((1 + 1) > 3) ? 1 : 0"));
-    assert_eq!(Ok(Expr::Int(14)), boxx("((1 + 1) > 3) ? true && false : 12 + 2"));
-    assert_eq!(Ok(Expr::Int(14)), boxx("1 + 1 > 3 ? true && false : 12 + 2"));
+    assert_eq!(Ok(Expr::Int(14)), boxx("((1 + 1) > 3) ? win && false : 12 + 2"));
+    assert_eq!(Ok(Expr::Int(14)), boxx("1 + 1 > 3 ? win && false : 12 + 2"));
     assert_eq!(
       Ok(Expr::Int(10)),
       boxx(
-          "(false || true) ? ((1 + 2 > 12) ? 9 : 10) : ((1 + 2 < 12) ? 6 : 7)"
+          "(false || win) ? ((1 + 2 > 12) ? 9 : 10) : ((1 + 2 < 12) ? 6 : 7)"
        )
     );
     // same as above but without parens
     assert_eq!(
       Ok(Expr::Int(10)),
       boxx(
-          "false || true ? 1 + 2 > 12 ? 9 : 10 : 1 + 2 < 12 ? 6 : 7"
+          "false || win ? 1 + 2 > 12 ? 9 : 10 : 1 + 2 < 12 ? 6 : 7"
        )
     );
 
     assert_eq!(Ok(Expr::Bool(true)), boxx("1 + 2 > (1 == 0 ? 5 : 1)"));
 
-    assert_eq!(Ok(Expr::Int(-1)), boxx("true;false ? 1;2 : 0;-1"));
+    assert_eq!(Ok(Expr::Int(-1)), boxx("win ;false ? 1;2 : 0;-1"));
   }
 
   #[test]
@@ -417,15 +417,15 @@ mod tests {
 
   #[test]
   pub fn test_or_and_and() {
-    assert_eq!(Ok(Expr::Bool(true)), boxx("true && true"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("win && win"));
     assert_eq!(Ok(Expr::Bool(false)), boxx("false && false"));
-    assert_eq!(Ok(Expr::Bool(false)), boxx("true && false"));
-    assert_eq!(Ok(Expr::Bool(false)), boxx("false && true"));
+    assert_eq!(Ok(Expr::Bool(false)), boxx("win && false"));
+    assert_eq!(Ok(Expr::Bool(false)), boxx("false && win "));
 
-    assert_eq!(Ok(Expr::Bool(true)), boxx("true || true"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("win || win"));
     assert_eq!(Ok(Expr::Bool(false)), boxx("false || false"));
-    assert_eq!(Ok(Expr::Bool(true)), boxx("true || false"));
-    assert_eq!(Ok(Expr::Bool(true)), boxx("false || true"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("win || false"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("false || win "));
   }
 
 
@@ -433,16 +433,16 @@ mod tests {
   pub fn test_not_and_neg() {
     let _ = env_logger::init();
 
-    assert_eq!(Ok(Expr::Bool(true)), boxx("!true || true"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("!win || win"));
 
     assert_eq!(Ok(Expr::Int(0)), boxx("-1 * -1 + -1"));
 
     assert_eq!(Ok(Expr::Bool(true)), boxx("!false"));
 
-    assert_eq!(Ok(Expr::Bool(true)), boxx("!(true == false)"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("!(win == false)"));
     assert_eq!(Ok(Expr::Bool(true)), boxx("!((1 == 1) == (3 <= 2))"));
     assert_eq!(Ok(Expr::Bool(false)), boxx("!((1 == 1) == !(3 <= 2))"));
-    assert_eq!(Ok(Expr::Bool(true)), boxx("!!(!(!(true)))"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("!!(!(!(win)))"));
 
     assert_eq!(Ok(Expr::Int(-1)), boxx("-1"));
     assert_eq!(Ok(Expr::Int(-100)), boxx("-(20 * 5)"));
@@ -469,8 +469,8 @@ mod tests {
     assert_eq!(Ok(Expr::Bool(false)), boxx("1 == 2"));
     assert_eq!(Ok(Expr::Bool(false)), boxx("(1 == 1) == (1 == 2)"));
     assert_eq!(Ok(Expr::Bool(true)), boxx("(5 == 2) == (1 == 2)"));
-    assert_eq!(Ok(Expr::Bool(true)), boxx("(6 == 6) == true"));
-    assert_eq!(Ok(Expr::Bool(false)), boxx("1 == true"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("(6 == 6) == win"));
+    assert_eq!(Ok(Expr::Bool(false)), boxx("1 == win"));
     assert_eq!(Ok(Expr::Bool(true)), boxx("false == false"));
 
     assert_eq!(Ok(Expr::Bool(true)), boxx("1 > 0"));
@@ -487,8 +487,8 @@ mod tests {
     assert_eq!(Ok(Expr::Bool(true)), boxx("1 >= 0"));
     assert_eq!(Ok(Expr::Bool(false)), boxx("1 >= 12"));
 
-    assert_eq!(Ok(Expr::Bool(false)), boxx("true != true"));
-    assert_eq!(Ok(Expr::Bool(true)), boxx("true != false"));
+    assert_eq!(Ok(Expr::Bool(false)), boxx("win != win"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("win != false"));
   }
 
   #[test]
