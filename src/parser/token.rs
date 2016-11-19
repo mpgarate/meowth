@@ -33,6 +33,7 @@ pub enum Token {
   While,
   EOF,
   Print,
+  PrintVarName,
 }
 
 impl Token {

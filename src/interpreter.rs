@@ -154,6 +154,13 @@ impl Interpreter {
         println!("{}", v1);
         Expr::Undefined
       },
+      PrintVarName(v1) => {
+        match *v1 {
+          Var(s) => println!("{}", s),
+          _ => return Err(RuntimeError::UnexpectedExpr(String::from("expected Var"), *v1.clone()))
+        }
+        Expr::Undefined
+      },
       /**
        * Search Cases
        */

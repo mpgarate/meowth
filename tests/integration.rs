@@ -56,7 +56,7 @@ mod tests {
   }
 
   #[test]
-  pub fn test_print() {
+  pub fn test_pokedex_and_speak() {
     let _ = env_logger::init();
 
     // TODO: it would be nice to test the stdout for this
@@ -65,6 +65,15 @@ mod tests {
       boxx("
         var x = 555;
         pokedex(x);
+      ")
+    );
+
+    // TODO: it would be nice to test the stdout for this
+    assert_eq!(
+      Ok(Expr::Undefined),
+      boxx("
+        var x = 555;
+        speak(x);
       ")
     );
   }

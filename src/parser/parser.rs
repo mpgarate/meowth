@@ -85,10 +85,23 @@ impl Parser {
   }
 
   fn parse_print(&mut self) -> Result<Expr> {
-    debug!("parsing print...");
     self.eat(Token::Print)?;
     let term = self.binop_expr()?;
     Ok(Expr::Print(Box::new(term)))
+  }
+
+  fn parse_print_var_name(&mut self) -> Result<Expr> {
+    self.eat(Token::PrintVarName)?;
+    self.eat(Token::LParen)?;
+
+    match self.current_token() {
+      Token::Var(s) => {
+        self.eat(Token::Var(s.clone()))?;
+        self.eat(Token::RParen)?;
+        Ok(Expr::PrintVarName(Box::new(Expr::Var(s))))
+      },
+      t => Err(ParserError::InvalidToken(t, String::from("parsing name for PrintVarName")))
+    }
   }
 
   fn parse_fn(&mut self) -> Result<Expr> {
@@ -190,6 +203,9 @@ impl Parser {
       },
       Token::Print => {
         self.parse_print()?
+      },
+      Token::PrintVarName => {
+        self.parse_print_var_name()?
       },
       Token::FnDecl => {
         self.parse_fn()?

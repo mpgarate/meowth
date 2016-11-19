@@ -48,6 +48,7 @@ pub enum Expr {
   FnCall(Box<Expr>, Vec<Expr>),
   Scope(Box<Expr>),
   Print(Box<Expr>),
+  PrintVarName(Box<Expr>),
 }
 
 impl Expr {

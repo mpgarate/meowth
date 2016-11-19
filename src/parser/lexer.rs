@@ -48,6 +48,7 @@ impl Lexer {
       "else" => Token::Else,
       "defend" => Token::While,
       "pokedex" => Token::Print,
+      "speak" => Token::PrintVarName,
       "beats" => Token::Gt,
       "draws" => Token::Eq,
       "survives" => Token::Geq,
