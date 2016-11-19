@@ -156,7 +156,13 @@ impl Interpreter {
       },
       PrintVarName(v1) => {
         match *v1 {
-          Var(s) => println!("{}", s),
+          Var(s) => {
+            if !self.state.contains(s.clone()) {
+              return Err(RuntimeError::VariableNotFound(s));
+            }
+
+            println!("{}", s)
+          }
           _ => return Err(RuntimeError::UnexpectedExpr(String::from("expected Var"), *v1.clone()))
         }
         Expr::Undefined

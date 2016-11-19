@@ -79,6 +79,13 @@ impl State {
     }
   }
 
+  pub fn contains(&mut self, x: String) -> bool {
+    match self.get(x) {
+      Some(_) => true,
+      None => false,
+    }
+  }
+
   pub fn begin_scope(&mut self) {
     self.mem.push(HashMap::new());
   }

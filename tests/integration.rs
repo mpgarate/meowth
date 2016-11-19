@@ -76,6 +76,13 @@ mod tests {
         speak(x);
       ")
     );
+
+    assert_eq!(
+      Err(RuntimeError::VariableNotFound(String::from("foo"))),
+      boxx("
+        speak(foo);
+      ")
+    );
   }
 
   #[test]
