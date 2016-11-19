@@ -49,6 +49,7 @@ impl Lexer {
       "while" => Token::While,
       "print" => Token::Print,
       "beats" => Token::Gt,
+      "draws" => Token::Eq,
       s if s.len() > 0 => Token::Var(s.to_string()),
       s => return Err(LexerError::InvalidKeyword(format!("invalid keyword {:?}", s)))
     };
@@ -132,10 +133,6 @@ impl Lexer {
         Some('|') if self.text.starts_with("||") => {
           self.advance(2);
           Token::Or
-        },
-        Some('=') if self.text.starts_with("==") => {
-          self.advance(2);
-          Token::Eq
         },
         Some('=') => {
           self.advance(1);

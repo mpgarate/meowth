@@ -107,7 +107,7 @@ mod tests {
         var i = 0;
 
         while (i < 10) {
-         if (i % 2 == 0) {
+         if (i % 2 draws 0) {
            i = i + 1
          } else {
            i = i + 3
@@ -306,7 +306,7 @@ mod tests {
       Ok(Expr::Int(21)),
       boxx("
         attack fib(n) {
-          n == 0 ? 0 : (n == 1 ? 1 : fib(n - 1) + fib(n - 2))
+          n draws 0 ? 0 : (n draws 1 ? 1 : fib(n - 1) + fib(n - 2))
         };
 
         fib(8)
@@ -317,7 +317,7 @@ mod tests {
       Ok(Expr::Int(21)),
       boxx("
         var fib = attack(n) {
-          n == 0 ? 0 : (n == 1 ? 1 : fib(n - 1) + fib(n - 2))
+          n draws 0 ? 0 : (n draws 1 ? 1 : fib(n - 1) + fib(n - 2))
         };
 
         fib(8)
@@ -395,7 +395,7 @@ mod tests {
        )
     );
 
-    assert_eq!(Ok(Expr::Bool(true)), boxx("1 + 2 beats (1 == 0 ? 5 : 1)"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("1 + 2 beats (1 draws 0 ? 5 : 1)"));
 
     assert_eq!(Ok(Expr::Int(-1)), boxx("win ;lose ? 1;2 : 0;-1"));
   }
@@ -439,9 +439,9 @@ mod tests {
 
     assert_eq!(Ok(Expr::Bool(true)), boxx("!lose"));
 
-    assert_eq!(Ok(Expr::Bool(true)), boxx("!(win == lose)"));
-    assert_eq!(Ok(Expr::Bool(true)), boxx("!((1 == 1) == (3 <= 2))"));
-    assert_eq!(Ok(Expr::Bool(false)), boxx("!((1 == 1) == !(3 <= 2))"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("!(win draws lose)"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("!((1 draws 1) draws (3 <= 2))"));
+    assert_eq!(Ok(Expr::Bool(false)), boxx("!((1 draws 1) draws !(3 <= 2))"));
     assert_eq!(Ok(Expr::Bool(true)), boxx("!!(!(!(win)))"));
 
     assert_eq!(Ok(Expr::Int(-1)), boxx("-1"));
@@ -465,13 +465,13 @@ mod tests {
 
   #[test]
   pub fn test_comparison_operators() {
-    assert_eq!(Ok(Expr::Bool(true)), boxx("1 == 1"));
-    assert_eq!(Ok(Expr::Bool(false)), boxx("1 == 2"));
-    assert_eq!(Ok(Expr::Bool(false)), boxx("(1 == 1) == (1 == 2)"));
-    assert_eq!(Ok(Expr::Bool(true)), boxx("(5 == 2) == (1 == 2)"));
-    assert_eq!(Ok(Expr::Bool(true)), boxx("(6 == 6) == win"));
-    assert_eq!(Ok(Expr::Bool(false)), boxx("1 == win"));
-    assert_eq!(Ok(Expr::Bool(true)), boxx("lose == lose"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("1 draws 1"));
+    assert_eq!(Ok(Expr::Bool(false)), boxx("1 draws 2"));
+    assert_eq!(Ok(Expr::Bool(false)), boxx("(1 draws 1) draws (1 draws 2)"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("(5 draws 2) draws (1 draws 2)"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("(6 draws 6) draws win"));
+    assert_eq!(Ok(Expr::Bool(false)), boxx("1 draws win"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("lose draws lose"));
 
     assert_eq!(Ok(Expr::Bool(true)), boxx("1 beats 0"));
     assert_eq!(Ok(Expr::Bool(false)), boxx("1 < 0"));
