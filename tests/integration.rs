@@ -483,9 +483,9 @@ mod tests {
     assert_eq!(Ok(Expr::Bool(true)), boxx("88 != 34"));
     assert_eq!(Ok(Expr::Bool(false)), boxx("88 != 88"));
     assert_eq!(Ok(Expr::Bool(true)), boxx("88 <= 88"));
-    assert_eq!(Ok(Expr::Bool(true)), boxx("88 >= 88"));
-    assert_eq!(Ok(Expr::Bool(true)), boxx("1 >= 0"));
-    assert_eq!(Ok(Expr::Bool(false)), boxx("1 >= 12"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("88 survives 88"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("1 survives 0"));
+    assert_eq!(Ok(Expr::Bool(false)), boxx("1 survives 12"));
 
     assert_eq!(Ok(Expr::Bool(false)), boxx("win != win"));
     assert_eq!(Ok(Expr::Bool(true)), boxx("win != lose"));
