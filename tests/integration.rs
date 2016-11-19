@@ -98,7 +98,7 @@ mod tests {
   }
 
   #[test]
-  pub fn test_while_loop() {
+  pub fn test_defend_loop() {
     let _ = env_logger::init();
 
     assert_eq!(
@@ -106,7 +106,7 @@ mod tests {
       boxx("
         var i = 0;
 
-        while (i < 10) {
+        defend (i < 10) {
          if (i % 2 draws 0) {
            i = i + 1
          } else {
@@ -117,14 +117,14 @@ mod tests {
       ")
     );
 
-    assert_eq!(Ok(Expr::Int(11)), boxx("var i = 1; while (i < 11) { i = i + 1; i }; i"));
-    assert_eq!(Ok(Expr::Int(10)), boxx("var i = 1; var x = 4; while (i % 2 != 0) { i = i + x; x = x + 1; x }; i"));
+    assert_eq!(Ok(Expr::Int(11)), boxx("var i = 1; defend (i < 11) { i = i + 1; i }; i"));
+    assert_eq!(Ok(Expr::Int(10)), boxx("var i = 1; var x = 4; defend (i % 2 != 0) { i = i + x; x = x + 1; x }; i"));
     assert_eq!(
       Ok(Expr::Int(96)),
       boxx("
         attack foo(x) { x * 2 };
         var x = 3;
-        while (foo(x) < 100) {
+        defend (foo(x) < 100) {
           x = foo(x)
         };
         x
@@ -136,7 +136,7 @@ mod tests {
       boxx("
         attack foo(x) { x * 2 };
         var x = 3;
-        while ((x = foo(x)) < 96) { 0 };
+        defend ((x = foo(x)) < 96) { 0 };
         x
       ")
     );
@@ -146,7 +146,7 @@ mod tests {
       boxx("
         attack foo(x) { x + 1 };
         var x = 1;
-        while (x < 10) {
+        defend (x < 10) {
           x = foo(x);
           x = 2 * foo(x);
           x + 1
@@ -191,7 +191,7 @@ mod tests {
 
     assert_eq!(
       Ok(Expr::Int(5)),
-      boxx("var x = 3; var y = 2; x = y; y = x; let z = 1; z + x + y")
+      boxx("var x = 3; var y = 2; x = y; y = x; pokeball z = 1; z + x + y")
     );
 
     assert_eq!(
@@ -257,7 +257,7 @@ mod tests {
 
     assert_eq!(
       Ok(Expr::Int(52)),
-      boxx("if (let x = 4; x beats 3) { 52 } else { 30 }")
+      boxx("if (pokeball x = 4; x beats 3) { 52 } else { 30 }")
     );
 
     assert_eq!(
@@ -283,8 +283,8 @@ mod tests {
       ")
     );
 
-    assert_eq!(Ok(Expr::Int(2)), boxx("let x = 4; attack foo() { let x = 1; x + 1 }; foo()"));
-    assert_eq!(Ok(Expr::Int(6)), boxx("let x = 5; attack foo() { x + 1 }; foo()"));
+    assert_eq!(Ok(Expr::Int(2)), boxx("pokeball x = 4; attack foo() { pokeball x = 1; x + 1 }; foo()"));
+    assert_eq!(Ok(Expr::Int(6)), boxx("pokeball x = 5; attack foo() { x + 1 }; foo()"));
     assert_eq!(Ok(Expr::Int(60)), boxx("attack foo() { 5 }; attack bar() { attack foo() { 6 }; foo() * 10 }; bar()"));
     assert_eq!(Ok(Expr::Int(50)), boxx("attack foo() { 5 }; attack bar() { foo() * 10 }; bar()"));
 
@@ -339,36 +339,36 @@ mod tests {
       ")
     );
 
-    assert_eq!(Ok(Expr::Int(12)), boxx("attack b() { 5 + 5 }; let a = b; a() + 2"));
-    assert_eq!(Ok(Expr::Int(12)), boxx("let b = attack() { 5 + 5 }; let a = b; a() + 2"));
+    assert_eq!(Ok(Expr::Int(12)), boxx("attack b() { 5 + 5 }; pokeball a = b; a() + 2"));
+    assert_eq!(Ok(Expr::Int(12)), boxx("pokeball b = attack() { 5 + 5 }; pokeball a = b; a() + 2"));
     assert_eq!(Ok(Expr::Int(12)), boxx("attack foo(a) { 1 + a }; foo(4) + 7"));
-    assert_eq!(Ok(Expr::Int(12)), boxx("let foo = attack(a) { 1 + a }; foo(4) + 7"));
+    assert_eq!(Ok(Expr::Int(12)), boxx("pokeball foo = attack(a) { 1 + a }; foo(4) + 7"));
 
     assert_eq!(Ok(Expr::Int(2)), boxx("attack foo() { 1 + 1 }; foo()"));
     assert_eq!(Ok(Expr::Int(7)), boxx("attack foo() { 1 + 3 }; foo() + 3"));
     assert_eq!(Ok(Expr::Int(9)), boxx("attack foo() { 1 + 3 }; attack bar() { foo() + 1}; 4 + bar()"));
 
-    assert_eq!(Ok(Expr::Int(2)), boxx("let foo = attack() { 1 + 1 }; foo()"));
-    assert_eq!(Ok(Expr::Int(7)), boxx("let foo = attack() { 1 + 3 }; foo() + 3"));
-    assert_eq!(Ok(Expr::Int(9)), boxx("let foo = attack() { 1 + 3 }; let bar = attack() { foo() + 1}; 4 + bar()"));
+    assert_eq!(Ok(Expr::Int(2)), boxx("pokeball foo = attack() { 1 + 1 }; foo()"));
+    assert_eq!(Ok(Expr::Int(7)), boxx("pokeball foo = attack() { 1 + 3 }; foo() + 3"));
+    assert_eq!(Ok(Expr::Int(9)), boxx("pokeball foo = attack() { 1 + 3 }; pokeball bar = attack() { foo() + 1}; 4 + bar()"));
 
     assert_eq!(Ok(Expr::Int(4)), boxx("attack() { 1 + 3 }()"));
-    assert_eq!(Ok(Expr::Int(4)), boxx("let foo = attack() { 1 + 3 }(); foo"));
+    assert_eq!(Ok(Expr::Int(4)), boxx("pokeball foo = attack() { 1 + 3 }(); foo"));
   }
 
   #[test]
   pub fn test_const_decl() {
     let _ = env_logger::init();
-    assert_eq!(Ok(Expr::Int(3)), boxx("let x = 1 + 2; x"));
-    assert_eq!(Ok(Expr::Int(1)), boxx("let x = 1; x"));
-    assert_eq!(Ok(Expr::Int(8)), boxx("let x = 5; let y = 3; let z = x + y; z"));
+    assert_eq!(Ok(Expr::Int(3)), boxx("pokeball x = 1 + 2; x"));
+    assert_eq!(Ok(Expr::Int(1)), boxx("pokeball x = 1; x"));
+    assert_eq!(Ok(Expr::Int(8)), boxx("pokeball x = 5; pokeball y = 3; pokeball z = x + y; z"));
 
-    assert_eq!(Ok(Expr::Int(3)), boxx("let x = (1 beats 2) ? 0 : 3; x"));
+    assert_eq!(Ok(Expr::Int(3)), boxx("pokeball x = (1 beats 2) ? 0 : 3; x"));
 
-    // using let keyword again re-binds value
-    assert_eq!(Ok(Expr::Int(5)), boxx("let x = 2; let x = 3; x + 2"));
+    // using pokeball keyword again re-binds value
+    assert_eq!(Ok(Expr::Int(5)), boxx("pokeball x = 2; pokeball x = 3; x + 2"));
 
-    assert_eq!(Ok(Expr::Int(52)), boxx("let underscore_name = 51; 1 + underscore_name"));
+    assert_eq!(Ok(Expr::Int(52)), boxx("pokeball underscore_name = 51; 1 + underscore_name"));
   }
 
   #[test]
@@ -404,7 +404,7 @@ mod tests {
   pub fn test_seq() {
     let _ = env_logger::init();
     assert_eq!(Ok(Expr::Int(5)), boxx("3;5"));
-    assert_eq!(Ok(Expr::Int(4)), boxx("let x = 3;let y = 1;x + y"));
+    assert_eq!(Ok(Expr::Int(4)), boxx("pokeball x = 3; pokeball y = 1;x + y"));
   }
 
   #[test]
