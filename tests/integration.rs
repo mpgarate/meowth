@@ -257,7 +257,7 @@ mod tests {
 
     assert_eq!(
       Ok(Expr::Int(52)),
-      boxx("if (let x = 4; x > 3) { 52 } else { 30 }")
+      boxx("if (let x = 4; x beats 3) { 52 } else { 30 }")
     );
 
     assert_eq!(
@@ -363,7 +363,7 @@ mod tests {
     assert_eq!(Ok(Expr::Int(1)), boxx("let x = 1; x"));
     assert_eq!(Ok(Expr::Int(8)), boxx("let x = 5; let y = 3; let z = x + y; z"));
 
-    assert_eq!(Ok(Expr::Int(3)), boxx("let x = (1 > 2) ? 0 : 3; x"));
+    assert_eq!(Ok(Expr::Int(3)), boxx("let x = (1 beats 2) ? 0 : 3; x"));
 
     // using let keyword again re-binds value
     assert_eq!(Ok(Expr::Int(5)), boxx("let x = 2; let x = 3; x + 2"));
@@ -378,24 +378,24 @@ mod tests {
     assert_eq!(Ok(Expr::Int(0)), boxx("lose ? 1 : 0"));
     assert_eq!(Ok(Expr::Int(3)), boxx("(lose ? 1 : 0); 1 + 2"));
     assert_eq!(Ok(Expr::Int(3)), boxx("lose ? 1 : 0; 1 + 2"));
-    assert_eq!(Ok(Expr::Int(0)), boxx("((1 + 1) > 3) ? 1 : 0"));
-    assert_eq!(Ok(Expr::Int(14)), boxx("((1 + 1) > 3) ? win && lose : 12 + 2"));
-    assert_eq!(Ok(Expr::Int(14)), boxx("1 + 1 > 3 ? win && lose : 12 + 2"));
+    assert_eq!(Ok(Expr::Int(0)), boxx("((1 + 1) beats 3) ? 1 : 0"));
+    assert_eq!(Ok(Expr::Int(14)), boxx("((1 + 1) beats 3) ? win && lose : 12 + 2"));
+    assert_eq!(Ok(Expr::Int(14)), boxx("1 + 1 beats 3 ? win && lose : 12 + 2"));
     assert_eq!(
       Ok(Expr::Int(10)),
       boxx(
-          "(lose || win) ? ((1 + 2 > 12) ? 9 : 10) : ((1 + 2 < 12) ? 6 : 7)"
+          "(lose || win) ? ((1 + 2 beats 12) ? 9 : 10) : ((1 + 2 < 12) ? 6 : 7)"
        )
     );
     // same as above but without parens
     assert_eq!(
       Ok(Expr::Int(10)),
       boxx(
-          "lose || win ? 1 + 2 > 12 ? 9 : 10 : 1 + 2 < 12 ? 6 : 7"
+          "lose || win ? 1 + 2 beats 12 ? 9 : 10 : 1 + 2 < 12 ? 6 : 7"
        )
     );
 
-    assert_eq!(Ok(Expr::Bool(true)), boxx("1 + 2 > (1 == 0 ? 5 : 1)"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("1 + 2 beats (1 == 0 ? 5 : 1)"));
 
     assert_eq!(Ok(Expr::Int(-1)), boxx("win ;lose ? 1;2 : 0;-1"));
   }
@@ -473,12 +473,12 @@ mod tests {
     assert_eq!(Ok(Expr::Bool(false)), boxx("1 == win"));
     assert_eq!(Ok(Expr::Bool(true)), boxx("lose == lose"));
 
-    assert_eq!(Ok(Expr::Bool(true)), boxx("1 > 0"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("1 beats 0"));
     assert_eq!(Ok(Expr::Bool(false)), boxx("1 < 0"));
 
-    assert_eq!(Ok(Expr::Bool(true)), boxx("88 > 34"));
+    assert_eq!(Ok(Expr::Bool(true)), boxx("88 beats 34"));
     assert_eq!(Ok(Expr::Bool(false)), boxx("1 < 1"));
-    assert_eq!(Ok(Expr::Bool(false)), boxx("1 > 1"));
+    assert_eq!(Ok(Expr::Bool(false)), boxx("1 beats 1"));
 
     assert_eq!(Ok(Expr::Bool(true)), boxx("88 != 34"));
     assert_eq!(Ok(Expr::Bool(false)), boxx("88 != 88"));

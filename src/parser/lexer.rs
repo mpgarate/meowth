@@ -48,6 +48,7 @@ impl Lexer {
       "else" => Token::Else,
       "while" => Token::While,
       "print" => Token::Print,
+      "beats" => Token::Gt,
       s if s.len() > 0 => Token::Var(s.to_string()),
       s => return Err(LexerError::InvalidKeyword(format!("invalid keyword {:?}", s)))
     };
@@ -151,10 +152,6 @@ impl Lexer {
         Some('>') if self.text.starts_with(">=") => {
           self.advance(2);
           Token::Geq
-        },
-        Some('>') => {
-          self.advance(1);
-          Token::Gt
         },
         Some('<') if self.text.starts_with("<=") => {
           self.advance(2);
