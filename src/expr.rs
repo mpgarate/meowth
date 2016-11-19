@@ -101,6 +101,7 @@ impl fmt::Display for Expr {
       Int(n) => write!(f, "{}", n),
       Bool(true) => write!(f, "win"),
       Bool(false) => write!(f, "lose"),
+      Undefined => write!(f, "()"),
       _ => write!(f, "cannot print this thing")
     }
   }

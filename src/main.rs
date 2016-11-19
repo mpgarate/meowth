@@ -22,8 +22,7 @@ fn main() {
         let expr_result = interpreter.eval(&input);
         
         match expr_result {
-          Ok(Expr::Undefined) => (),
-          Ok(exp) => println!("{:?}", exp), 
+          Ok(exp) => println!(" => {}", exp), 
           Err(err) => println!("Error: {}", err),
         }
       },
