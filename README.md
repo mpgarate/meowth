@@ -12,18 +12,24 @@ battle win|lose
 `pokeball` is a const binding
 
 ```
-pokeball mew = 151;
-pokeball pikachu = 25;
+meowth :: pokeball mew = 151;
+ => ()
+meowth :: pokeball pikachu = 25;
+ => ()
 ```
 use `pokedex()` to print a value
 
 ```
-pokedex(mew); // prints 151
+meowth :: pokedex(mew);
+151
+ => ()
 ```
 use `speak()` to print a bound variable name
 
 ```
-speak(pikachu); // prints pikachu
+meowth :: speak(pikachu);
+pikachu
+ => ()
 ```
 `bike` is a variable binding which can be stolen. The original value can be given back someday (but usually isn't). It behaves like a stack.
 
