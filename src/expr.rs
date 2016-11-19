@@ -98,7 +98,8 @@ impl fmt::Display for Expr {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
       Int(n) => write!(f, "{}", n),
-      Bool(b) => write!(f, "{}", b),
+      Bool(true) => write!(f, "win"),
+      Bool(false) => write!(f, "lose"),
       _ => write!(f, "cannot print this thing")
     }
   }

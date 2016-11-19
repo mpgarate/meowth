@@ -47,7 +47,7 @@ impl Lexer {
       "if" => Token::If,
       "else" => Token::Else,
       "defend" => Token::While,
-      "print" => Token::Print,
+      "speak" => Token::Print,
       "beats" => Token::Gt,
       "draws" => Token::Eq,
       "survives" => Token::Geq,
