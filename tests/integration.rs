@@ -64,7 +64,7 @@ mod tests {
       Ok(Expr::Undefined),
       boxx("
         var x = 555;
-        speak(x);
+        pokedex(x);
       ")
     );
   }
