@@ -1,93 +1,84 @@
-# boxx
+# Meowth Pokemon Language Interpreter
 
-Small-step interpreted programming language, written in rust. 
-
-### Prerequisites
-- [Install Rust](https://www.rust-lang.org/en-US/downloads.html)
-
-### Running
-
-Access the REPL
-```sh
-cargo run
-```
-
-Run integration tests
-```sh
-cargo test
-```
-
-### Variable binding
-```
-var x = 1; // => Undefined
-x = 2; // => Undefined
-x // => 2
-```
-
-### Immutable reference binding
-```
-let x = 1; // => Undefined
-x = 2; // => Error: Cannot assign Int(2) to const x
-x // => 1
-```
-
-### Recursive functions
+## Primitive Types
 
 ```
-fn fib(n) {
-  n == 0 ? 0 : (n == 1 ? 1 : fib(n - 1) + fib(n - 2))
+pokemon [0-9]+
+battle win|lose
+```
+
+## Variable bindings
+
+`pokeball` is a const binding
+
+```
+pokeball mew = 151;
+pokeball pikachu = 25;
+```
+use `pokedex()` to print a value
+
+```
+pokedex(mew); // prints 151
+```
+use `speak()` to print a bound variable name
+
+```
+speak(pikachu); // prints pikachu
+```
+`bike` is a variable binding which can be stolen. The original value can be given back someday (but usually isn't). It behaves like a stack.
+
+```
+bike b = 5;
+b = 3;
+pokedex(b); // 3
+pokedex(back(b)); // 3
+pokedex(b); // 5
+```
+
+declare an attack to reuse meowth expressions
+```
+attack gnaw(n) {
+  return n - 10;
 };
 
-fib(8) // => 21
+pokeball kabutops = gnaw(mew);
+pokedex(kabutops); // 141
 ```
 
-Since functions inherit bindings from the outer scope, we can also write:
-
+## Control flow
 ```
-var fib = fn(n) {
-   n == 0 ? 0 : (n == 1 ? 1 : fib(n - 1) + fib(n - 2))
-};
-
-fib(8) // => 21
+battle (pikachu beats mew) {
+  pokedex(pikachu);
+} rebattle (mew draws pikachu) {
+  pokedex(mew);
+  pokedex(pikachu);
+} rebattle (mew survives pikachu) {
+  pokedex(mew);
+} run {
+  pokedex(pikachu);
+}
 ```
-
-### Control flow
+Does something like this:
 ```
-var i = 0;
-
-while (i < 10) {
-   if (i % 2 == 0) {
-      i = i + 1
-   } else {
-      i = i + 3
-   }
-};
-i // => 12
-
-```
-
-### No Type Coercion
-```
-1 + false // => Error: Invalid type conversion. Expected int and found Bool(false)
-
-fn foo(x) { x + 1 }; // => Undefined
-foo + 4 // => Error: Invalid type conversion. Expected int and found Func(Some(Var("foo")), Bop(Plus, Var("x"), Int(1)), [Var("x")])
-foo(1) + 4 // => Int(6)
-
+if (pikachu > mew) {
+  print(pikachu);
+} else if (mew == pikachu) {
+  print(mew);
+  print(pikachu);
+} else if (mew >= pikachu) {
+  print(mew);
+} else {
+  print(pikachu);
+}
 ```
 
-For more examples and planned features, see the [integration tests](https://github.com/mpgarate/boxx/blob/master/tests/integration.rs). 
+Sometimes it is useful to repeat an expression. For this we can use a defend loop.
+```
+// print the numbers 1-10
 
-### Implementation
-Expressions are evaluated using a [small step interpreter](https://github.com/mpgarate/boxx/blob/master/src/interpreter.rs).
-
-boxx uses a hand-rolled [recursive descent parser](https://github.com/mpgarate/boxx/blob/master/src/parser/parser.rs) rather than a parser generator in order to have more control of the implementation and avoid dependencies. This is probably the messiest part of the code and source of the trickiest bugs. 
-
-boxx liberally uses Rust's [Box module](https://doc.rust-lang.org/std/boxed/) for heap allocation. This lets us worry a bit less about lifetimes, since the contents are freed when they go out of scope. 
-
-### Features in progress
- - Human-readable errors for parsing and evaluation. Most cases are covered, but the copy could be cleaned up. 
-   - TODO: error handling for division by zero
- - Handle floating point numbers
- - Data Types and runtime type checking
- - Ability to read in code files. For now, the language only works as a repl. 
+bike i = 0;
+defend(10 beats i) {
+  i = i + 1;
+  pokedex(i);
+}
+```
