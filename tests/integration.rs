@@ -35,7 +35,7 @@ mod tests {
 
     assert_eq!(
       Expr::Undefined,
-      interpreter.eval("var x = 3;").unwrap()
+      interpreter.eval("bike x = 3;").unwrap()
     );
 
     assert_eq!(
@@ -63,7 +63,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Undefined),
       boxx("
-        var x = 555;
+        bike x = 555;
         pokedex(x);
       ")
     );
@@ -72,7 +72,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Undefined),
       boxx("
-        var x = 555;
+        bike x = 555;
         speak(x);
       ")
     );
@@ -92,7 +92,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Int(3)),
       boxx("
-        var i = 0;
+        bike i = 0;
         i = i + 2; // adding two
         i = i + 1; // adding one
         i
@@ -104,7 +104,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Int(2)),
       boxx("
-        var i = 0;
+        bike i = 0;
         i = i + 2; 
         /* not doing this i = i + 1; */
         i
@@ -120,7 +120,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Int(12)),
       boxx("
-        var i = 0;
+        bike i = 0;
 
         defend (i < 10) {
          if (i % 2 draws 0) {
@@ -133,13 +133,13 @@ mod tests {
       ")
     );
 
-    assert_eq!(Ok(Expr::Int(11)), boxx("var i = 1; defend (i < 11) { i = i + 1; i }; i"));
-    assert_eq!(Ok(Expr::Int(10)), boxx("var i = 1; var x = 4; defend (i % 2 != 0) { i = i + x; x = x + 1; x }; i"));
+    assert_eq!(Ok(Expr::Int(11)), boxx("bike i = 1; defend (i < 11) { i = i + 1; i }; i"));
+    assert_eq!(Ok(Expr::Int(10)), boxx("bike i = 1; bike x = 4; defend (i % 2 != 0) { i = i + x; x = x + 1; x }; i"));
     assert_eq!(
       Ok(Expr::Int(96)),
       boxx("
         attack foo(x) { x * 2 };
-        var x = 3;
+        bike x = 3;
         defend (foo(x) < 100) {
           x = foo(x)
         };
@@ -151,7 +151,7 @@ mod tests {
       Ok(Expr::Int(96)),
       boxx("
         attack foo(x) { x * 2 };
-        var x = 3;
+        bike x = 3;
         defend ((x = foo(x)) < 96) { 0 };
         x
       ")
@@ -161,7 +161,7 @@ mod tests {
       Ok(Expr::Int(16)),
       boxx("
         attack foo(x) { x + 1 };
-        var x = 1;
+        bike x = 1;
         defend (x < 10) {
           x = foo(x);
           x = 2 * foo(x);
@@ -176,13 +176,13 @@ mod tests {
   pub fn test_undefined() {
     let _ = env_logger::init();
 
-    assert_eq!(Ok(Expr::Undefined), boxx("var x = 2;"));
+    assert_eq!(Ok(Expr::Undefined), boxx("bike x = 2;"));
 
     assert_eq!(
       Ok(Expr::Int(8)),
       boxx("
-        var x = 4;
-        var foo = attack(z) {
+        bike x = 4;
+        bike foo = attack(z) {
           x = z + 2;
         };
         foo(x);
@@ -193,27 +193,27 @@ mod tests {
   }
 
   #[test]
-  pub fn test_mut_var() {
+  pub fn test_mut_bike() {
     let _ = env_logger::init();
 
-    assert_eq!(Ok(Expr::Int(555)), boxx("var x = 55; var y = 500; x + y"));
+    assert_eq!(Ok(Expr::Int(555)), boxx("bike x = 55; bike y = 500; x + y"));
 
     assert_eq!(
       Ok(Expr::Int(2)),
-      boxx("var x = 1; var y = 2; x = y; y = 3; x")
+      boxx("bike x = 1; bike y = 2; x = y; y = 3; x")
     );
 
-    assert_eq!(Ok(Expr::Int(2)), boxx("var x = 1; x = 2; x"));
+    assert_eq!(Ok(Expr::Int(2)), boxx("bike x = 1; x = 2; x"));
 
     assert_eq!(
       Ok(Expr::Int(5)),
-      boxx("var x = 3; var y = 2; x = y; y = x; pokeball z = 1; z + x + y")
+      boxx("bike x = 3; bike y = 2; x = y; y = x; pokeball z = 1; z + x + y")
     );
 
     assert_eq!(
       Ok(Expr::Int(20)),
       boxx("
-        var x = 4;
+        bike x = 4;
         attack foo(z) {
           x * z 
         };
@@ -223,26 +223,26 @@ mod tests {
 
     assert_eq!(
       Ok(Expr::Int(15)),
-      boxx("var x = 4; attack foo(z) { var x = 7; x + z }; foo(x) + x")
+      boxx("bike x = 4; attack foo(z) { bike x = 7; x + z }; foo(x) + x")
     );
 
     /*
-       TODO: allow var bindings so that attack params can be reassigned
+       TODO: allow bike bindings so that attack params can be reassigned
     assert_eq!(
       Ok(Expr::Int(23)),
-      boxx("var x = 4; attack foo(z) { var x = 7; z = x; x = 12; x + z }; foo(x) + x")
+      boxx("bike x = 4; attack foo(z) { bike x = 7; z = x; x = 12; x + z }; foo(x) + x")
     );
     */
 
-    assert_eq!(Ok(Expr::Int(2)), boxx("var i = 1; i = i + 1; i"));
+    assert_eq!(Ok(Expr::Int(2)), boxx("bike i = 1; i = i + 1; i"));
 
     assert_eq!(
       Ok(Expr::Int(13)),
-      boxx("var x = 10; var foo = attack(x) { var foo = attack (y) { var x = 3; y + x }; foo(x) }; foo(x) ")
+      boxx("bike x = 10; bike foo = attack(x) { bike foo = attack (y) { bike x = 3; y + x }; foo(x) }; foo(x) ")
     );
 
-    assert_eq!(Ok(Expr::Int(5)), boxx("var x = 3; x = attack() { 4 + 1 }; x()"));
-    assert_eq!(Ok(Expr::Int(3)), boxx("var x = attack() { 4 + 1 }; x = 3; x"));
+    assert_eq!(Ok(Expr::Int(5)), boxx("bike x = 3; x = attack() { 4 + 1 }; x()"));
+    assert_eq!(Ok(Expr::Int(3)), boxx("bike x = attack() { 4 + 1 }; x = 3; x"));
   }
 
 
@@ -252,7 +252,7 @@ mod tests {
 
     assert_eq!(
       Ok(Expr::Int(999)),
-      boxx("var b = 1; if (win) { b = 999; }; b ")
+      boxx("bike b = 1; if (win) { b = 999; }; b ")
     );
 
     assert_eq!(
@@ -289,7 +289,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Int(8)),
       boxx("
-        var x = 4;
+        bike x = 4;
         attack foo(z) {
           x = z + 2;
         };
@@ -332,7 +332,7 @@ mod tests {
     assert_eq!(
       Ok(Expr::Int(21)),
       boxx("
-        var fib = attack(n) {
+        bike fib = attack(n) {
           n draws 0 ? 0 : (n draws 1 ? 1 : fib(n - 1) + fib(n - 2))
         };
 

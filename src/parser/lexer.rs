@@ -43,7 +43,7 @@ impl Lexer {
       "lose" => Token::Bool(false),
       "attack" => Token::FnDecl,
       "pokeball" => Token::Let,
-      "var" => Token::VarDecl,
+      "bike" => Token::VarDecl,
       "if" => Token::If,
       "else" => Token::Else,
       "defend" => Token::While,
