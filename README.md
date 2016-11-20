@@ -72,6 +72,31 @@ meowth :: gnaw(kabutops)
  => 131
 ```
 
+```
+meowth :: attack fib(n) { n draws 0 ? 0 : (n draws 1 ? 1 : fib(n - 1) + fib(n - 2)) };
+ => ()
+meowth :: fib(10)
+ => 55
+```
+
+Sometimes it is useful to repeat an expression. For this we can use a defend loop.
+```
+meowth :: bike i = 0;
+ => ()
+meowth :: defend (10 beats i) { i = i + 1; pokedex(i); };
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+ => ()
+```
+
 ## Control flow
 ```
 battle (pikachu beats mew) {
@@ -97,24 +122,6 @@ if (pikachu > mew) {
 } else {
   print(pikachu);
 }
-```
-
-Sometimes it is useful to repeat an expression. For this we can use a defend loop.
-```
-meowth :: bike i = 0;
- => ()
-meowth :: defend (10 beats i) { i = i + 1; pokedex(i); };
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
- => ()
 ```
 
 ## About
