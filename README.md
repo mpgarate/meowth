@@ -34,11 +34,16 @@ pikachu
 `bike` is a variable binding which can be stolen. The original value can be given back someday (but usually isn't). It behaves like a stack.
 
 ```
-bike b = 5;
-b = 3;
-pokedex(b); // 3
-pokedex(back(b)); // 3
-pokedex(b); // 5
+meowth :: bike b = 5;
+ => ()
+meowth :: b = 3;
+ => ()
+meowth :: b   
+ => 3
+meowth :: give(b)
+ => 3
+meowth :: b
+ => 5
 ```
 
 declare an attack to reuse meowth expressions
