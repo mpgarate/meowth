@@ -1,9 +1,9 @@
-extern crate boxx;
+extern crate meowth;
 
 #[cfg(test)]
 mod test {
-  use boxx::parser::parser::{parse};
-  use boxx::expr::{Expr, BinOp};
+  use meowth::parser::parser::{parse};
+  use meowth::expr::{Expr, BinOp};
   extern crate env_logger;
 
   #[test]

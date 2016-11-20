@@ -1,6 +1,6 @@
-extern crate boxx;
+extern crate meowth;
 
-use boxx::interpreter::Interpreter;
+use meowth::interpreter::Interpreter;
 
 use std::io::{Write, stdout, stdin};
 
