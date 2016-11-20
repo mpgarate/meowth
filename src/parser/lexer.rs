@@ -52,6 +52,7 @@ impl Lexer {
       "beats" => Token::Gt,
       "draws" => Token::Eq,
       "survives" => Token::Geq,
+      "give" => Token::Give,
       s if s.len() > 0 => Token::Var(s.to_string()),
       s => return Err(LexerError::InvalidKeyword(format!("invalid keyword {:?}", s)))
     };

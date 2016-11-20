@@ -34,6 +34,7 @@ pub enum Token {
   EOF,
   Print,
   PrintVarName,
+  Give,
 }
 
 impl Token {

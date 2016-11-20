@@ -27,10 +27,7 @@ impl Interpreter {
 
     let e1 = match e.clone() {
       Var(x) => {
-        match self.state.get(x.clone()) {
-          Some(e) => e,
-          None => return Err(RuntimeError::VariableNotFound(x)),
-        }
+        self.state.get(x.clone())?
       },
       /**
        * Values are ineligible for step
@@ -155,17 +152,18 @@ impl Interpreter {
         Expr::Undefined
       },
       PrintVarName(v1) => {
-        match *v1 {
-          Var(s) => {
-            if !self.state.contains(s.clone()) {
-              return Err(RuntimeError::VariableNotFound(s));
-            }
+        let s = v1.to_var()?;
 
-            println!("{}", s)
-          }
-          _ => return Err(RuntimeError::UnexpectedExpr(String::from("expected Var"), *v1.clone()))
+        if !self.state.contains(s.clone()) {
+          return Err(RuntimeError::VariableNotFound(s));
         }
+
+        println!("{}", s);
+
         Expr::Undefined
+      },
+      Give(v1) => {
+        self.state.give(v1.to_var()?)?
       },
       /**
        * Search Cases

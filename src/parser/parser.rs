@@ -201,6 +201,18 @@ impl Parser {
           Expr::Var(s)
         }
       },
+      Token::Give => {
+        self.eat(Token::Give)?;
+        self.eat(Token::LParen)?;
+        match self.current_token() {
+          Token::Var(s) => {
+            self.eat(Token::Var(s.clone()))?;
+            self.eat(Token::RParen)?;
+            Ok(Expr::Give(Box::new(Expr::Var(s))))
+          },
+          t => Err(ParserError::InvalidToken(t, String::from("parsing name for give")))
+        }?
+      },
       Token::Print => {
         self.parse_print()?
       },

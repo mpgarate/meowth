@@ -13,6 +13,8 @@ pub enum RuntimeError {
   InvalidMemoryState(String),
   ParserError(ParserError),
   TooManyIterations(usize),
+  EmptyBike(String),
+  GiveFromConst(String),
 }
 
 impl fmt::Display for RuntimeError {
@@ -25,6 +27,8 @@ impl fmt::Display for RuntimeError {
       RuntimeError::InvalidTypeConversion(ref s, ref e) => write!(f, "Invalid type conversion. Expected {} and found {:?}", s, e),
       RuntimeError::InvalidMemoryState(ref s) => write!(f, "Unexpected internal memory state: {}", s),
       RuntimeError::TooManyIterations(ref n) => write!(f, "Too many iterations while evaluating expression: {}", n),
+      RuntimeError::EmptyBike(ref s) => write!(f, "No value in empty bike {}", s),
+      RuntimeError::GiveFromConst(ref s) => write!(f, "Cannot give from const {}", s),
       RuntimeError::ParserError(ref err) => write!(f, "Parser error: {}", err),
     }
   }
@@ -39,7 +43,9 @@ impl error::Error for RuntimeError {
       RuntimeError::InvalidConstAssignment(_, _) => "Cannot assign to const",
       RuntimeError::InvalidTypeConversion(_, _) => "Invalid type conversion",
       RuntimeError::InvalidMemoryState(_) => "Unexpected internal memory state",
-      RuntimeError::TooManyIterations(_) => "Too many iterations: {}",
+      RuntimeError::TooManyIterations(_) => "Too many iterations",
+      RuntimeError::EmptyBike(_) => "No value in empty bike",
+      RuntimeError::GiveFromConst(_) => "Cannot give from const",
       RuntimeError::ParserError(ref err) => err.description(),
     }
   }
@@ -53,6 +59,8 @@ impl error::Error for RuntimeError {
       RuntimeError::InvalidTypeConversion(_, _) => None,
       RuntimeError::InvalidMemoryState(_) => None,
       RuntimeError::TooManyIterations(_) => None,
+      RuntimeError::EmptyBike(_) => None,
+      RuntimeError::GiveFromConst(_) => None,
       RuntimeError::ParserError(ref err) => Some(err),
     }
   }

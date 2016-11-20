@@ -9,7 +9,7 @@ pub struct State {
 
 #[derive(Clone, Debug)] 
 pub enum Binding {
-  Var(Box<Expr>),
+  Bike(Vec<Box<Expr>>),
   Const(Box<Expr>),
 }
 
@@ -25,7 +25,7 @@ impl State {
   }
 
   pub fn alloc(&mut self, x: String, v1: Expr) -> Result<(), RuntimeError> {
-    let binding = Binding::Var(Box::new(v1));
+    let binding = Binding::Bike(vec!(Box::new(v1)));
 
     match self.mem.last_mut() {
       Some(map) => {
@@ -56,33 +56,54 @@ impl State {
       None => return Err(RuntimeError::InvalidConstAssignment(v1, x)),
     };
 
-    let binding = match map.get_mut(&x) {
-      Some(b) => b.clone(),
-      None => return Err(RuntimeError::InvalidConstAssignment(v1, x)),
+    match map.get_mut(&x) {
+      Some(&mut Binding::Bike(ref mut v)) => {
+        v.push(Box::new(v1));
+      },
+      _ => return Err(RuntimeError::InvalidConstAssignment(v1, x))
     };
 
-    match binding {
-      Binding::Var(_) => map.insert(x, Binding::Var(Box::new(v1))),
-      Binding::Const(_) => return Err(RuntimeError::InvalidConstAssignment(v1, x)),
-    };
     Ok(())
   }
 
-  pub fn get(&mut self, x: String) -> Option<Expr> {
+  pub fn get(&mut self, x: String) -> Result<Expr, RuntimeError> {
     match self.first_map_for(x.clone()) {
       Some(map) => match map.get(&x).clone() {
-        Some(&Binding::Var(ref e)) => Some(*e.clone()),
-        Some(&Binding::Const(ref e)) => Some(*e.clone()),
-        _ => None,
+        Some(&Binding::Bike(ref b)) => {
+          match b.last() {
+            Some(e) => Ok(*e.clone()),
+            _ => Err(RuntimeError::EmptyBike(x)),
+          }
+        }
+        Some(&Binding::Const(ref e)) => Ok(*e.clone()),
+        _ => Err(RuntimeError::VariableNotFound(x)),
       },
-      None => None,
+      None => Err(RuntimeError::VariableNotFound(x)),
     }
   }
 
   pub fn contains(&mut self, x: String) -> bool {
     match self.get(x) {
-      Some(_) => true,
-      None => false,
+      Ok(_) => true,
+      _ => false,
+    }
+  }
+
+  pub fn give(&mut self, x: String) -> Result<Expr, RuntimeError> {
+    match self.first_map_for(x.clone()) {
+      Some(map) => match map.get_mut(&x) {
+        Some(binding) => match binding {
+          &mut Binding::Bike(ref mut v) => {
+            match v.pop() {
+              Some(e) => Ok(*e),
+              None => Err(RuntimeError::EmptyBike(x)),
+            }
+          }
+          _ => Err(RuntimeError::GiveFromConst(x)),
+        },
+        _ => Err(RuntimeError::VariableNotFound(x)),
+      },
+      None => Err(RuntimeError::VariableNotFound(x)),
     }
   }
 

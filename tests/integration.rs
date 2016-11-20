@@ -196,6 +196,34 @@ mod tests {
   pub fn test_mut_bike() {
     let _ = env_logger::init();
 
+    assert_eq!(
+      Ok(Expr::Int(100)),
+      boxx("
+       bike x = 100;
+       x = 10;
+       give(x);
+       x
+     ")
+    );
+
+    assert_eq!(
+      Ok(Expr::Int(10)),
+      boxx("
+       bike x = 100;
+       x = 10;
+       give(x)
+     ")
+    );
+
+    assert_eq!(
+      Err(RuntimeError::EmptyBike("x".to_string())),
+      boxx("
+       bike x = 100;
+       give(x);
+       give(x)
+     ")
+    );
+
     assert_eq!(Ok(Expr::Int(555)), boxx("bike x = 55; bike y = 500; x + y"));
 
     assert_eq!(

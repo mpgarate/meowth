@@ -49,6 +49,7 @@ pub enum Expr {
   Scope(Box<Expr>),
   Print(Box<Expr>),
   PrintVarName(Box<Expr>),
+  Give(Box<Expr>),
 }
 
 impl Expr {
@@ -102,7 +103,7 @@ impl fmt::Display for Expr {
       Bool(true) => write!(f, "win"),
       Bool(false) => write!(f, "lose"),
       Undefined => write!(f, "()"),
-      _ => write!(f, "cannot print this thing")
+      _ => write!(f, "cannot print this thing: {:?}", self)
     }
   }
 }
