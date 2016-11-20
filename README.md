@@ -62,6 +62,8 @@ meowth :: pokeball kabutops = gnaw(mew);
  => ()
 meowth :: kabutops    
  => 141
+meowth :: gnaw(kabutops)
+ => 131
 ```
 
 ## Control flow
