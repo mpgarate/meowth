@@ -125,7 +125,7 @@ mod tests {
         defend (i < 10) {
          if (i % 2 draws 0) {
            i = i + 1
-         } else {
+         } run {
            i = i + 3
          }
         };
@@ -275,7 +275,7 @@ mod tests {
 
 
   #[test]
-  pub fn test_if_else() {
+  pub fn test_battle_rebattle_run() {
     let _ = env_logger::init();
 
     assert_eq!(
@@ -285,28 +285,28 @@ mod tests {
 
     assert_eq!(
       Ok(Expr::Int(34)),
-      meowth("if (win && lose) { 32 } else if (!win && win) { 33 } else { 34 }")
+      meowth("if (win && lose) { 32 } rebattle (!win && win) { 33 } run { 34 }")
     );
 
     
     assert_eq!(
       Ok(Expr::Int(32)),
-      meowth("if (win || lose) { 32 } else if (!win && win) { 33 } else { 34 }")
+      meowth("if (win || lose) { 32 } rebattle (!win && win) { 33 } run { 34 }")
     );
 
     assert_eq!(
       Ok(Expr::Int(30)),
-      meowth("if (win && lose) { 32 } else { 30 }")
+      meowth("if (win && lose) { 32 } run { 30 }")
     );
 
     assert_eq!(
       Ok(Expr::Int(52)),
-      meowth("if (pokeball x = 4; x beats 3) { 52 } else { 30 }")
+      meowth("if (pokeball x = 4; x beats 3) { 52 } run { 30 }")
     );
 
     assert_eq!(
       Ok(Expr::Int(22)),
-      meowth("if (win) { 11 } else { 0 }; 22")
+      meowth("if (win) { 11 } run { 0 }; 22")
     );
   }
 

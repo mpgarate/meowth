@@ -245,6 +245,15 @@ impl Parser {
       Token::If => {
         self.parse_if()?
       },
+      Token::Rebattle => {
+        self.eat(Token::Rebattle)?;
+
+        let e1 = self.binop_expr()?;
+        let e2 = self.block()?;
+        let e3 = self.statement()?;
+
+        self.ternary(e1, e2, e3)
+      },
       Token::Else => {
         self.eat(Token::Else)?;
         self.statement()?

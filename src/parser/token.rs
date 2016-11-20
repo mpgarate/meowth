@@ -35,6 +35,7 @@ pub enum Token {
   Print,
   PrintVarName,
   Give,
+  Rebattle,
 }
 
 impl Token {
