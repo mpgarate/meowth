@@ -3,9 +3,15 @@
 ## Primitive Types
 
 ```
-pokemon [0-9]+
-battle win|lose
+// pokemon [0-9]+
+// battle win|lose
+
+meowth :: win ? 111 : 222
+ => 111
+meowth :: lose ? 111 : 222
+ => 222
 ```
+
 
 ## Variable bindings
 
