@@ -48,12 +48,14 @@ meowth :: b
 
 declare an attack to reuse meowth expressions
 ```
-attack gnaw(n) {
-  return n - 10;
-};
-
-pokeball kabutops = gnaw(mew);
-pokedex(kabutops); // 141
+meowth :: pokeball mew = 151;
+ => ()
+meowth :: attack gnaw(n) { n - 10 };
+ => ()
+meowth :: pokeball kabutops = gnaw(mew);
+ => ()
+meowth :: kabutops    
+ => 141
 ```
 
 ## Control flow
