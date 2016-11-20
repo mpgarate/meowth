@@ -123,7 +123,7 @@ mod tests {
         bike i = 0;
 
         defend (i < 10) {
-         if (i % 2 draws 0) {
+         battle (i % 2 draws 0) {
            i = i + 1
          } run {
            i = i + 3
@@ -280,33 +280,33 @@ mod tests {
 
     assert_eq!(
       Ok(Expr::Int(999)),
-      meowth("bike b = 1; if (win) { b = 999; }; b ")
+      meowth("bike b = 1; battle (win) { b = 999; }; b ")
     );
 
     assert_eq!(
       Ok(Expr::Int(34)),
-      meowth("if (win && lose) { 32 } rebattle (!win && win) { 33 } run { 34 }")
+      meowth("battle (win && lose) { 32 } rebattle (!win && win) { 33 } run { 34 }")
     );
 
     
     assert_eq!(
       Ok(Expr::Int(32)),
-      meowth("if (win || lose) { 32 } rebattle (!win && win) { 33 } run { 34 }")
+      meowth("battle (win || lose) { 32 } rebattle (!win && win) { 33 } run { 34 }")
     );
 
     assert_eq!(
       Ok(Expr::Int(30)),
-      meowth("if (win && lose) { 32 } run { 30 }")
+      meowth("battle (win && lose) { 32 } run { 30 }")
     );
 
     assert_eq!(
       Ok(Expr::Int(52)),
-      meowth("if (pokeball x = 4; x beats 3) { 52 } run { 30 }")
+      meowth("battle (pokeball x = 4; x beats 3) { 52 } run { 30 }")
     );
 
     assert_eq!(
       Ok(Expr::Int(22)),
-      meowth("if (win) { 11 } run { 0 }; 22")
+      meowth("battle (win) { 11 } run { 0 }; 22")
     );
   }
 
